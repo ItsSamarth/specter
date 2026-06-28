@@ -90,14 +90,14 @@ class AgentCore:
         if RetrieverStatus is None:
             return
         if status == RetrieverStatus.CHROMADB_ACTIVE:
-            console.print("[green]✓ 知识库已启用 (ChromaDB)[/green]")
+            console.print("[green]✓ Knowledge base enabled (ChromaDB)[/green]")
         elif status == RetrieverStatus.KEYWORD_FALLBACK:
             console.print(
-                "[yellow]⚠ 知识库已降级为关键词模式 "
-                "(chromadb 未安装，运行 pip install specter[kb] 启用语义搜索)[/yellow]"
+                "[yellow]⚠ Knowledge base downgraded to keyword mode "
+                "(chromadb not installed; run pip install specter[kb] to enable semantic search)[/yellow]"
             )
         else:
-            console.print("[red]✗ 知识库已禁用 (无可用数据)[/red]")
+            console.print("[red]✗ Knowledge base disabled (no data available)[/red]")
 
     def _maybe_auto_save_session(self) -> None:
         """Persist session state when auto-save is enabled."""
@@ -154,7 +154,7 @@ class AgentCore:
             task_constraints=parsed_constraints,
             is_recon_phase=detected_phase == PentestPhase.RECON,
             is_ctf_mode=any(
-                kw in user_lower for kw in ["ctf", "flag", "夺旗", "解题", "找flag", "找出flag"]
+                kw in user_lower for kw in ["ctf", "flag", "capture the flag", "solve", "find flag", "find the flag"]
             ),
         )
         self.runtime.user_vuln_hint_rounds = 3 if self.runtime.user_vuln_hint else 0
@@ -169,16 +169,15 @@ class AgentCore:
             "personnel": False,
         }
         social_engineering_keywords = [
-            "社会工程",
-            "社工",
-            "人员信息",
-            "作者追踪",
-            "人物追踪",
-            "人物画像",
+            "social engineering",
+            "personnel info",
+            "author tracking",
+            "person tracking",
+            "persona profiling",
             "osint",
-            "情报",
-            "作者",
-            "调查",
+            "intelligence",
+            "author",
+            "investigate",
         ]
         self.context.state.recon_dimension4_active = self.runtime.is_recon_phase and any(
             kw in user_lower for kw in social_engineering_keywords
@@ -186,14 +185,14 @@ class AgentCore:
         # Re-bind finding parser to the new runtime object
         self._finding_parser = FindingParser(self.context, self.runtime)
 
-        # 跨周期恢复反思记忆（persistent 模式）：保留失败路径/历史/归因，重置本周期 stuck 计数
+        # Cross-cycle reflexion-memory restore (persistent mode): keep failed paths/history/attribution, reset this cycle stuck count
         self._restore_reflexion_history()
 
-    # ── Reflexion 跨周期持久化 ───────────────────────────────────────
-    _REFLEXION_ATTEMPT_MEMORY = 50  # 跨周期最多携带的 attempt 条数，限制内存与归因开销
+    # ── Reflexion cross-cycle persistence ────────────────────────────
+    _REFLEXION_ATTEMPT_MEMORY = 50  # Max attempts carried across cycles, limiting memory and attribution overhead
 
     def _restore_reflexion_history(self) -> None:
-        """从 SessionState 快照恢复反思的记忆部分，但重置每周期 stuck 计数。"""
+        """Restore the memory part of reflexion from the SessionState snapshot, but reset per-cycle stuck counts."""
         if not getattr(self.config.session, "reflexion_enabled", True):
             return
         snapshot = getattr(self.context.state, "reflexion_snapshot", None)
@@ -206,18 +205,18 @@ class AgentCore:
             restored = ReflexionState.model_validate(snapshot)
         except Exception:
             return
-        # 记忆：失败路径 / 归因素材 / 最近 attempts / 已知障碍
+        # Memory: failed paths / attribution material / recent attempts / known obstacles
         reflexion.state.failed_paths = restored.failed_paths
         reflexion.state.constraints = restored.constraints
         reflexion.state.attempts = restored.attempts[-self._REFLEXION_ATTEMPT_MEMORY :]
         reflexion.state.last_vuln_type = restored.last_vuln_type
-        # 每周期重置：连败计数 / 同类失败计数 / 升级驱动（reflections）
+        # Reset per cycle: consecutive-failure count / same-type failure count / escalation driver (reflections)
         reflexion.state.consecutive_failures = 0
         reflexion.state.vuln_type_fail_count = 0
         reflexion.state.reflections = []
 
     def _save_reflexion_snapshot(self) -> None:
-        """把当前反思状态写回 SessionState 快照，供下个周期/同目标恢复时复用。"""
+        """Write the current reflexion state back to the SessionState snapshot for reuse by the next cycle / same-target resume."""
         if not getattr(self.config.session, "reflexion_enabled", True):
             return
         reflexion = getattr(self.runtime, "reflexion", None)
@@ -237,7 +236,7 @@ class AgentCore:
                     base_url=self.config.llm.base_url,
                 )
             except ImportError:
-                raise RuntimeError("请安装 openai 包: pip install openai")
+                raise RuntimeError("Please install the openai package: pip install openai")
         return self._client
 
     @staticmethod
@@ -268,16 +267,15 @@ class AgentCore:
             else None
         )
         personnel_keywords = [
-            "社会工程",
-            "社工",
-            "人员信息",
-            "作者追踪",
-            "人物追踪",
-            "人物画像",
+            "social engineering",
+            "personnel info",
+            "author tracking",
+            "person tracking",
+            "persona profiling",
             "osint",
-            "情报",
-            "调查",
-            "作者",
+            "intelligence",
+            "investigate",
+            "author",
         ]
         enable_personnel = any(kw in (user_input or "").lower() for kw in personnel_keywords)
         if (
@@ -312,7 +310,7 @@ class AgentCore:
     def _extract_user_vuln_hint(self, user_input: str) -> str:
         """Extract explicit vulnerability hints from user input.
 
-        When the user says "这个点有SQL注入，测试一下" or "帮我测一下XSS"，
+        When the user says "this point has SQL injection, test it" or "test XSS for me",
         returns a directive telling LLM to test that specific vuln immediately.
         Returns "" if no explicit hint found.
         """
@@ -382,7 +380,7 @@ class AgentCore:
             self._maybe_auto_save_session()
 
         except Exception as e:
-            result.output = f"[!] Agent 错误: {e}"
+            result.output = f"[!] Agent error: {e}"
 
         return result
 
@@ -404,7 +402,7 @@ class AgentCore:
         """Build context string for the current round in auto loop."""
         return build_round_context(self, round_num, max_rounds)
 
-    # ── 目标驱动求解循环（黑板图 OODA，无固定轮数）──────────────────
+    # ── Goal-driven solve loop (blackboard OODA, no fixed rounds) ──────────────────
 
     async def solve(
         self,
@@ -418,7 +416,7 @@ class AgentCore:
         stream_sink: Optional["StreamSink"] = None,
         on_event: Optional[Callable[[str, dict], None]] = None,
     ) -> Any:
-        """以「目标达成 / 探索前沿耗尽 / 安全预算」为终止条件求解，而非固定轮数。"""
+        """Solve with termination on "goal reached / frontier exhausted / safety budget" rather than a fixed number of rounds."""
         from specter.agent.solver import solve as run_solve
 
         detected_target = target or self._detect_target(user_input)
@@ -454,7 +452,7 @@ class AgentCore:
         on_cycle_step: Optional[Callable[[int, int, AgentResult], None]] = None,
         on_cycle_complete: Optional[Callable[[int, "PersistentCycleResult"], None]] = None,
         *,
-        # stream_sink 由 main.py 传入，逐级透传到 call_llm_auto_stream 实现流式输出
+        # stream_sink is passed in by main.py and propagated down to call_llm_auto_stream for streaming output
         stream_sink: Optional["StreamSink"] = None,
     ) -> list["PersistentCycleResult"]:
         """Persistent penetration test — runs cycles of auto_pentest until stopped."""
@@ -499,7 +497,7 @@ class AgentCore:
         Only steps with actual discoveries or confirmations count as progress.
         A step is considered NOT meaningful only when it is a PURE failure —
         i.e., it mentions failure indicators AND has no progress indicators at all.
-        If a step has BOTH failure and progress keywords (e.g. "XSS测试超时但发现新路径"),
+        If a step has BOTH failure and progress keywords (e.g. "XSS test timed out but found a new path"),
         it is still meaningful because progress was made.
         """
         return is_meaningful_step(step)
