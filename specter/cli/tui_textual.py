@@ -1,13 +1,13 @@
 """Textual-powered TUI workbench for Specter."""
 
-# [新增] 2026-06-10
-# 目的: 用 Textual 框架构建现代化全屏 TUI 工作台, 替代旧的 Rich 数字菜单循环
-# 实现:
-#   - CommandPalette: slash 命令模糊搜索 + 键盘导航面板
-#   - SecondaryPopup: 辅助信息弹窗(历史快照/诊断报告)
-#   - DashboardScreen: 主导航仪表盘, 集成命令输入行与状态栏
-#   - SpecterApp: Textual App 入口, CSS 主题化样式
-#   - run_tui_textual(): 事件循环入口, 支持 launch 动作后自动重新加载配置
+# [new] 2026-06-10
+# Purpose: build a modern full-screen TUI workbench with the Textual framework, replacing the old Rich numeric-menu loop
+# Implementation:
+#   - CommandPalette: slash-command fuzzy search + keyboard navigation panel
+#   - SecondaryPopup: auxiliary info popup (history snapshots / diagnostic reports)
+#   - DashboardScreen: main navigation dashboard integrating the command input line and status bar
+#   - SpecterApp: Textual App entry point with CSS theming
+#   - run_tui_textual(): event-loop entry point; reloads config automatically after a launch action
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from textual.widgets import Input, ListItem, ListView, RichLog, Static
 
 import specter.cli.tui as _tui
 
-# [新增] 2026-06-10 Nyaecho - 自然语言驱动 / 响应式侧边栏: 新增颜色常量和动作辅助函数导入
+# [new] 2026-06-10 Nyaecho - Natural-language driver / responsive sidebar: added color constants and action helper imports
 from specter.cli.tui import (
     C_ACCENT,
     C_ERROR,
@@ -69,7 +69,7 @@ def _register_handler(cmd: str):
 
 def _dispatch(session: dict[str, Any], text: str) -> str | None:
     """Dispatch slash command. Returns 'quit', 'launch', or None."""
-    # [修改] 2026-06-10 Nyaecho - 修复空 parts 导致 IndexError 的问题
+    # [change] 2026-06-10 Nyaecho - Fixed an IndexError caused by empty parts
     parts = text.lstrip("/").strip().split(maxsplit=1)
     if not parts:
         return None
@@ -502,7 +502,7 @@ def _h_mode(session: dict[str, Any], args: str) -> str | None:
 @_register_handler("scope")
 @_register_handler("s")
 def _h_scope(session: dict[str, Any], args: str) -> str | None:
-    # [修改] 2026-06-10 Nyaecho - 修复 /scope port 验证问题，添加端口验证防止 ValueError
+    # [change] 2026-06-10 Nyaecho - Fixed /scope port validation by adding port validation to prevent ValueError
     state = session["state"]
     if args:
         for pair in args.split():
@@ -554,7 +554,7 @@ def _h_start(session: dict[str, Any], args: str) -> str | None:
     mode = _tui.MODES[state.mode]
     if args in ("-f", "--force"):
         return "launch"
-    # [新增] 2026-06-10 Nyaecho - TUI自然语言驱动: /run <text> 将 text 作为 NL prompt 直接 launch
+    # [new] 2026-06-10 Nyaecho - TUI natural-language driver: /run <text> launches text directly as an NL prompt
     if args:
         session["_nl_text"] = args
         session["_nl_history"] = args
@@ -611,7 +611,7 @@ def _h_diag(session: dict[str, Any], args: str) -> str | None:
 @_register_handler("config")
 @_register_handler("cfg")
 def _h_config(session: dict[str, Any], args: str) -> str | None:
-    # [修改] 重构 config 流程: 选择提供商 → 输入 API Key → 获取模型列表 → 选择/输入模型
+    # [change] Reworked the config flow: choose provider -> enter API key -> fetch model list -> select/enter model
     config = session["config"]
     providers = [item["provider"] for item in list_providers()]
     cur = config.llm.provider
@@ -621,7 +621,7 @@ def _h_config(session: dict[str, Any], args: str) -> str | None:
         if v and v != cur:
             config = apply_provider_preset(config, v)
             session["config"] = config
-        # 流程变更：选择提供商后先输入 API Key
+        # Flow change: after choosing a provider, enter the API key first
         ks = _("tui.api_key_configured") if session["config"].llm.api_key else _("tui.api_key_not_configured")
         _set_prompt(session, "input", _("tui.prompt_enter_apikey", status=ks), on_apikey)
 
@@ -630,11 +630,11 @@ def _h_config(session: dict[str, Any], args: str) -> str | None:
             session["config"].llm.api_key = v.strip()
         base_url = session["config"].llm.base_url
         api_key = session["config"].llm.api_key
-        # custom 提供商或缺少 base_url 时跳过获取，直接手动输入
+        # For a custom provider or when base_url is missing, skip fetching and enter manually
         if not base_url or not api_key:
             _set_prompt(session, "input", _("tui.prompt_enter_model_fallback", model=session["config"].llm.model), on_model_input, session["config"].llm.model)
             return
-        # 显示 loading，后台获取模型列表
+        # Show loading and fetch the model list in the background
         session["_fetch_models_args"] = (base_url, api_key)
         _set_prompt(session, "loading", _("tui.fetching_models"), on_models_loaded)
 
@@ -711,7 +711,7 @@ def _h_language(session: dict[str, Any], args: str) -> str | None:
 @_register_handler("cont")
 def _h_continue(session: dict[str, Any], args: str) -> str | None:
     if session.get("_last_draft") is not None:
-        # [修改] 2026-06-10 Nyaecho - 方案A累积拼接: /continue [text] 追加到 _nl_history, 无参则复用
+        # [change] 2026-06-10 Nyaecho - Option A cumulative concatenation: /continue [text] appends to _nl_history; reuses it when no argument is given
         history = session.get("_nl_history", "")
         if args:
             history = f"{history}; {args}" if history else args
@@ -741,11 +741,11 @@ class DashboardScreen(Screen):
         self._worker_running = False
         self._output_queue: Queue = Queue()
         self._output_lines: list[str] = []
-        # [新增] 2026-06-10 Nyaecho - 状态栏消息自动消失: 用递增计数器区分新旧消息定时器
+        # [new] 2026-06-10 Nyaecho - Auto-dismiss status-bar messages: an incrementing counter distinguishes new vs. old message timers
         self._bar_msg_id: int = 0
 
     def compose(self) -> ComposeResult:
-        # [修改] 2026-06-10 Nyaecho - 响应式分栏布局: #output-log 移入 Horizontal #exec-row 与 #exec-sidebar 并排
+        # [change] 2026-06-10 Nyaecho - Responsive split layout: #output-log moved into Horizontal #exec-row, side by side with #exec-sidebar
         with Vertical(id="body"):
             yield Static(id="dashboard")
             with Horizontal(id="exec-row"):
@@ -775,7 +775,7 @@ class DashboardScreen(Screen):
         self.query_one("#dashboard").update(dash)
 
     def _set_bar(self, text: str = "", style: str = "") -> None:
-        # [修改] 2026-06-10 Nyaecho - 状态栏消息4秒自动消失: msg_id 计数器防止旧定时器错误清除新消息
+        # [change] 2026-06-10 Nyaecho - Status-bar messages auto-dismiss after 4s: the msg_id counter prevents old timers from clearing new messages
         self._bar_msg_id += 1
         msg_id = self._bar_msg_id
         bar = self.query_one("#status-bar")
@@ -787,7 +787,7 @@ class DashboardScreen(Screen):
             bar.remove_class("-active")
 
     def _dismiss_bar(self, msg_id: int) -> None:
-        # [新增] 2026-06-10 Nyaecho - 仅当前消息ID匹配时才关闭状态栏, 防止旧定时器覆盖新消息
+        # [new] 2026-06-10 Nyaecho - Close the status bar only when the current message ID matches, preventing old timers from overriding new messages
         if self._bar_msg_id == msg_id:
             self.query_one("#status-bar").remove_class("-active")
 
@@ -832,7 +832,7 @@ class DashboardScreen(Screen):
                 self._s["_launch"] = False
                 draft = self._s.get("_last_draft")
                 continuing = self._s.pop("_continuing", False)
-                # [修改] 2026-06-10 Nyaecho - 携带 NL 文本传递给子进程, /continue 时携带累积的历史 NL
+                # [change] 2026-06-10 Nyaecho - Pass the NL text to the subprocess; for /continue, carry the accumulated NL history
                 nl_text = self._s.pop("_nl_text", None)
                 self._start_execution(draft, continuing=continuing, nl_text=nl_text)
                 return
@@ -850,7 +850,7 @@ class DashboardScreen(Screen):
                     self.app.recompose()
                     return
         elif text:
-            # [新增] 2026-06-10 Nyaecho - TUI自然语言驱动: 无斜杠前缀的纯文本直接作为NL prompt启动
+            # [new] 2026-06-10 Nyaecho - TUI natural-language driver: plain text without a slash prefix launches directly as an NL prompt
             state = self._s["state"]
             if not state.target.strip():
                 self._set_bar(_("tui.please_set_target"), C_WARNING)
@@ -921,7 +921,7 @@ class DashboardScreen(Screen):
             pass
 
     def _start_execution(self, draft: Any = None, *, continuing: bool = False, nl_text: str | None = None) -> None:
-        # [修改] 2026-06-10 Nyaecho - 响应式分栏布局: 隐藏仪表盘, 显示 exec-row, 根据终端宽度动态显隐侧边栏
+        # [change] 2026-06-10 Nyaecho - Responsive split layout: hide the dashboard, show exec-row, and show/hide the sidebar dynamically based on terminal width
         self.query_one("#dashboard").add_class("-hidden")
         log = self.query_one("#output-log", RichLog)
         if not continuing:
@@ -941,7 +941,7 @@ class DashboardScreen(Screen):
             draft = _draft_from_state(self._s["state"])
         self._s["_last_draft"] = draft
         self._proc = None
-        # [新增] 2026-06-10 Nyaecho - 根据终端宽度决定是否显示侧边栏 (宽度>=100列时显示)
+        # [new] 2026-06-10 Nyaecho - Decide whether to show the sidebar based on terminal width (shown when width >= 100 columns)
         self._apply_responsive_layout()
         threading.Thread(
             target=self._run_subprocess, args=(draft, nl_text), daemon=True
@@ -950,7 +950,7 @@ class DashboardScreen(Screen):
         self._tick_spinner()
 
     def _run_subprocess(self, draft: Any, nl_text: str | None = None) -> None:
-        # [修改] 2026-06-10 Nyaecho - 将 NL 文本通过 --prompt 传递给 CLI 子进程
+        # [change] 2026-06-10 Nyaecho - Pass the NL text to the CLI subprocess via --prompt
         import subprocess
         import sys
 
@@ -1005,7 +1005,7 @@ class DashboardScreen(Screen):
         self.set_timer(0.12, self._tick_spinner)
 
     def _apply_responsive_layout(self) -> None:
-        # [新增] 2026-06-10 Nyaecho - 响应式分栏: 终端宽度>=100列时显示侧边栏摘要, 否则仅显示输出日志
+        # [new] 2026-06-10 Nyaecho - Responsive split: show the sidebar summary when terminal width >= 100 columns, otherwise only the output log
         threshold = 100
         show_sidebar = self.app.size.width >= threshold
         sidebar = self.query_one("#exec-sidebar")
@@ -1017,7 +1017,7 @@ class DashboardScreen(Screen):
             sidebar.remove_class("-active")
 
     def _check_responsive_resize(self) -> None:
-        # [新增] 2026-06-10 Nyaecho - 执行期间每0.3秒检测终端宽度变化, 动态切换分栏模式
+        # [new] 2026-06-10 Nyaecho - During execution, check terminal-width changes every 0.3s and switch split mode dynamically
         if not self._worker_running:
             return
         self._apply_responsive_layout()
@@ -1035,7 +1035,7 @@ class DashboardScreen(Screen):
 
     def _start_polling(self) -> None:
         self._poll_output()
-        # [新增] 2026-06-10 Nyaecho - 轮询同时检测终端宽度变化, 实现响应式分栏
+        # [new] 2026-06-10 Nyaecho - Polling also detects terminal-width changes to implement a responsive split
         self._check_responsive_resize()
         if self._worker_running:
             self.set_timer(0.3, self._start_polling)
@@ -1144,7 +1144,7 @@ class DashboardScreen(Screen):
         self._set_bar("")
 
     def _build_exec_sidebar(self) -> str:
-        # [新增] 2026-06-10 Nyaecho - 构建执行时侧边栏摘要: Target/Mode/Scope/Allow-Block/Resume/LLM 信息
+        # [new] 2026-06-10 Nyaecho - Build the execution-time sidebar summary: Target/Mode/Scope/Allow-Block/Resume/LLM info
         state = self._s["state"]
         mode = _tui.MODES[state.mode]
 
@@ -1213,7 +1213,7 @@ class DashboardScreen(Screen):
 
 # ── CSS ──
 
-# [修改] 2026-06-10 Nyaecho - 新增 #exec-row 分栏容器 + #exec-sidebar 30列侧边栏, 支持终端宽度>=100列时分栏显示
+# [change] 2026-06-10 Nyaecho - Added the #exec-row split container + a 30-column #exec-sidebar, enabling split display when terminal width >= 100 columns
 CSS = """
 #body {
     height: 1fr;
