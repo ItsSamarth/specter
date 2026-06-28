@@ -29,29 +29,29 @@ Use this skill for authorized security testing, defense validation, training, or
 
 ## Category Map
 
-- 点击劫持: `references/web-playbook-01-clickjacking.md`
-- 供应链攻击: `references/web-playbook-02-supply-chain-attacks.md`
-- 缓存与CDN安全: `references/web-playbook-03-cache-and-cdn-security.md`
-- 开放重定向: `references/web-playbook-04-open-redirect.md`
-- 框架漏洞: `references/web-playbook-05-framework-vulnerabilities.md`
-- 请求走私: `references/web-playbook-06-request-smuggling.md`
-- 认证漏洞: `references/web-playbook-07-authentication-vulnerabilities.md`
-- 文件漏洞: `references/web-playbook-08-file-vulnerabilities.md`
-- 业务逻辑漏洞: `references/web-playbook-09-business-logic-vulnerabilities.md`
-- 原型链污染: `references/web-playbook-10-prototype-pollution.md`
-- 云安全漏洞: `references/web-playbook-11-cloud-security-vulnerabilities.md`
-- AI安全: `references/web-playbook-12-ai-security.md`
-- API安全: `references/web-playbook-13-api-security.md`
-- CSRF跨站请求伪造: `references/web-playbook-14-csrf-cross-site-request-forgery.md`
-- JWT安全: `references/web-playbook-15-jwt-security.md`
-- LFI/RFI文件包含: `references/web-playbook-16-lfi-rfi-file-inclusion.md`
-- RCE远程代码执行: `references/web-playbook-17-rce-remote-code-execution.md`
-- SQL/NoSQL注入: `references/web-playbook-18-sql-nosql-injection.md`
-- SSRF服务端请求伪造: `references/web-playbook-19-ssrf-server-side-request-forgery.md`
-- SSTI模板注入: `references/web-playbook-20-ssti-template-injection.md`
-- WebSocket安全: `references/web-playbook-21-websocket-security.md`
-- XSS跨站脚本: `references/web-playbook-22-xss-cross-site-scripting.md`
-- XXE实体注入: `references/web-playbook-23-xxe-entity-injection.md`
+- Clickjacking: `references/web-playbook-01-clickjacking.md`
+- Supply Chain Attacks: `references/web-playbook-02-supply-chain-attacks.md`
+- Cache and CDN Security: `references/web-playbook-03-cache-and-cdn-security.md`
+- Open Redirect: `references/web-playbook-04-open-redirect.md`
+- Framework Vulnerabilities: `references/web-playbook-05-framework-vulnerabilities.md`
+- Request Smuggling: `references/web-playbook-06-request-smuggling.md`
+- Authentication Vulnerabilities: `references/web-playbook-07-authentication-vulnerabilities.md`
+- File Vulnerabilities: `references/web-playbook-08-file-vulnerabilities.md`
+- Business Logic Vulnerabilities: `references/web-playbook-09-business-logic-vulnerabilities.md`
+- Prototype Pollution: `references/web-playbook-10-prototype-pollution.md`
+- Cloud Security Vulnerabilities: `references/web-playbook-11-cloud-security-vulnerabilities.md`
+- AI Security: `references/web-playbook-12-ai-security.md`
+- API Security: `references/web-playbook-13-api-security.md`
+- CSRF Cross-Site Request Forgery: `references/web-playbook-14-csrf-cross-site-request-forgery.md`
+- JWT Security: `references/web-playbook-15-jwt-security.md`
+- LFI/RFI File Inclusion: `references/web-playbook-16-lfi-rfi-file-inclusion.md`
+- RCE Remote Code Execution: `references/web-playbook-17-rce-remote-code-execution.md`
+- SQL/NoSQL Injection: `references/web-playbook-18-sql-nosql-injection.md`
+- SSRF Server-Side Request Forgery: `references/web-playbook-19-ssrf-server-side-request-forgery.md`
+- SSTI Template Injection: `references/web-playbook-20-ssti-template-injection.md`
+- WebSocket Security: `references/web-playbook-21-websocket-security.md`
+- XSS Cross-Site Scripting: `references/web-playbook-22-xss-cross-site-scripting.md`
+- XXE Entity Injection: `references/web-playbook-23-xxe-entity-injection.md`
 
 ## Notes
 

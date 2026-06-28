@@ -1,53 +1,53 @@
-# 缓存与CDN安全
+# Cache & CDN Security
 English: Cache & CDN Security
 - Entry Count: 3
 - Use this file to shortlist relevant payloads, then open the linked source markdown for the full workflow and commands.
-## 缓存投毒
+## Cache Poisoning
 - ID: cache-poisoning
 - Difficulty: advanced
-- Subcategory: 缓存投毒
+- Subcategory: Cache Poisoning
 - Tags: cache, poisoning, web-cache
 - Original Extracted Source: original extracted web-security-wiki source/cache-poisoning.md
 Description:
-Web缓存投毒攻击
+Web cache poisoning attacks
 Prerequisites:
-- 目标使用缓存
-- 缓存键配置不当
+- Target uses caching
+- Cache key is misconfigured
 Execution Outline:
-1. 探测缓存
-2. 未键入头
-3. 缓存投毒
+1. Probe the cache
+2. Unkeyed headers
+3. Cache poisoning
 4. Fat GET
-## 缓存欺骗
+## Cache Deception
 - ID: cache-deception
 - Difficulty: intermediate
 - Subcategory: Deception
 - Tags: cache, deception, auth
 - Original Extracted Source: original extracted web-security-wiki source/cache-deception.md
 Description:
-利用Web缓存和服务器路径解析的差异，诱导CDN/缓存层缓存包含敏感信息的动态页面
+Exploit discrepancies between web caches and server-side path parsing to trick the CDN/cache layer into caching dynamic pages containing sensitive information
 Prerequisites:
-- 目标使用CDN或反向代理缓存
-- 路径解析存在差异(后端忽略路径后缀)
-- 缓存策略基于URL扩展名
+- Target uses a CDN or reverse-proxy cache
+- A path-parsing discrepancy exists (backend ignores the path suffix)
+- Cache policy is based on the URL extension
 Execution Outline:
-1. 探测缓存行为
-2. 路径混淆缓存欺骗
-3. 高级缓存欺骗变体
-4. 完整攻击流程验证
-## CDN绕过
+1. Probe caching behavior
+2. Path-confusion cache deception
+3. Advanced cache deception variants
+4. End-to-end attack flow validation
+## CDN Bypass
 - ID: cdn-bypass
 - Difficulty: intermediate
 - Subcategory: CDN
 - Tags: cdn, bypass, recon
 - Original Extracted Source: original extracted web-security-wiki source/cdn-bypass.md
 Description:
-绕过CDN查找真实IP
+Bypass the CDN to find the real IP
 Prerequisites:
-- 目标使用CDN
+- Target uses a CDN
 Execution Outline:
-1. 历史DNS
-2. 邮件头
-3. DNS历史与证书透明度查询
-4. 子域名与相关服务探测真实IP
+1. Historical DNS
+2. Email headers
+3. DNS history and certificate transparency queries
+4. Probe the real IP via subdomains and related services
 

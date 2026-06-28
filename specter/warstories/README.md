@@ -1,32 +1,32 @@
-# 👻 War Stories — Specter 实战经验库
+# 👻 War Stories — Specter Field Experience Library
 
-这里存放 Specter 的真实渗透测试/CTF 解题战报。
+This is where Specter's real-world penetration test / CTF write-ups are kept.
 
-每份战报记录完整的攻击链：从信息收集到最终 flag，包括走了哪些弯路、关键突破口在哪里。
+Each write-up records the complete attack chain: from reconnaissance to the final flag, including which dead ends were taken and where the key breakthrough was.
 
-## 文件命名规则
+## File Naming Convention
 
 ```
-YYYY-MM-DD_题目类型_关键词.md
+YYYY-MM-DD_challenge-type_keyword.md
 ```
 
-例如：`2026-04-19_php-deserialization_regex-bypass.md`
+For example: `2026-04-19_php-deserialization_regex-bypass.md`
 
-## 战报模板
+## Write-up Template
 
-每份战报应包含：
+Each write-up should include:
 
-| 区块 | 内容 |
+| Section | Content |
 |------|------|
-| **元信息** | 日期、目标、类型、关键词、轮数、工具链 |
-| **攻击链** | 每一步做了什么、发现了什么 |
-| **关键突破** | 哪一步是决定性的，为什么 |
-| **走的弯路** | 哪些尝试失败了，原因是什么 |
-| **Payload** | 最终可复现的利用代码 |
-| **经验总结** | 可迁移到同类题目的方法论 |
+| **Metadata** | Date, target, type, keywords, number of rounds, toolchain |
+| **Attack chain** | What was done at each step, what was discovered |
+| **Key breakthrough** | Which step was decisive, and why |
+| **Dead ends** | Which attempts failed, and the reasons |
+| **Payload** | The final reproducible exploit code |
+| **Lessons learned** | Methodology that transfers to similar challenges |
 
-## 战报索引
+## Write-up Index
 
-| 日期 | 题目 | 类型 | 轮数 | 链接 |
+| Date | Challenge | Type | Rounds | Link |
 |------|------|------|------|------|
-| 2026-04-19 | NSSCTF PHP 正则绕过 | Web / PHP / 正则绕过 | 14 | [→](./2026-04-19_php-deserialization_regex-bypass.md) |
+| 2026-04-19 | NSSCTF PHP regex bypass | Web / PHP / regex bypass | 14 | [→](./2026-04-19_php-deserialization_regex-bypass.md) |

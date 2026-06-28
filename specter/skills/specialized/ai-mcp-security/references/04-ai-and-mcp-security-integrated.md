@@ -52,70 +52,70 @@ If the AI surface is only the presentation layer and the real blocker is still a
 
 Path: references\ai-app-security.md
 
-# AI应用安全
+# AI Application Security
 
-> 来源: AISS绿盟大模型安全智链社区
-> 条目数: 34
+> Source: AISS NSFOCUS Large Model Security Intelligence Community
+> Entry count: 34
 
 ---
 
-## 应用阶段
+## Application Stage
 
-### CoT注入攻击
+### CoT Injection Attack
 
-> 风险编号: GAARM.0042
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0042
+> Lifecycle: Application Stage
 
-**攻击概述**
+**Attack Overview**
 
-CoT（Chain of Thought）通过促使LLMs思考一系列的关键步骤来解决问题，有效提高了问题的推理解决能力。基于ReAct（Reason + Act）实现CoT推理的技术框架，并且利用Agent调度实现LLMs访问外部世界的交互能力，可以与各种外部系统无缝连接并执行复杂的任务。
-在CoT应用中，用户通过提供自然语言的问题，AI模型会生成一系列推理步骤来回答该问题，其中涉及到思考（Thought）、行动（Act）、观察（Obs）三个核心步骤，AI模型会循环上述三个步骤完成各种复杂问题的推理与解决，由于整个过程比传统代码逻辑更加开放与灵活，缺乏严格的流程控制结构，攻击者可以通过CoT注入攻击绕过特定的推理步骤，诱导AI模型执行非预期的动作，比如：业务功能风险（任意用户转账等）、技术功能风险（SSRF、RCE等），目前CoT注入攻击主要有两种攻击思路：
+CoT (Chain of Thought) effectively improves a model's reasoning and problem-solving ability by prompting LLMs to think through a series of key steps. The technical framework that implements CoT reasoning based on ReAct (Reason + Act), combined with Agent scheduling to give LLMs the ability to interact with the external world, can seamlessly connect to various external systems and execute complex tasks.
+In CoT applications, the user provides a question in natural language, and the AI model generates a series of reasoning steps to answer it. This involves three core steps: Thought, Act, and Observation (Obs). The AI model loops through these three steps to reason about and solve various complex problems. Because the whole process is more open and flexible than traditional code logic and lacks a strict flow-control structure, an attacker can use a CoT injection attack to bypass specific reasoning steps and induce the AI model to perform unintended actions, such as: business-function risks (arbitrary user transfers, etc.) and technical-function risks (SSRF, RCE, etc.). There are currently two main approaches to CoT injection attacks:
 
-思维链干扰注入：通过观察CoT的调度过程，构造恶意输入以欺骗模型认为其已经获取到一个Agent的结果，通过伪造Agent的结果，实现对CoT运行过程的干扰；
-思维链操纵注入：通过观察CoT的调度过程，直接或利用对抗攻击手段构造恶意输入，实现对CoT过程的操纵，使模型跳过预置的CoT过程，直接调度敏感的Agent；
+Chain-of-thought interference injection: by observing the CoT scheduling process, craft malicious input to trick the model into believing it has already obtained an Agent result. By forging the Agent result, the attacker interferes with the CoT execution process.
+Chain-of-thought manipulation injection: by observing the CoT scheduling process, craft malicious input directly or via adversarial attack techniques to manipulate the CoT process, causing the model to skip the predefined CoT process and directly schedule a sensitive Agent.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-该案例主要提出基于ReAct框架的LLMs应用，如何利用其CoT思维链过程实现对Agent的恶意利用
-
-
-案例二
-该研究发现，通过将越狱提示与 CoT 提示相结合，利用 CoT 绕过 LLM 的道德限制，可以导致模型生成私人信息
-
-
-案例三
-ReAct框架下的查询注入攻击CTF开源题目
-
-**攻击风险**
-
-在使用信息检索系统的LLMs应用中，攻击者可以污染信息检索数据库，使得恶意文本片段被注入到发送给LLM的查询中，从而影响最终的输出结果，导致用户隐私、恶意代码执行等一系列风险。
-在退款业务系统的LLMs应用中，攻击者可以干扰退款CoT流程，使得原先不具备退款条件的订单可以正常退款；或者直接恶意操纵退款操作的Agent，使得实际退款金额与预期退款金额不符，从而造成企业的经济损失。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-严格权限管控
-强制执行严格的特权控制，确保LLMs只能访问必需的内容以及Agent，从而最大程度地减少潜在的漏洞点
+Case 1
+This case primarily demonstrates how a ReAct-framework-based LLM application can have its CoT chain-of-thought process exploited to maliciously abuse an Agent.
 
 
-LLMs Agent调度控制
-针对敏感操作的Agent实施外部严格的自动或者人工权限校验机制判断，避免LLMs直接具备相应的使用权限
+Case 2
+This research found that by combining jailbreak prompts with CoT prompts, using CoT to bypass an LLM's ethical restrictions can cause the model to generate private information.
 
 
-Prompt内容强化
-采用 OpenAI 聊天标记语言 （ChatML） 等解决方案，试图将真正的用户提示与其他内容隔离开来
+Case 3
+An open-source CTF challenge for query injection attacks under the ReAct framework.
+
+**Attack Risk**
+
+In LLM applications that use information-retrieval systems, an attacker can poison the information-retrieval database so that malicious text fragments are injected into the query sent to the LLM, thereby affecting the final output and leading to a series of risks such as user privacy leakage and malicious code execution.
+In LLM applications for refund business systems, an attacker can interfere with the refund CoT flow so that orders that originally did not qualify for a refund can be refunded normally; or directly maliciously manipulate the refund-operation Agent so that the actual refund amount differs from the expected refund amount, causing financial loss to the enterprise.
+
+**Mitigations**
+
+Mitigation
+Description
+
+
+
+
+Strict permission control
+Enforce strict privilege control to ensure that LLMs can only access necessary content and Agents, thereby minimizing potential vulnerability points.
+
+
+LLMs Agent scheduling control
+Implement strict external automated or manual permission-verification mechanisms for Agents performing sensitive operations, preventing LLMs from directly possessing the corresponding usage permissions.
+
+
+Prompt content hardening
+Adopt solutions such as OpenAI Chat Markup Language (ChatML) to attempt to isolate the genuine user prompt from other content.
 
 **参考**
 

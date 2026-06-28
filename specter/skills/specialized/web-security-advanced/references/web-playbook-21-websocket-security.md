@@ -1,54 +1,54 @@
-# WebSocket安全
+# WebSocket Security
 English: WebSocket Security
 - Entry Count: 3
 - Use this file to shortlist relevant payloads, then open the linked source markdown for the full workflow and commands.
-## WebSocket跨站劫持(CSWSH)
+## Cross-Site WebSocket Hijacking (CSWSH)
 - ID: ws-hijack
 - Difficulty: intermediate
-- Subcategory: WebSocket劫持
-- Tags: WebSocket, CSWSH, Origin, 跨站, 会话劫持
+- Subcategory: WebSocket Hijacking
+- Tags: WebSocket, CSWSH, Origin, cross-site, session hijacking
 - Original Extracted Source: original extracted web-security-wiki source/ws-hijack.md
 Description:
-利用WebSocket握手阶段缺少Origin验证的漏洞，通过恶意网页建立跨站WebSocket连接。攻击者可劫持受害者的WebSocket会话，窃取实时数据或以受害者身份发送消息。类似于CSRF但针对WebSocket协议。
+Exploit the vulnerability of missing Origin validation during the WebSocket handshake phase, establishing a cross-site WebSocket connection via a malicious web page. The attacker can hijack the victim's WebSocket session, steal real-time data, or send messages as the victim. Similar to CSRF but targeting the WebSocket protocol.
 Prerequisites:
-- 目标使用WebSocket通信
-- WebSocket握手未验证Origin
+- The target uses WebSocket communication
+- The WebSocket handshake does not validate Origin
 Execution Outline:
-1. 1. 识别WebSocket端点
-2. 2. 构造跨站劫持POC页面
-3. 3. WebSocket消息注入
-4. 4. WebSocket流量分析脚本
-## WebSocket走私攻击
+1. 1. Identify WebSocket endpoints
+2. 2. Construct a cross-site hijacking POC page
+3. 3. WebSocket message injection
+4. 4. WebSocket traffic analysis script
+## WebSocket Smuggling Attack
 - ID: ws-smuggling
 - Difficulty: expert
-- Subcategory: WebSocket走私
-- Tags: WebSocket, 走私, 反向代理, H2C, 内网穿透
+- Subcategory: WebSocket Smuggling
+- Tags: WebSocket, smuggling, reverse proxy, H2C, intranet pivoting
 - Original Extracted Source: original extracted web-security-wiki source/ws-smuggling.md
 Description:
-利用反向代理/负载均衡器对WebSocket协议处理的差异，通过WebSocket升级请求走私HTTP请求到内网服务。攻击者可绕过前端安全控制直接与后端通信，访问受保护的内部API或管理接口。
+Exploit differences in how reverse proxies / load balancers handle the WebSocket protocol to smuggle HTTP requests to internal network services via a WebSocket upgrade request. The attacker can bypass front-end security controls and communicate directly with the backend, accessing protected internal APIs or management interfaces.
 Prerequisites:
-- 目标使用反向代理(Nginx/Varnish等)
-- 代理允许WebSocket升级
-- 后端存在内部服务
+- The target uses a reverse proxy (Nginx/Varnish, etc.)
+- The proxy allows WebSocket upgrades
+- Internal services exist behind the backend
 Execution Outline:
-1. 1. 检测WebSocket走私可能性
-2. 2. WebSocket隧道构造
-3. 3. H2C走私绕过访问控制
-4. 4. 反向代理差异利用
-## WebSocket认证与授权绕过
+1. 1. Detect WebSocket smuggling feasibility
+2. 2. WebSocket tunnel construction
+3. 3. H2C smuggling to bypass access control
+4. 4. Reverse proxy discrepancy exploitation
+## WebSocket Authentication and Authorization Bypass
 - ID: ws-auth-bypass
 - Difficulty: intermediate
-- Subcategory: 认证绕过
-- Tags: WebSocket, 认证, 授权, 越权, Token重放
+- Subcategory: Authentication Bypass
+- Tags: WebSocket, authentication, authorization, privilege bypass, token replay
 - Original Extracted Source: original extracted web-security-wiki source/ws-auth-bypass.md
 Description:
-利用WebSocket连接建立后缺少持续认证检查的漏洞，通过会话固定、令牌重放、频道越权订阅等方式绕过认证和授权机制。WebSocket的长连接特性使得权限变更后原连接仍可保持访问。
+Exploit the vulnerability of missing continuous authentication checks after a WebSocket connection is established, bypassing authentication and authorization mechanisms via session fixation, token replay, unauthorized channel subscription, and similar techniques. The long-lived nature of WebSocket connections means the original connection can retain access even after permissions change.
 Prerequisites:
-- 目标使用WebSocket实时通信
-- 已获取有效会话/Token
+- The target uses WebSocket real-time communication
+- A valid session/Token has already been obtained
 Execution Outline:
-1. 1. WebSocket认证机制分析
-2. 2. Token重放与会话固定
-3. 3. 频道/房间越权订阅
-4. 4. WebSocket速率限制与DoS测试
+1. 1. WebSocket authentication mechanism analysis
+2. 2. Token replay and session fixation
+3. 3. Unauthorized channel/room subscription
+4. 4. WebSocket rate limiting and DoS testing
 

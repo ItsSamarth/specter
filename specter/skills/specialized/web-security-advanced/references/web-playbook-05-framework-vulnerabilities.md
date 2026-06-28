@@ -1,4 +1,4 @@
-# 框架漏洞
+# Framework Vulnerabilities
 English: Framework Vulnerabilities
 - Entry Count: 18
 - Use this file to shortlist relevant payloads, then open the linked source markdown for the full workflow and commands.
@@ -9,15 +9,15 @@ English: Framework Vulnerabilities
 - Tags: log4j, rce, cve-2021-44228, log4shell
 - Original Extracted Source: original extracted web-security-wiki source/log4j-rce.md
 Description:
-Apache Log4j远程代码执行漏洞
+Apache Log4j remote code execution vulnerability
 Prerequisites:
-- 使用Log4j 2.x版本
-- 用户输入被记录到日志
+- Uses Log4j 2.x
+- User input is written to the log
 Execution Outline:
-1. 1. 探测漏洞
-2. 2. DNS外带测试
-3. 3. 构造恶意LDAP服务器
-4. 4. 获取Shell
+1. 1. Probe for the vulnerability
+2. 2. DNS out-of-band test
+3. 3. Build a malicious LDAP server
+4. 4. Obtain a shell
 ## Spring Actuator漏洞
 - ID: spring-actuator
 - Difficulty: intermediate
@@ -25,15 +25,15 @@ Execution Outline:
 - Tags: spring, actuator, rce, java
 - Original Extracted Source: original extracted web-security-wiki source/spring-actuator.md
 Description:
-Spring Boot Actuator端点安全漏洞
+Spring Boot Actuator endpoint security vulnerability
 Prerequisites:
-- Spring Boot应用
-- Actuator端点暴露
+- Spring Boot application
+- Actuator endpoints exposed
 Execution Outline:
-1. 1. 探测Actuator端点
-2. 2. 获取敏感信息
-3. 3. 下载堆转储
-4. 4. env端点RCE
+1. 1. Probe Actuator endpoints
+2. 2. Obtain sensitive information
+3. 3. Download the heap dump
+4. 4. env endpoint RCE
 ## Fastjson RCE
 - ID: fastjson-rce
 - Difficulty: advanced
@@ -41,15 +41,15 @@ Execution Outline:
 - Tags: fastjson, rce, deserialization, java
 - Original Extracted Source: original extracted web-security-wiki source/fastjson-rce.md
 Description:
-Alibaba Fastjson反序列化远程代码执行
+Alibaba Fastjson deserialization remote code execution
 Prerequisites:
-- 使用Fastjson库
-- 存在反序列化点
+- Uses the Fastjson library
+- A deserialization point exists
 Execution Outline:
-1. 1. 探测Fastjson
-2. 2. JNDI注入
-3. 3. 搭建恶意服务
-4. 4. 绕过AutoType检查
+1. 1. Probe for Fastjson
+2. 2. JNDI injection
+3. 3. Stand up a malicious service
+4. 4. Bypass the AutoType check
 ## Spring SpEL注入
 - ID: spring-spel
 - Difficulty: intermediate
@@ -57,15 +57,15 @@ Execution Outline:
 - Tags: spring, spel, expression, rce
 - Original Extracted Source: original extracted web-security-wiki source/spring-spel.md
 Description:
-Spring表达式语言注入攻击
+Spring Expression Language injection attack
 Prerequisites:
-- 使用Spring框架
-- 存在SpEL注入点
+- Uses the Spring framework
+- A SpEL injection point exists
 Execution Outline:
-1. 1. 探测SpEL注入
-2. 2. 命令执行
-3. 3. 文件读取
-4. 4. DNS外带
+1. 1. Probe for SpEL injection
+2. 2. Command execution
+3. 3. File read
+4. 4. DNS out-of-band
 ## Spring Cloud漏洞
 - ID: spring-cloud
 - Difficulty: advanced
@@ -73,10 +73,10 @@ Execution Outline:
 - Tags: spring, cloud, rce, deserialization
 - Original Extracted Source: original extracted web-security-wiki source/spring-cloud.md
 Description:
-Spring Cloud相关漏洞利用
+Exploitation of Spring Cloud-related vulnerabilities
 Prerequisites:
-- 使用Spring Cloud
-- 存在漏洞版本
+- Uses Spring Cloud
+- A vulnerable version is present
 Execution Outline:
 1. 1. Spring Cloud Gateway RCE
 2. 2. Spring Cloud Function SpEL
@@ -88,15 +88,15 @@ Execution Outline:
 - Tags: struts2, rce, java, apache
 - Original Extracted Source: original extracted web-security-wiki source/struts2-rce.md
 Description:
-Apache Struts2框架RCE漏洞
+Apache Struts2 framework RCE vulnerability
 Prerequisites:
-- 使用Struts2框架
-- 存在漏洞版本
+- Uses the Struts2 framework
+- A vulnerable version is present
 Execution Outline:
-1. 1. S2-045漏洞
-2. 2. S2-046漏洞
-3. 3. S2-057漏洞
-4. 4. S2-061/S2-062漏洞
+1. 1. S2-045 vulnerability
+2. 2. S2-046 vulnerability
+3. 3. S2-057 vulnerability
+4. 4. S2-061/S2-062 vulnerabilities
 ## Struts2 OGNL表达式注入
 - ID: struts2-ognl
 - Difficulty: advanced
@@ -104,15 +104,15 @@ Execution Outline:
 - Tags: struts2, ognl, expression, injection
 - Original Extracted Source: original extracted web-security-wiki source/struts2-ognl.md
 Description:
-Struts2 OGNL表达式注入技术详解
+Detailed walkthrough of Struts2 OGNL expression injection techniques
 Prerequisites:
-- 使用Struts2框架
-- 存在OGNL注入点
+- Uses the Struts2 framework
+- An OGNL injection point exists
 Execution Outline:
-1. 1. OGNL基础语法
-2. 2. 绕过安全限制
-3. 3. 命令执行技巧
-4. 4. 文件操作
+1. 1. OGNL basic syntax
+2. 2. Bypassing security restrictions
+3. 3. Command execution techniques
+4. 4. File operations
 ## WebLogic远程代码执行
 - ID: weblogic-rce
 - Difficulty: advanced
@@ -120,10 +120,10 @@ Execution Outline:
 - Tags: weblogic, rce, java, oracle
 - Original Extracted Source: original extracted web-security-wiki source/weblogic-rce.md
 Description:
-Oracle WebLogic Server RCE漏洞
+Oracle WebLogic Server RCE vulnerability
 Prerequisites:
-- 使用WebLogic Server
-- 存在漏洞版本
+- Uses WebLogic Server
+- A vulnerable version is present
 Execution Outline:
 1. 1. CVE-2017-10271
 2. 2. CVE-2019-2725
@@ -135,14 +135,14 @@ Execution Outline:
 - Tags: weblogic, t3, deserialization, java
 - Original Extracted Source: original extracted web-security-wiki source/weblogic-t3.md
 Description:
-WebLogic T3协议反序列化漏洞
+WebLogic T3 protocol deserialization vulnerability
 Prerequisites:
-- WebLogic开放T3端口
-- 存在漏洞版本
+- WebLogic has the T3 port open
+- A vulnerable version is present
 Execution Outline:
-1. 1. 探测T3服务
-2. 2. 使用工具攻击
-3. 3. 构造恶意T3请求
+1. 1. Probe the T3 service
+2. 2. Attack using tooling
+3. 3. Build a malicious T3 request
 ## WebLogic IIOP协议攻击
 - ID: weblogic-iiop
 - Difficulty: advanced
@@ -150,14 +150,14 @@ Execution Outline:
 - Tags: weblogic, iiop, deserialization, corba
 - Original Extracted Source: original extracted web-security-wiki source/weblogic-iiop.md
 Description:
-WebLogic IIOP协议反序列化漏洞
+WebLogic IIOP protocol deserialization vulnerability
 Prerequisites:
-- WebLogic开放IIOP端口
-- 存在漏洞版本
+- WebLogic has the IIOP port open
+- A vulnerable version is present
 Execution Outline:
-1. 1. 探测IIOP服务
+1. 1. Probe the IIOP service
 2. 2. CVE-2020-2551
-3. 3. 构造IIOP请求
+3. 3. Build an IIOP request
 ## ThinkPHP远程代码执行
 - ID: thinkphp-rce
 - Difficulty: intermediate

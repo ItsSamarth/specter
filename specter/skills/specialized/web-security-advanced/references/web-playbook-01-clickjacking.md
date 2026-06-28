@@ -1,39 +1,39 @@
-# 点击劫持
+# Clickjacking
 English: Clickjacking
 - Entry Count: 2
 - Use this file to shortlist relevant payloads, then open the linked source markdown for the full workflow and commands.
-## 基础点击劫持
+## Basic Clickjacking
 - ID: clickjacking-basic
 - Difficulty: beginner
-- Subcategory: 基础
+- Subcategory: Basics
 - Tags: clickjacking, ui-redressing, iframe
 - Original Extracted Source: original extracted web-security-wiki source/clickjacking-basic.md
 Description:
-通过透明iframe覆盖诱使用户在不知情的情况下点击隐藏的恶意按钮或链接
+Use a transparent iframe overlay to trick users into unknowingly clicking hidden malicious buttons or links
 Prerequisites:
-- 目标站点允许被iframe嵌套
-- 目标未设置X-Frame-Options响应头
-- 目标未配置CSP frame-ancestors策略
-- HTML/CSS基础知识
+- The target site allows being embedded in an iframe
+- The target does not set the X-Frame-Options response header
+- The target does not configure a CSP frame-ancestors policy
+- Basic knowledge of HTML/CSS
 Execution Outline:
-1. 检测X-Frame-Options和CSP
-2. 基础透明iframe覆盖POC
-3. 多步骤拖拽劫持(Drag-and-Drop)
-4. 利用CSS pointer-events绕过
-## 点击劫持+XSS
+1. Detect X-Frame-Options and CSP
+2. Basic transparent iframe overlay POC
+3. Multi-step drag-and-drop hijacking (Drag-and-Drop)
+4. Bypass using CSS pointer-events
+## Clickjacking + XSS
 - ID: clickjacking-xss
 - Difficulty: intermediate
 - Subcategory: XSS
 - Tags: clickjacking, xss
 - Original Extracted Source: original extracted web-security-wiki source/clickjacking-xss.md
 Description:
-将点击劫持与XSS攻击结合，先通过点击劫持触发XSS攻击向量获取更深层的控制
+Combine clickjacking with XSS attacks, first using clickjacking to trigger the XSS attack vector to gain deeper control
 Prerequisites:
-- 目标存在XSS漏洞
-- 目标允许被iframe嵌套
-- XSS payload可被点击触发
+- The target has an XSS vulnerability
+- The target allows being embedded in an iframe
+- The XSS payload can be triggered by a click
 Execution Outline:
-1. 识别可利用的XSS和Clickjacking组合
-2. Self-XSS + Clickjacking组合利用
-3. 反射型XSS + iframe嵌套利用
+1. Identify exploitable XSS and Clickjacking combinations
+2. Self-XSS + Clickjacking combined exploitation
+3. Reflected XSS + iframe nesting exploitation
 
