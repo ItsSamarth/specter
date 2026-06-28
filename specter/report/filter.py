@@ -1,13 +1,13 @@
 """Specter Report Content Filter — clean raw LLM output into pure report text.
 
-过滤目标:
-    - TOOL_CALL 标记和内容
-    - Python 代码块（print/open/import 等）
-    - Round/Context 标记
-    - 调试输出
-    - think 标签内容
+Filtering targets:
+    - TOOL_CALL markers and content
+    - Python code blocks (print/open/import, etc.)
+    - Round/Context markers
+    - Debug output
+    - think-tag content
 
-只输出纯净的 Markdown 报告文本。
+Outputs only clean Markdown report text.
 """
 
 from __future__ import annotations
@@ -17,38 +17,38 @@ from typing import Optional
 
 
 class ReportContentFilter:
-    """报告内容过滤器 — 从 LLM 原始输出中提取纯净报告文本."""
+    """Report content filter — extract clean report text from raw LLM output."""
 
-    # ── 过滤模式 ──────────────────────────────────────────────────────────
+    # ── Filter patterns ───────────────────────────────────────────────────
 
-    # TOOL_CALL 标记（多种格式）
+    # TOOL_CALL markers (multiple formats)
     TOOL_CALL_PATTERNS = [
-        # 标准格式
+        # standard format
         re.compile(r"\[TOOL_CALL\]\s*\{[^}]+\}", re.DOTALL),
-        # 带 tool => 格式
+        # tool => format
         re.compile(r'\[TOOL_CALL\]\s*\{tool\s*=>\s*"[^"]+"\s*,\s*args\s*=>\s*\{[^}]+\}', re.DOTALL),
-        # python_execute 格式
+        # python_execute format
         re.compile(r'\{tool\s*=>\s*"python_execute"\s*,\s*args\s*=>\s*\{[^}]+\}', re.DOTALL),
-        # nmap_scan 格式
+        # nmap_scan format
         re.compile(r'\{tool\s*=>\s*"nmap_scan"\s*,\s*args\s*=>\s*\{[^}]+\}', re.DOTALL),
-        # fetch 格式
+        # fetch format
         re.compile(r"\[TOOL_CALL\]\s*```\s*\{[^}]+\}\s*```", re.DOTALL),
-        # 简化的工具调用
+        # simplified tool call
         re.compile(r"\[TOOL_CALL\]\s*[\s\S]+?\[/TOOL_CALL\]"),
-        # tool_call 格式
+        # tool_call format
         re.compile(r"tool_call\s*\(\s*\{[^}]+\}\s*\)", re.DOTALL),
     ]
 
-    # Round 标记
+    # Round markers
     ROUND_PATTERNS = [
         re.compile(r"──\s*Cycle\s*\d+\s*\|\s*Round\s*\d+\s*──", re.DOTALL),
         re.compile(r"──\s*Round\s*\d+\s*──", re.DOTALL),
         re.compile(r"Cycle\s*\d+\s*\|\s*Round\s*\d+", re.IGNORECASE),
         re.compile(r"Round\s+\d+:", re.IGNORECASE),
-        re.compile(r"第\s*\d+\s*轮", re.IGNORECASE),
+        re.compile(r"Round\s*\d+", re.IGNORECASE),
     ]
 
-    # think 标签（LLM 思考过程）
+    # think tags (LLM reasoning process)
     THINK_PATTERNS = [
         re.compile(
             r"</?(?:think|thinking|result_info)>?[\s\S]*?</?(?:think|thinking|result_info)>?",
@@ -60,93 +60,93 @@ class ReportContentFilter:
         re.compile(r"<reasoning>[\s\S]*?</reasoning>?", re.IGNORECASE),
         re.compile(r"<reasoning>?[\s\S]*", re.IGNORECASE),
         re.compile(r"\[think\]", re.IGNORECASE),
-        re.compile(r"##\s*思考\s*", re.IGNORECASE),
-        re.compile(r"###\s*推理\s*", re.IGNORECASE),
+        re.compile(r"##\s*Thinking\s*", re.IGNORECASE),
+        re.compile(r"###\s*Reasoning\s*", re.IGNORECASE),
     ]
 
-    # Python 代码块（多种格式）
+    # Python code blocks (multiple formats)
     PYTHON_CODE_PATTERNS = [
-        # 标准 ```python ``` 格式
+        # standard ```python ``` format
         re.compile(r"```python\s*[\s\S]*?```"),
-        # ``` ``` 格式（无语言标识）
+        # ``` ``` format (no language tag)
         re.compile(r"```\s*[\s\S]*?```"),
-        # 单行 print/import 语句
+        # single-line print/import statements
         re.compile(r"^\s*print\s*\(", re.MULTILINE),
         re.compile(r"^\s*import\s+", re.MULTILINE),
         re.compile(r"^\s*from\s+\w+\s+import", re.MULTILINE),
         re.compile(r"^\s*with\s+open\s*\(", re.MULTILINE),
-        # with 语句
+        # with statement
         re.compile(r"with\s+open\s*\([^)]+\)\s+as\s+\w+:", re.DOTALL),
         # if __name__ == "__main__"
         re.compile(r'if\s+__name__\s*==\s*["\']__main__["\']:', re.DOTALL),
     ]
 
-    # 调试输出标记
+    # Debug output markers
     DEBUG_PATTERNS = [
-        re.compile(r"^\s*──.*──\s*$", re.MULTILINE),  # 分隔线
-        re.compile(r"^\s*\[=\]+\s*$", re.MULTILINE),  # ===== 样式
-        re.compile(r"工具调用|tool_call", re.IGNORECASE),
-        re.compile(r"调用工具|调用结果", re.IGNORECASE),
-        re.compile(r"\[LLM\s+[A-Z_]+\]", re.IGNORECASE),  # [LLM THINKING] 等
+        re.compile(r"^\s*──.*──\s*$", re.MULTILINE),  # separator line
+        re.compile(r"^\s*\[=\]+\s*$", re.MULTILINE),  # ===== style
+        re.compile(r"tool call|tool_call", re.IGNORECASE),
+        re.compile(r"Tool call|Tool result", re.IGNORECASE),
+        re.compile(r"\[LLM\s+[A-Z_]+\]", re.IGNORECASE),  # [LLM THINKING], etc.
     ]
 
-    # HTTP 请求/响应（可选过滤）
+    # HTTP request/response (optional filtering)
     HTTP_PATTERNS = [
         re.compile(r"HTTP/\d\.\d\s+\d+\s+[^\n]+", re.IGNORECASE),
         re.compile(r"^(GET|POST|PUT|DELETE|HEAD|OPTIONS)\s+/[^\n]+", re.MULTILINE | re.IGNORECASE),
     ]
 
-    # 阶段切换标记
+    # Phase-switch markers
     PHASE_PATTERNS = [
-        re.compile(r"阶段切换\s*[→\-]>\s*\w+", re.IGNORECASE),
-        re.compile(r"进入\s*\w+\s*阶段", re.IGNORECASE),
-        re.compile(r"当前阶段:\s*\w+", re.IGNORECASE),
+        re.compile(r"Phase switch\s*[→\-]>\s*\w+", re.IGNORECASE),
+        re.compile(r"Entered\s*\w+\s*phase", re.IGNORECASE),
+        re.compile(r"Current phase:\s*\w+", re.IGNORECASE),
     ]
 
     @classmethod
     def filter(cls, content: str) -> str:
-        """过滤内容，只保留纯净的报告文本.
+        """Filter content, keeping only clean report text.
 
         Args:
-            content: LLM 原始输出
+            content: raw LLM output
 
         Returns:
-            过滤后的纯净报告文本
+            the filtered, clean report text
         """
         result = content
 
-        # 1. 移除 TOOL_CALL 块
+        # 1. Remove TOOL_CALL blocks
         result = cls._remove_tool_calls(result)
 
-        # 2. 移除 Round 标记
+        # 2. Remove Round markers
         result = cls._remove_round_markers(result)
 
-        # 3. 移除 think 标签
+        # 3. Remove think tags
         result = cls._remove_think_tags(result)
 
-        # 4. 移除 Python 代码块
+        # 4. Remove Python code blocks
         result = cls._remove_python_code(result)
 
-        # 5. 移除调试输出
+        # 5. Remove debug output
         result = cls._remove_debug_output(result)
 
-        # 6. 移除阶段切换标记
+        # 6. Remove phase-switch markers
         result = cls._remove_phase_markers(result)
 
-        # 7. 清理多余空行
+        # 7. Clean up extra blank lines
         result = cls._cleanup_whitespace(result)
 
         return result.strip()
 
     @classmethod
     def _remove_tool_calls(cls, content: str) -> str:
-        """移除 TOOL_CALL 相关内容."""
+        """Remove TOOL_CALL-related content."""
         result = content
 
         for pattern in cls.TOOL_CALL_PATTERNS:
             result = pattern.sub("", result)
 
-        # 移除独立的 tool_call 行
+        # Remove standalone tool_call lines
         result = re.sub(r"^\s*tool_call\s*\(.*$", "", result, flags=re.MULTILINE)
         result = re.sub(r"^\s*\[TOOL_CALL\]\s*$", "", result, flags=re.MULTILINE)
 
@@ -154,7 +154,7 @@ class ReportContentFilter:
 
     @classmethod
     def _remove_round_markers(cls, content: str) -> str:
-        """移除 Round/ Cycle 标记."""
+        """Remove Round/Cycle markers."""
         result = content
 
         for pattern in cls.ROUND_PATTERNS:
@@ -164,7 +164,7 @@ class ReportContentFilter:
 
     @classmethod
     def _remove_think_tags(cls, content: str) -> str:
-        """移除 think 标签和思考过程."""
+        """Remove think tags and the reasoning process."""
         result = content
 
         for pattern in cls.THINK_PATTERNS:
@@ -174,32 +174,32 @@ class ReportContentFilter:
 
     @classmethod
     def _remove_python_code(cls, content: str) -> str:
-        """移除 Python 代码块.
+        """Remove Python code blocks.
 
-        注意: 这是过滤 LLM 输出的原始代码，不是报告中的代码示例。
-        报告中的代码示例（PoC 等）应该通过模板添加，不是这里处理。
+        Note: this filters raw code from LLM output, not code examples in the report.
+        Report code examples (PoC, etc.) should be added via templates, not here.
         """
         result = content
 
         for pattern in cls.PYTHON_CODE_PATTERNS:
             result = pattern.sub("", result)
 
-        # 移除单独的大块 import/print 语句
+        # Remove standalone large import/print statements
         lines = result.split("\n")
         filtered_lines = []
         in_code_block = False
 
         for line in lines:
-            # 检测代码块边界
+            # Detect code-block boundaries
             if line.strip().startswith("```"):
                 in_code_block = not in_code_block
                 continue
 
-            # 如果在代码块内，跳过
+            # Skip if inside a code block
             if in_code_block:
                 continue
 
-            # 过滤可疑的代码行
+            # Filter suspicious code lines
             stripped = line.strip()
             if any(
                 stripped.startswith(prefix)
@@ -228,21 +228,21 @@ class ReportContentFilter:
 
     @classmethod
     def _remove_debug_output(cls, content: str) -> str:
-        """移除调试输出."""
+        """Remove debug output."""
         result = content
 
         for pattern in cls.DEBUG_PATTERNS:
             result = pattern.sub("", result)
 
-        # 移除工具结果标记
-        result = re.sub(r"\[结果\]\s*:?\s*", "", result)
-        result = re.sub(r"\[输出\]\s*:?\s*", "", result)
+        # Remove tool-result markers
+        result = re.sub(r"\[Result\]\s*:?\s*", "", result)
+        result = re.sub(r"\[Output\]\s*:?\s*", "", result)
 
         return result
 
     @classmethod
     def _remove_phase_markers(cls, content: str) -> str:
-        """移除阶段切换标记."""
+        """Remove phase-switch markers."""
         result = content
 
         for pattern in cls.PHASE_PATTERNS:
@@ -252,11 +252,11 @@ class ReportContentFilter:
 
     @classmethod
     def _cleanup_whitespace(cls, content: str) -> str:
-        """清理多余空行和空格."""
-        # 移除连续的空行（超过2个）
+        """Clean up extra blank lines and spaces."""
+        # Collapse 3+ consecutive blank lines
         result = re.sub(r"\n{3,}", "\n\n", content)
 
-        # 移除行首尾空格
+        # Strip leading/trailing spaces per line
         lines = result.split("\n")
         result = "\n".join(line.strip() for line in lines if line.strip())
 
@@ -264,11 +264,11 @@ class ReportContentFilter:
 
     @classmethod
     def is_pure_markdown(cls, content: str) -> bool:
-        """检查内容是否是纯 Markdown（无干扰标记）.
+        """Check whether content is pure Markdown (no interfering markers).
 
-        用于验证过滤结果是否合格。
+        Used to validate that the filtered result is acceptable.
         """
-        # 检查是否包含干扰标记
+        # Check for interfering markers
         interference_patterns = [
             r"\[TOOL_CALL\]",
             r"\{tool\s*=>",
@@ -287,13 +287,13 @@ class ReportContentFilter:
         return True
 
 
-# ── 便捷函数 ────────────────────────────────────────────────────────────────
+# ── Convenience functions ───────────────────────────────────────────────────
 
 
 def filter_report_content(content: str) -> str:
-    """过滤报告内容，只保留纯净的 Markdown 文本.
+    """Filter report content, keeping only clean Markdown text.
 
-    这是 ReportContentFilter.filter() 的便捷包装。
+    A convenience wrapper around ReportContentFilter.filter().
     """
     return ReportContentFilter.filter(content)
 
@@ -301,15 +301,16 @@ def filter_report_content(content: str) -> str:
 def deduplicate_report_findings(findings: list, threshold: float = 0.75) -> list:
     """Semantically deduplicate a list of VulnerabilityFinding before rendering.
 
-    报告层的语义去重：在 SessionState 精确去重之外，再做一层语义合并，
-    确保报告里不会出现同一漏洞的多个不同表述。保留证据更充分的一方。
+    Report-layer semantic dedup: beyond the exact dedup in SessionState, apply one
+    more semantic merge so the report does not contain multiple wordings of the same
+    vulnerability. Keeps the better-evidenced one.
 
     Args:
-        findings: VulnerabilityFinding 列表。
-        threshold: 相似度阈值，默认 0.75。
+        findings: list of VulnerabilityFinding.
+        threshold: similarity threshold, default 0.75.
 
     Returns:
-        去重后的列表，保持首次出现顺序。
+        the deduplicated list, preserving first-seen order.
     """
     from specter.agent.finding_similarity import deduplicate_findings
 
@@ -317,13 +318,13 @@ def deduplicate_report_findings(findings: list, threshold: float = 0.75) -> list
 
 
 def extract_findings_section(content: str) -> Optional[str]:
-    """从报告中提取漏洞列表部分.
+    """Extract the vulnerability-list section from a report.
 
-    如果找不到专门的漏洞列表，返回 None。
+    Returns None if no dedicated vulnerability list is found.
     """
     patterns = [
-        r"(##\s*漏洞列表\s*\n[\s\S]*?)(?=##|\Z)",
-        r"(##\s*详细发现\s*\n[\s\S]*?)(?=##|\Z)",
+        r"(##\s*Vulnerability List\s*\n[\s\S]*?)(?=##|\Z)",
+        r"(##\s*Detailed Findings\s*\n[\s\S]*?)(?=##|\Z)",
         r"(##\s*Findings\s*\n[\s\S]*?)(?=##|\Z)",
     ]
 
@@ -336,29 +337,29 @@ def extract_findings_section(content: str) -> Optional[str]:
 
 
 def remove_unverified_findings(content: str) -> str:
-    """从报告内容中移除未验证的漏洞.
+    """Remove unverified vulnerabilities from report content.
 
-    标记为 [未验证] 的漏洞将被移除。
+    Vulnerabilities tagged [Unverified] are removed.
     """
-    # 移除 [未验证] 标记的漏洞章节
+    # Remove [Unverified]-tagged vulnerability sections
     pattern = re.compile(
-        r"(###\s*\[[^\]]*\]\s*[^\n]*未验证[^\n]*\n[\s\S]*?)(?=###|\Z)",
+        r"(###\s*\[[^\]]*\]\s*[^\n]*Unverified[^\n]*\n[\s\S]*?)(?=###|\Z)",
         re.IGNORECASE,
     )
     result = pattern.sub("", content)
 
-    # 移除包含 [未验证] 的行
+    # Remove lines containing [Unverified]
     lines = result.split("\n")
     filtered_lines = []
     skip_section = False
 
     for line in lines:
-        # 检测未验证章节开始
-        if "[未验证]" in line and line.strip().startswith("###"):
+        # Detect the start of an unverified section
+        if "[Unverified]" in line and line.strip().startswith("###"):
             skip_section = True
             continue
 
-        # 检测章节结束
+        # Detect section end
         if skip_section and line.startswith("##"):
             skip_section = False
 
