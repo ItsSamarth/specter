@@ -1,17 +1,18 @@
 """Specter Finding Similarity — lightweight semantic deduplication.
 
-纯 Python 实现的漏洞发现语义去重，不引入任何外部 NLP 库。
+A pure-Python semantic dedup for vulnerability findings, with no external NLP
+dependencies.
 
-核心能力:
-    - normalize_text:        文本归一化（小写、去多余空格、URL 路径标准化）
-    - normalize_vuln_type:   漏洞类型归一化（别名映射，如 "sqli" -> "sql_injection"）
-    - text_similarity:       基于词集合的 Jaccard 相似度
-    - url_similarity:        解析 URL 后比较 host / path / query 参数
-    - finding_similarity:    综合 vuln_type / location / description 三维度相似度
-    - deduplicate_findings:  按相似度阈值去重，保留证据更充分的一方
+Core capabilities:
+    - normalize_text:        text normalization (lowercase, collapse whitespace, URL-path normalization)
+    - normalize_vuln_type:   vuln-type normalization (alias mapping, e.g. "sqli" -> "sql_injection")
+    - text_similarity:       word-set Jaccard similarity
+    - url_similarity:        parse a URL and compare host / path / query parameters
+    - finding_similarity:    combined vuln_type / location / description similarity
+    - deduplicate_findings:  dedup by a similarity threshold, keeping the better-evidenced one
 
-与现有 finding_id hash 去重互补：hash 去重负责精确匹配，
-本模块负责语义层面"同一漏洞不同表述"的模糊匹配。
+Complementary to the existing finding_id hash dedup: hash dedup handles exact
+matches; this module handles the fuzzy, semantic "same vuln, different wording".
 """
 
 from __future__ import annotations
@@ -24,86 +25,89 @@ if TYPE_CHECKING:
     from specter.agent.context import VulnerabilityFinding
 
 
-# ── 漏洞类型归一化映射 ───────────────────────────────────────────────────
+# ── Vuln-type normalization map ─────────────────────────────────────────
 
-# 别名 -> 规范类型。键统一为小写、去空格的形式。
+# alias -> canonical type. Keys are lowercase, whitespace-collapsed.
 _VULN_TYPE_ALIASES: dict[str, str] = {
-    # SQL 注入
+    # SQL injection
     "sqli": "sql_injection",
-    "sql注入": "sql_injection",
     "sql injection": "sql_injection",
     "blind sqli": "sql_injection",
-    "盲注": "sql_injection",
-    "注入漏洞": "sql_injection",
+    "blind injection": "sql_injection",
+    "injection vulnerability": "sql_injection",
+    "injection": "sql_injection",
     "sql_injection": "sql_injection",
     # XSS
     "xss": "cross_site_scripting",
-    "跨站脚本": "cross_site_scripting",
-    "反射型xss": "cross_site_scripting",
-    "存储型xss": "cross_site_scripting",
-    "xss跨站脚本": "cross_site_scripting",
+    "cross-site scripting": "cross_site_scripting",
+    "reflected xss": "cross_site_scripting",
+    "stored xss": "cross_site_scripting",
     "cross site scripting": "cross_site_scripting",
     "cross_site_scripting": "cross_site_scripting",
     # SSRF
     "ssrf": "server_side_request_forgery",
-    "服务端请求伪造": "server_side_request_forgery",
+    "server-side request forgery": "server_side_request_forgery",
     "server side request forgery": "server_side_request_forgery",
     "server_side_request_forgery": "server_side_request_forgery",
     # RCE
     "rce": "remote_code_execution",
-    "命令执行": "remote_code_execution",
-    "远程代码执行": "remote_code_execution",
-    "命令注入": "remote_code_execution",
+    "command execution": "remote_code_execution",
     "remote code execution": "remote_code_execution",
+    "command injection": "remote_code_execution",
     "remote_code_execution": "remote_code_execution",
-    # LFI / 文件包含
+    # LFI / file inclusion
     "lfi": "local_file_inclusion",
-    "文件包含": "local_file_inclusion",
+    "file inclusion": "local_file_inclusion",
     "rfi": "local_file_inclusion",
-    "路径遍历": "local_file_inclusion",
-    "文件包含/遍历": "local_file_inclusion",
+    "path traversal": "local_file_inclusion",
+    "file inclusion/traversal": "local_file_inclusion",
     "local file inclusion": "local_file_inclusion",
     "local_file_inclusion": "local_file_inclusion",
-    # IDOR / 越权
+    # IDOR / broken access
     "idor": "insecure_direct_object_reference",
-    "越权": "insecure_direct_object_reference",
-    "横向越权": "insecure_direct_object_reference",
-    "纵向越权": "insecure_direct_object_reference",
+    "broken access control": "insecure_direct_object_reference",
+    "horizontal privilege escalation": "insecure_direct_object_reference",
+    "vertical privilege escalation": "insecure_direct_object_reference",
     "insecure direct object reference": "insecure_direct_object_reference",
     "insecure_direct_object_reference": "insecure_direct_object_reference",
     # CSRF
     "csrf": "cross_site_request_forgery",
-    "跨站请求伪造": "cross_site_request_forgery",
+    "cross-site request forgery": "cross_site_request_forgery",
     "cross site request forgery": "cross_site_request_forgery",
-    # 认证绕过
-    "认证绕过": "auth_bypass",
-    "未授权": "auth_bypass",
-    "未授权访问": "auth_bypass",
-    "未认证": "auth_bypass",
-    "无需认证": "auth_bypass",
-    # 信息泄露
-    "信息泄露": "info_disclosure",
-    "数据泄露": "info_disclosure",
-    "敏感信息泄露": "info_disclosure",
+    # Auth bypass
+    "auth bypass": "auth_bypass",
+    "authentication bypass": "auth_bypass",
+    "unauthorized": "auth_bypass",
+    "unauthorized access": "auth_bypass",
+    "unauthenticated": "auth_bypass",
+    "no auth required": "auth_bypass",
+    "403 auth block": "auth_bypass",
+    "potential authorization bypass": "auth_bypass",
+    # Information disclosure
     "info disclosure": "info_disclosure",
+    "information disclosure": "info_disclosure",
+    "data leak": "info_disclosure",
+    "sensitive information disclosure": "info_disclosure",
+    "sensitive dir/file disclosure": "info_disclosure",
 }
 
 
 def normalize_vuln_type(vuln_type: str) -> str:
-    """归一化漏洞类型，将常见别名映射到规范名称.
+    """Normalize a vuln type, mapping common aliases to canonical names.
 
     Args:
-        vuln_type: 原始漏洞类型字符串（任意大小写/中英文/含空格）。
+        vuln_type: Raw vuln-type string (any case / spacing).
 
     Returns:
-        规范化后的类型；无匹配别名时返回去空格小写后的原值。
+        The normalized type; if no alias matches, the lowercased,
+        whitespace-collapsed original value.
     """
     if not vuln_type:
         return ""
     key = re.sub(r"\s+", " ", vuln_type.strip().lower())
     if key in _VULN_TYPE_ALIASES:
         return _VULN_TYPE_ALIASES[key]
-    # 尝试下划线/空格互换后再匹配
+    # Try swapping underscores/spaces before matching
     underscore = key.replace(" ", "_")
     if underscore in _VULN_TYPE_ALIASES:
         return _VULN_TYPE_ALIASES[underscore]
@@ -113,16 +117,17 @@ def normalize_vuln_type(vuln_type: str) -> str:
     return underscore
 
 
-# ── 文本归一化与相似度 ───────────────────────────────────────────────────
+# ── Text normalization and similarity ───────────────────────────────────
 
 _URL_RE = re.compile(r'https?://[^\s<>"\')\]]+', re.IGNORECASE)
-_TOKEN_RE = re.compile(r"[a-z0-9一-鿿]+", re.IGNORECASE)
-# 标点边界标记（如 [自动]、[已确认]）应在分词前去掉，避免污染词集合
-_NOISE_TAGS = ("[自动]", "[已确认]", "[未验证]")
+_TOKEN_RE = re.compile(r"[a-z0-9]+", re.IGNORECASE)
+# Punctuation boundary tags (e.g. [auto], [confirmed]) should be stripped before
+# tokenizing so they do not pollute the word set.
+_NOISE_TAGS = ("[auto]", "[confirmed]", "[unverified]")
 
 
 def _normalize_url_path(url: str) -> str:
-    """标准化 URL：去 scheme、去末尾斜杠、保留 host+path。"""
+    """Normalize a URL: drop scheme, drop trailing slash, keep host+path."""
     try:
         parts = urlsplit(url)
     except ValueError:
@@ -135,20 +140,20 @@ def _normalize_url_path(url: str) -> str:
 
 
 def normalize_text(text: str) -> str:
-    """归一化文本：小写、合并空白、标准化内嵌 URL 路径.
+    """Normalize text: lowercase, collapse whitespace, normalize embedded URL paths.
 
     Args:
-        text: 任意自由文本（描述/证据/标题）。
+        text: Any free text (description/evidence/title).
 
     Returns:
-        归一化后的文本。
+        The normalized text.
     """
     if not text:
         return ""
     result = text
     for tag in _NOISE_TAGS:
         result = result.replace(tag, " ")
-    # 将内嵌 URL 替换为标准化后的 host+path 形式
+    # Replace embedded URLs with their normalized host+path form
     result = _URL_RE.sub(lambda m: _normalize_url_path(m.group(0)), result)
     result = result.lower()
     result = re.sub(r"\s+", " ", result).strip()
@@ -156,19 +161,19 @@ def normalize_text(text: str) -> str:
 
 
 def _tokenize(text: str) -> set[str]:
-    """将归一化文本切分为词集合。"""
+    """Split normalized text into a word set."""
     return set(_TOKEN_RE.findall(text))
 
 
 def text_similarity(a: str, b: str) -> float:
-    """基于词集合的 Jaccard 相似度.
+    """Word-set Jaccard similarity.
 
     Args:
-        a: 文本 A。
-        b: 文本 B。
+        a: Text A.
+        b: Text B.
 
     Returns:
-        [0.0, 1.0] 之间的相似度。两者皆空时返回 1.0；仅一方为空返回 0.0。
+        Similarity in [0.0, 1.0]. Returns 1.0 when both are empty; 0.0 when only one is empty.
     """
     na, nb = normalize_text(a), normalize_text(b)
     if not na and not nb:
@@ -186,17 +191,17 @@ def text_similarity(a: str, b: str) -> float:
 
 
 def url_similarity(a: str, b: str) -> float:
-    """比较两个 URL 的 host / path / query 参数相似度.
+    """Compare host / path / query-parameter similarity of two URLs.
 
-    权重: host 0.3 + path 0.4 + query 参数名集合 0.3。
-    非 URL 字符串回退为对原文做 Jaccard 文本相似度。
+    Weights: host 0.3 + path 0.4 + query-parameter-name set 0.3.
+    Non-URL strings fall back to Jaccard text similarity on the raw text.
 
     Args:
-        a: URL 或位置字符串 A。
-        b: URL 或位置字符串 B。
+        a: URL or location string A.
+        b: URL or location string B.
 
     Returns:
-        [0.0, 1.0] 之间的相似度。
+        Similarity in [0.0, 1.0].
     """
     if not a and not b:
         return 1.0
@@ -204,11 +209,11 @@ def url_similarity(a: str, b: str) -> float:
         return 0.0
 
     pa, pb = urlsplit(a.strip()), urlsplit(b.strip())
-    # 若两者都不像 URL（无 scheme 也无 netloc 也无 path 分隔），按文本比
+    # If neither looks like a URL (no scheme, no netloc, no path separator), compare as text
     if not (pa.scheme or pa.netloc) and not (pb.scheme or pb.netloc):
         return text_similarity(a, b)
 
-    # host 比较
+    # host comparison
     ha, hb = (pa.hostname or "").lower(), (pb.hostname or "").lower()
     if not ha and not hb:
         host_sim = 1.0
@@ -217,7 +222,7 @@ def url_similarity(a: str, b: str) -> float:
     else:
         host_sim = 1.0 if ha == hb else 0.0
 
-    # path 比较：按 "/" 分段做 Jaccard
+    # path comparison: Jaccard over "/"-split segments
     seg_a = {s for s in pa.path.split("/") if s}
     seg_b = {s for s in pb.path.split("/") if s}
     if not seg_a and not seg_b:
@@ -227,7 +232,7 @@ def url_similarity(a: str, b: str) -> float:
     else:
         path_sim = len(seg_a & seg_b) / len(seg_a | seg_b)
 
-    # query 参数名集合比较（忽略具体值，不同分页/ID 视为同一接口）
+    # query-parameter-name set comparison (ignore concrete values, so different pages/IDs count as the same endpoint)
     qa = set(parse_qs(pa.query).keys())
     qb = set(parse_qs(pb.query).keys())
     if not qa and not qb:
@@ -240,13 +245,13 @@ def url_similarity(a: str, b: str) -> float:
     return host_sim * 0.3 + path_sim * 0.4 + query_sim * 0.3
 
 
-# ── 综合 finding 相似度 ─────────────────────────────────────────────────
+# ── Combined finding similarity ─────────────────────────────────────────
 
 _LOCATION_RE = re.compile(r'(?:https?://[^\s<>"\')\]]+)|(?:/[\w%&=?\-./]+)')
 
 
 def _extract_location(finding: "VulnerabilityFinding") -> str:
-    """从 finding 的 evidence / description 中提取第一个 URL 或路径作为位置。"""
+    """Extract the first URL or path from a finding's evidence / description as its location."""
     for field in (finding.evidence or "", finding.description or ""):
         if not field:
             continue
@@ -257,7 +262,7 @@ def _extract_location(finding: "VulnerabilityFinding") -> str:
 
 
 def _vuln_type_similarity(a: str, b: str) -> float:
-    """漏洞类型相似度：完全匹配 1.0，归一化后匹配 0.8，否则 0.0。"""
+    """Vuln-type similarity: exact match 1.0, normalized match 0.8, otherwise 0.0."""
     ra, rb = (a or "").strip().lower(), (b or "").strip().lower()
     if ra and rb and ra == rb:
         return 1.0
@@ -268,25 +273,25 @@ def _vuln_type_similarity(a: str, b: str) -> float:
 
 
 def finding_similarity(a: "VulnerabilityFinding", b: "VulnerabilityFinding") -> float:
-    """综合比较两个漏洞发现的相似度.
+    """Combined similarity of two vulnerability findings.
 
-    维度权重:
-        - vuln_type:    0.3（完全匹配 1.0 / 归一化匹配 0.8）
-        - location/URL: 0.4（从 evidence/description 提取后做 url_similarity）
-        - description:  0.3（标题+描述的文本 Jaccard）
+    Dimension weights:
+        - vuln_type:    0.3 (exact match 1.0 / normalized match 0.8)
+        - location/URL: 0.4 (extracted from evidence/description, then url_similarity)
+        - description:  0.3 (text Jaccard of title + description)
 
     Args:
-        a: 漏洞发现 A。
-        b: 漏洞发现 B。
+        a: Finding A.
+        b: Finding B.
 
     Returns:
-        [0.0, 1.0] 之间的综合相似度。
+        Combined similarity in [0.0, 1.0].
     """
     type_sim = _vuln_type_similarity(a.vuln_type, b.vuln_type)
 
     loc_a, loc_b = _extract_location(a), _extract_location(b)
     if not loc_a and not loc_b:
-        # 两者都无明确位置 — 该维度不可比，视为中性（不加分也不减分）
+        # Neither has an explicit location — this dimension is not comparable, treat as neutral (no bonus or penalty)
         loc_sim = 0.5
     else:
         loc_sim = url_similarity(loc_a, loc_b)
@@ -298,7 +303,7 @@ def finding_similarity(a: "VulnerabilityFinding", b: "VulnerabilityFinding") -> 
     return type_sim * 0.3 + loc_sim * 0.4 + desc_sim * 0.3
 
 
-# ── 证据强度比较与去重 ───────────────────────────────────────────────────
+# ── Evidence-strength comparison and dedup ──────────────────────────────
 
 _EVIDENCE_LEVEL_RANK = {"L1": 1, "L2": 2, "L3": 3, "L4": 4}
 _LIFECYCLE_RANK = {
@@ -311,13 +316,13 @@ _LIFECYCLE_RANK = {
 
 
 def _evidence_strength(finding: "VulnerabilityFinding") -> tuple:
-    """计算 finding 的证据强度，用于在重复时决定保留哪个.
+    """Compute a finding's evidence strength, used to decide which to keep on a duplicate.
 
-    排序键（越大越强）:
-        1. 已验证优先（verified=True）
-        2. 生命周期等级
-        3. 证据等级 L1-L4
-        4. evidence 文本长度（更详细的证据）
+    Sort key (larger = stronger):
+        1. Verified first (verified=True)
+        2. Lifecycle rank
+        3. Evidence level L1-L4
+        4. Evidence text length (more detailed evidence)
     """
     return (
         1 if finding.verified else 0,
@@ -330,17 +335,18 @@ def _evidence_strength(finding: "VulnerabilityFinding") -> tuple:
 def deduplicate_findings(
     findings: list["VulnerabilityFinding"], threshold: float = 0.75
 ) -> list["VulnerabilityFinding"]:
-    """对漏洞发现列表做语义去重，保留证据更充分的一方.
+    """Semantically deduplicate a list of findings, keeping the better-evidenced one.
 
-    遍历 findings，对每个新 finding 与已保留的 findings 逐一比较，
-    相似度超过阈值即判定为重复；保留证据强度更高者。
+    Iterate over findings, comparing each new finding against the already-kept ones;
+    a similarity above the threshold is treated as a duplicate, keeping the one with
+    stronger evidence.
 
     Args:
-        findings: 原始漏洞发现列表。
-        threshold: 相似度阈值，默认 0.75。
+        findings: The raw list of findings.
+        threshold: Similarity threshold, default 0.75.
 
     Returns:
-        去重后的列表，保持首次出现的相对顺序。
+        The deduplicated list, preserving first-seen relative order.
     """
     kept: list["VulnerabilityFinding"] = []
     for cand in findings:
@@ -352,7 +358,7 @@ def deduplicate_findings(
         if dup_index is None:
             kept.append(cand)
             continue
-        # 命中重复：保留证据更强者
+        # Duplicate hit: keep the one with stronger evidence
         if _evidence_strength(cand) > _evidence_strength(kept[dup_index]):
             kept[dup_index] = cand
     return kept
