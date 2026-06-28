@@ -221,7 +221,7 @@ def _overlay_env(config: SpecterConfig) -> SpecterConfig:
         with suppress(ValueError):
             config.session.stale_rounds_threshold = int(v)
 
-    # ── Session: 推理状态 / 反思引擎 / 插件运行时 ──────────────
+    # ── Session: reasoning state / reflexion engine / plugin runtime ──────────────
     _truthy = ("1", "true", "yes", "on")
     if v := os.environ.get("SPECTER_SESSION_REASONING_STATE_ENABLED"):
         config.session.reasoning_state_enabled = v.lower() in _truthy

@@ -54,8 +54,8 @@ class PluginRuntime:
             elif timeout is not None:
                 raw = await asyncio.wait_for(asyncio.to_thread(lambda: raw), timeout=timeout)
         except (asyncio.TimeoutError, TimeoutError):
-            # Python 3.10 下 asyncio.wait_for 抛 asyncio.TimeoutError（与内置 TimeoutError
-            # 不是同一类，3.11 起才合并），两者都捕获以保证跨版本一致
+            # On Python 3.10 asyncio.wait_for raises asyncio.TimeoutError (a different class from
+            # the builtin TimeoutError; merged only from 3.11), catch both for cross-version consistency
             result = PluginResult.error_result(
                 plugin_id,
                 "Plugin execution timed out",
