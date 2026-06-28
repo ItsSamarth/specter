@@ -3,13 +3,13 @@
 These are built-in agent tools (wired in builtin_tools.py) that give the agent
 real reconnaissance capability instead of guessing:
 
-- space_search      统一空间测绘 (FOFA / Hunter / Quake / Shodan / ZoomEye / 0.zone)
-- subdomain_enum    子域名枚举 (空间测绘被动聚合 + 可选小字典 DNS 爆破)
-- js_recon          JS 信息收集 (参考 URLFinder：抓 JS 提端点/域名/密钥)
-- dir_enum          目录枚举 (参考 dirsearch：并发字典爆破 + 404 基线/伪装识别)
+- space_search      Unified cyberspace mapping (FOFA / Hunter / Quake / Shodan / ZoomEye / 0.zone)
+- subdomain_enum    Subdomain enumeration (passive aggregation from mapping engines + optional small-wordlist DNS brute force)
+- js_recon          JS recon (URLFinder-style: fetch JS, extract endpoints/domains/secrets)
+- dir_enum          Directory enumeration (dirsearch-style: concurrent wordlist brute force + 404 baseline / soft-404 detection)
 
-设计原则：被动优先、严格遵守 host/path/port 约束、所有外呼带超时与并发上限、
-绝不在源码里硬编码任何 API key（从 config.recon 或环境变量读取）。
+Design principles: passive-first, strictly honor host/path/port constraints, all outbound calls have timeouts and concurrency caps,
+and never hardcode any API key in source (read them from config.recon or environment variables).
 """
 
 from __future__ import annotations
@@ -25,41 +25,41 @@ from urllib.parse import urljoin, urlparse
 
 from specter.agent.builtin_tools import enforce_host_path_constraints
 
-# ── 内置目录字典（紧凑版；config.recon.dir_wordlist_path 可覆盖为大字典）────────
+# ── Built-in directory wordlist (compact; config.recon.dir_wordlist_path can override with a larger list) ────────
 _BUILTIN_DIR_WORDLIST: tuple[str, ...] = (
-    # 后台 / 管理
+    # Admin / management
     "admin", "admin/login", "administrator", "manage", "manager", "backend", "system",
     "console", "ht", "qd", "dashboard", "admin.php", "admin.jsp", "admin.do", "login",
     "login.jsp", "login.php", "login.action", "signin", "auth", "sso", "cas",
-    # API / 文档
+    # API / docs
     "api", "api/v1", "api/v2", "v1", "v2", "graphql", "swagger", "swagger-ui.html",
     "swagger/index.html", "v2/api-docs", "openapi.json", "api-docs", "actuator",
     "actuator/env", "actuator/health", "druid", "druid/index.html",
-    # 配置 / 调试 / 信息泄露
+    # Config / debug / information disclosure
     "config", "config.json", "config.php", "configuration", "env", ".env", ".git/config",
     ".git/HEAD", ".svn/entries", ".DS_Store", "debug", "test", "demo", "info", "info.php",
     "phpinfo.php", "status", "health", "metrics", "monitor", "console", "server-status",
     "robots.txt", "sitemap.xml", "crossdomain.xml", "web.config", "WEB-INF/web.xml",
-    # 备份 / 临时
+    # Backup / temporary
     "backup", "backup.zip", "backup.tar.gz", "bak", "old", "www.zip", "web.zip",
     "site.zip", "data.zip", "db.sql", "database.sql", "dump.sql", "test.txt", "1.txt",
-    # 上传 / 文件
+    # Upload / files
     "upload", "uploads", "files", "file", "download", "static", "assets", "public",
     "tmp", "temp", "images", "img", "data", "doc", "docs",
-    # 业务常见（中英混杂拼音）
+    # Common business paths (mixed English/pinyin)
     "user", "users", "member", "hy", "order", "dd", "pay", "payment", "list", "index",
     "home", "main", "portal", "wx", "mp", "xcx", "miniprogram", "h5", "mobile",
 )
 
-# ── 端点提取正则（参考 URLFinder）──────────────────────────────────────────────
+# ── Endpoint-extraction regexes (URLFinder-style) ──────────────────────────────────────────────
 _URL_RE = re.compile(r"""https?://[a-zA-Z0-9.\-]+(?::\d+)?(?:/[^\s"'`<>()\\{}|^]*)?""")
-# 宽泛路径提取：任何引号内以 / 开头、含 2+ 段的路径（参考 URLFinder 的宽匹配策略）
+# Broad path extraction: any quoted path starting with / and containing 2+ segments (URLFinder-style broad matching)
 _PATH_RE = re.compile(
     r"""(?P<q>["'`])(?P<v>/[a-zA-Z0-9_\-]+/[a-zA-Z0-9_\-./?=&%]*)(?P=q)""",
     re.IGNORECASE,
 )
-# 短片段提取：不以 / 开头但看起来像 REST 端点的引号内字符串（如 "User/list"）
-# 动词后允许跟 ForXxx / All / ById 等框架变体（listForLayUI、getAllByType...）
+# Short-fragment extraction: quoted strings that do not start with / but look like REST endpoints (e.g. "User/list")
+# Verbs may be followed by framework variants like ForXxx / All / ById (listForLayUI, getAllByType...)
 _FRAG_RE = re.compile(
     r"""(?P<q>["'`])(?P<v>[A-Za-z][A-Za-z0-9_]*/(?:list|save|get|add|edit|delete|update|"""
     r"""detail|query|search|info|check|export|import|download|upload|count|page|batch|"""
@@ -71,23 +71,23 @@ _FRAG_RE = re.compile(
     r"""[a-zA-Z0-9_\-./?=&%]*)(?P=q)""",
     re.IGNORECASE,
 )
-# REST base path 提取：如 "/jalis/rest"、"/smweb/rest"、"/api/v1"
+# REST base-path extraction: e.g. "/jalis/rest", "/smweb/rest", "/api/v1"
 _BASE_PATH_RE = re.compile(
     r"""(?P<q>["'`])(?P<v>/[a-zA-Z0-9_\-]+/(?:rest|api(?:/v\d+)?))(?P=q)""",
     re.IGNORECASE,
 )
 _SCRIPT_SRC_RE = re.compile(r"""<script[^>]+src=["']?([^"'\s>]+)""", re.IGNORECASE)
 
-# CRUD 动词模板——与 base path 和 JS 中出现的实体名排列组合
+# CRUD verb templates — combined with base paths and entity names found in JS
 _CRUD_VERBS = ("list", "get", "save", "add", "delete", "update", "detail", "query",
                "info", "export", "tree", "page", "count", "all", "search")
-# 动态实体名提取：从 JS 中找所有 PascalCase 标识符（首字母大写、2+ 字母），
-# 而非硬编码实体列表——任何业务实体都能被捕获
+# Dynamic entity-name extraction: find all PascalCase identifiers in JS (initial uppercase, 2+ letters),
+# instead of a hardcoded entity list — any business entity can be captured
 _PASCAL_CASE_RE = re.compile(
     r"""(?P<q>["'`])(?P<v>[A-Z][a-zA-Z0-9]{1,30}(?:[A-Z][a-zA-Z0-9]*)*)(?P=q)"""
 )
 
-# 敏感信息 / 凭证泄露指纹
+# Sensitive-information / credential-leak fingerprints
 _SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("aws_ak", re.compile(r"AKIA[0-9A-Z]{16}")),
     ("google_api", re.compile(r"AIza[0-9A-Za-z_\-]{35}")),
@@ -122,12 +122,12 @@ def _dedup_cap(items: list[str], cap: int) -> list[str]:
     return list(dict.fromkeys(i for i in items if i))[:cap]
 
 
-# ── 空间测绘引擎 ───────────────────────────────────────────────────────────────
+# ── Cyberspace-mapping engines ───────────────────────────────────────────────────────────────
 
 
 async def _engine_fofa(client: Any, query: str, size: int, cfg: Any) -> tuple[list[dict], str]:
     if not (cfg.fofa_email and cfg.fofa_key):
-        return [], "fofa: 未配置 fofa_email/fofa_key"
+        return [], "fofa: fofa_email/fofa_key not configured"
     fields = "host,ip,port,title,domain,server,protocol"
     params = {
         "email": cfg.fofa_email,
@@ -147,19 +147,19 @@ async def _engine_fofa(client: Any, query: str, size: int, cfg: Any) -> tuple[li
             "host": row[0], "ip": row[1], "port": row[2], "title": row[3],
             "domain": row[4], "server": row[5], "url": row[0],
         })
-    return recs, f"fofa: {data.get('size', len(recs))} 命中"
+    return recs, f"fofa: {data.get('size', len(recs))} hits"
 
 
 async def _engine_hunter(client: Any, query: str, size: int, cfg: Any) -> tuple[list[dict], str]:
     if not cfg.hunter_key:
-        return [], "hunter: 未配置 hunter_key"
+        return [], "hunter: hunter_key not configured"
     end = datetime.now()
     start = end - timedelta(days=365)
     params = {
         "api-key": cfg.hunter_key,
         "search": _b64(query),
         "page": "1",
-        # Hunter 仅接受 [10,100] 的 page_size，过小会报「页面大小不合法」
+        # Hunter only accepts page_size in [10,100]; too small triggers an "invalid page size" error
         "page_size": str(min(max(size, 10), 100)),
         "is_web": "3",
         "start_time": start.strftime("%Y-%m-%d"),
@@ -178,12 +178,12 @@ async def _engine_hunter(client: Any, query: str, size: int, cfg: Any) -> tuple[
             "domain": it.get("domain", ""), "server": it.get("component", ""),
             "url": it.get("url", ""),
         })
-    return recs, f"hunter: {(data.get('data') or {}).get('total', len(recs))} 命中"
+    return recs, f"hunter: {(data.get('data') or {}).get('total', len(recs))} hits"
 
 
 async def _engine_quake(client: Any, query: str, size: int, cfg: Any) -> tuple[list[dict], str]:
     if not cfg.quake_key:
-        return [], "quake: 未配置 quake_key"
+        return [], "quake: quake_key not configured"
     body = {"query": query, "start": 0, "size": min(size, 100), "ignore_cache": True}
     r = await client.post(
         "https://quake.360.net/api/v3/search/quake_service",
@@ -203,12 +203,12 @@ async def _engine_quake(client: Any, query: str, size: int, cfg: Any) -> tuple[l
             "domain": it.get("domain", ""), "server": svc.get("name", ""),
             "url": http.get("host", ""),
         })
-    return recs, f"quake: {(data.get('meta') or {}).get('pagination', {}).get('total', len(recs))} 命中"
+    return recs, f"quake: {(data.get('meta') or {}).get('pagination', {}).get('total', len(recs))} hits"
 
 
 async def _engine_shodan(client: Any, query: str, size: int, cfg: Any) -> tuple[list[dict], str]:
     if not cfg.shodan_key:
-        return [], "shodan: 未配置 shodan_key"
+        return [], "shodan: shodan_key not configured"
     r = await client.get(
         "https://api.shodan.io/shodan/host/search",
         params={"key": cfg.shodan_key, "query": query},
@@ -226,12 +226,12 @@ async def _engine_shodan(client: Any, query: str, size: int, cfg: Any) -> tuple[
             "domain": ",".join(it.get("domains") or []),
             "server": it.get("product", ""), "url": (hostnames[0] if hostnames else ""),
         })
-    return recs, f"shodan: {data.get('total', len(recs))} 命中"
+    return recs, f"shodan: {data.get('total', len(recs))} hits"
 
 
 async def _engine_zoomeye(client: Any, query: str, size: int, cfg: Any) -> tuple[list[dict], str]:
     if not cfg.zoomeye_key:
-        return [], "zoomeye: 未配置 zoomeye_key"
+        return [], "zoomeye: zoomeye_key not configured"
     body = {"qbase64": _b64(query), "page": 1, "pagesize": min(size, 100)}
     r = await client.post(
         "https://api.zoomeye.org/v2/search",
@@ -249,12 +249,12 @@ async def _engine_zoomeye(client: Any, query: str, size: int, cfg: Any) -> tuple
             "title": it.get("title", ""), "domain": it.get("domain", ""),
             "server": it.get("product", ""), "url": it.get("url", ""),
         })
-    return recs, f"zoomeye: {data.get('total', len(recs))} 命中"
+    return recs, f"zoomeye: {data.get('total', len(recs))} hits"
 
 
 async def _engine_zerozone(client: Any, query: str, size: int, cfg: Any) -> tuple[list[dict], str]:
     if not cfg.zerozone_key:
-        return [], "zerozone: 未配置 zerozone_key"
+        return [], "zerozone: zerozone_key not configured"
     body = {
         "title": query, "query_type": "site", "page": 1,
         "pagesize": min(size, 100), "zone_key_id": cfg.zerozone_key,
@@ -276,7 +276,7 @@ async def _engine_zerozone(client: Any, query: str, size: int, cfg: Any) -> tupl
             "domain": it.get("domain", ""), "server": it.get("server", ""),
             "url": it.get("url", ""),
         })
-    return recs, f"zerozone: {data.get('total', len(recs))} 命中"
+    return recs, f"zerozone: {data.get('total', len(recs))} hits"
 
 
 _ENGINES = {
@@ -284,7 +284,7 @@ _ENGINES = {
     "shodan": _engine_shodan, "zoomeye": _engine_zoomeye, "zerozone": _engine_zerozone,
 }
 
-# 仅给定 domain 时，各引擎的默认查询语法
+# Default query syntax per engine when only a domain is given
 _DOMAIN_QUERY = {
     "fofa": 'domain="{d}"', "hunter": 'domain="{d}"', "quake": 'domain:"{d}"',
     "shodan": "hostname:{d}", "zoomeye": 'hostname:"{d}"', "zerozone": "{d}",
@@ -298,7 +298,7 @@ def _make_client(cfg: Any):
 
 
 async def execute_space_search(agent: Any, args: dict[str, Any]) -> str:
-    """统一空间测绘查询。engine ∈ {fofa,hunter,quake,shodan,zoomeye,zerozone,all}。"""
+    """Unified cyberspace-mapping query. engine in {fofa,hunter,quake,shodan,zoomeye,zerozone,all}."""
     cfg = _get_recon_cfg(agent)
     engine = str(args.get("engine", "fofa") or "fofa").strip().lower()
     query = str(args.get("query", "") or "").strip()
@@ -306,14 +306,14 @@ async def execute_space_search(agent: Any, args: dict[str, Any]) -> str:
     size = int(args.get("size", cfg.space_size) or cfg.space_size)
 
     if not query and not domain:
-        return "[!] space_search 需要 query 或 domain 参数"
+        return "[!] space_search requires a query or domain argument"
 
     engines = list(_ENGINES) if engine == "all" else [engine]
     invalid = [e for e in engines if e not in _ENGINES]
     if invalid:
-        return f"[!] 不支持的 engine: {', '.join(invalid)}；可选: {', '.join(_ENGINES)}, all"
+        return f"[!] Unsupported engine: {', '.join(invalid)}; available: {', '.join(_ENGINES)}, all"
 
-    out: list[str] = [f"# 空间测绘 — {'/'.join(engines)}  query={query or domain}"]
+    out: list[str] = [f"# Cyberspace mapping — {'/'.join(engines)}  query={query or domain}"]
     try:
         async with _make_client(cfg) as client:
             async def run(eng: str) -> tuple[str, list[dict], str]:
@@ -321,12 +321,12 @@ async def execute_space_search(agent: Any, args: dict[str, Any]) -> str:
                 try:
                     recs, note = await _ENGINES[eng](client, q, size, cfg)
                     return eng, recs, note
-                except Exception as e:  # 单引擎失败不影响其他引擎
-                    return eng, [], f"{eng}: 请求异常 {e}"
+                except Exception as e:  # one engine failing must not affect the others
+                    return eng, [], f"{eng}: request error {e}"
 
             results = await asyncio.gather(*(run(e) for e in engines))
     except Exception as e:
-        return f"[!] space_search 执行错误: {e}"
+        return f"[!] space_search execution error: {e}"
 
     for eng, recs, note in results:
         out.append(f"\n## {note}")
@@ -335,11 +335,11 @@ async def execute_space_search(agent: Any, args: dict[str, Any]) -> str:
             extra = " | ".join(x for x in (rec.get("title", ""), rec.get("server", "")) if x)
             out.append(line + (f"  [{extra}]" if extra else ""))
         if not recs:
-            out.append("  (无结果或未配置 key)")
+            out.append("  (no results or no key configured)")
     return "\n".join(out)
 
 
-# ── 子域名枚举 ─────────────────────────────────────────────────────────────────
+# ── Subdomain enumeration ─────────────────────────────────────────────────────────────────
 
 _SUBDOMAIN_BRUTE = (
     "www", "api", "app", "m", "mail", "admin", "test", "dev", "stage", "uat", "pre",
@@ -351,11 +351,11 @@ _SUBDOMAIN_BRUTE = (
 
 
 async def execute_subdomain_enum(agent: Any, args: dict[str, Any]) -> str:
-    """子域名枚举：空间测绘被动聚合 + 可选小字典 DNS 爆破。"""
+    """Subdomain enumeration: passive aggregation from mapping engines + optional small-wordlist DNS brute force."""
     cfg = _get_recon_cfg(agent)
     domain = str(args.get("domain", "") or "").strip().lower()
     if not domain:
-        return "[!] subdomain_enum 需要 domain 参数"
+        return "[!] subdomain_enum requires a domain argument"
     if "://" in domain:
         domain = _host_of(domain)
 
@@ -363,7 +363,7 @@ async def execute_subdomain_enum(agent: Any, args: dict[str, Any]) -> str:
     found: set[str] = set()
     notes: list[str] = []
 
-    # 1) 被动：从各空间测绘引擎聚合
+    # 1) Passive: aggregate from the mapping engines
     engines = [e for e in _ENGINES if getattr(cfg, _key_field(e))]
     if engines:
         try:
@@ -378,14 +378,14 @@ async def execute_subdomain_enum(agent: Any, args: dict[str, Any]) -> str:
                                 if f and f.endswith(domain):
                                     found.add(f.lstrip("*.").lower())
                     except Exception as e:
-                        notes.append(f"{eng}: 异常 {e}")
+                        notes.append(f"{eng}: error {e}")
                 await asyncio.gather(*(run(e) for e in engines))
         except Exception as e:
-            notes.append(f"被动聚合异常: {e}")
+            notes.append(f"passive aggregation error: {e}")
     else:
-        notes.append("未配置任何空间测绘 key，跳过被动聚合")
+        notes.append("No mapping-engine key configured; skipping passive aggregation")
 
-    # 2) 主动：小字典 DNS 解析爆破
+    # 2) Active: small-wordlist DNS resolution brute force
     if do_brute:
         sem = asyncio.Semaphore(cfg.max_concurrency)
         loop = asyncio.get_running_loop()
@@ -402,11 +402,11 @@ async def execute_subdomain_enum(agent: Any, args: dict[str, Any]) -> str:
                     pass
 
         await asyncio.gather(*(resolve(s) for s in _SUBDOMAIN_BRUTE))
-        notes.append(f"DNS 爆破字典 {len(_SUBDOMAIN_BRUTE)} 条")
+        notes.append(f"DNS brute-force wordlist: {len(_SUBDOMAIN_BRUTE)} entries")
 
     subs = sorted(found)
-    head = [f"# 子域名枚举 — {domain}  共 {len(subs)} 个", "  " + "; ".join(notes)]
-    return "\n".join(head + [f"  {s}" for s in subs]) if subs else "\n".join(head + ["  (未发现子域名)"])
+    head = [f"# Subdomain enumeration — {domain}  {len(subs)} total", "  " + "; ".join(notes)]
+    return "\n".join(head + [f"  {s}" for s in subs]) if subs else "\n".join(head + ["  (no subdomains found)"])
 
 
 def _key_field(engine: str) -> str:
@@ -416,28 +416,28 @@ def _key_field(engine: str) -> str:
     }[engine]
 
 
-# ── JS 信息收集（参考 URLFinder）──────────────────────────────────────────────
+# ── JS recon (URLFinder-style) ──────────────────────────────────────────────
 
 
 def extract_from_js(content: str, base_host: str = "") -> dict[str, list[str]]:
-    """从 HTML/JS 文本中提取 urls / paths / domains / secrets（纯函数，便于测试）。
+    """Extract urls / paths / domains / secrets from HTML/JS text (pure function, easy to test).
 
-    关键改进（参考 URLFinder）：
-    1. 宽泛路径匹配——任何引号内 /xxx/yyy 都提取，不限关键字白名单
-    2. 短片段提取——"User/list" 这类不以 / 开头的 CRUD 片段也捕获
-    3. base path + 实体名 + CRUD 动词排列组合推断——即便 JS 里只出现 "/jalis/rest"
-       和 "User"，也能自动推断出 /jalis/rest/User/list 等隐含端点
+    Key improvements (URLFinder-style):
+    1. Broad path matching — any quoted /xxx/yyy is extracted, not limited to a keyword allowlist
+    2. Short-fragment extraction — CRUD fragments not starting with / such as "User/list" are also captured
+    3. base path + entity name + CRUD verb combination inference — even if the JS only contains "/jalis/rest"
+       and "User", implicit endpoints like /jalis/rest/User/list can be inferred automatically
     """
     urls = _URL_RE.findall(content)
     paths = [m.group("v") for m in _PATH_RE.finditer(content)]
 
-    # 短片段（如 "User/list"）
+    # Short fragments (e.g. "User/list")
     frags = [m.group("v") for m in _FRAG_RE.finditer(content)]
 
-    # base path 提取（如 "/jalis/rest"、"/smweb/rest"）
+    # base-path extraction (e.g. "/jalis/rest", "/smweb/rest")
     bases = list(dict.fromkeys(m.group("v").rstrip("/") for m in _BASE_PATH_RE.finditer(content)))
 
-    # 实体名动态提取：从 JS 中找所有 PascalCase 标识符（排除常见 JS 关键字/类名噪音）
+    # Dynamic entity-name extraction: find all PascalCase identifiers in JS (excluding common JS keyword/class-name noise)
     _JS_NOISE = frozenset({
         "Object", "Array", "String", "Number", "Boolean", "Function", "Date", "Error",
         "Math", "JSON", "Promise", "RegExp", "Map", "Set", "Symbol", "Proxy", "Reflect",
@@ -462,14 +462,14 @@ def extract_from_js(content: str, base_host: str = "") -> dict[str, list[str]]:
         if m.group("v") not in _JS_NOISE and len(m.group("v")) <= 30
     ))
 
-    # base + entity + CRUD 推断
+    # base + entity + CRUD inference
     inferred: list[str] = []
     if bases and entities:
         for base in bases[:5]:
             for entity in entities[:30]:
                 for verb in _CRUD_VERBS:
                     inferred.append(f"{base}/{entity}/{verb}")
-    # base + 短片段拼接
+    # base + short-fragment concatenation
     for base in bases[:5]:
         for frag in frags:
             if not frag.startswith("/"):
@@ -494,11 +494,11 @@ def extract_from_js(content: str, base_host: str = "") -> dict[str, list[str]]:
 
 
 async def execute_js_recon(agent: Any, args: dict[str, Any]) -> str:
-    """抓取目标页面及其引用的 JS 文件，提取端点 / 域名 / 密钥。"""
+    """Fetch the target page and the JS files it references, extracting endpoints / domains / secrets."""
     cfg = _get_recon_cfg(agent)
     url = str(args.get("url", "") or "").strip()
     if not url:
-        return "[!] js_recon 需要 url 参数"
+        return "[!] js_recon requires a url argument"
     if "://" not in url:
         url = "http://" + url
     host = _host_of(url)
@@ -517,7 +517,7 @@ async def execute_js_recon(agent: Any, args: dict[str, Any]) -> str:
             for k, v in extract_from_js(html, host).items():
                 agg[k].extend(v)
 
-            # 收集 <script src> 并补全为绝对 URL
+            # Collect <script src> and resolve to absolute URLs
             js_urls = []
             for src in _SCRIPT_SRC_RE.findall(html):
                 full = urljoin(url, src)
@@ -540,16 +540,16 @@ async def execute_js_recon(agent: Any, args: dict[str, Any]) -> str:
 
             await asyncio.gather(*(grab(j) for j in js_urls))
     except Exception as e:
-        return f"[!] js_recon 执行错误: {e}"
+        return f"[!] js_recon execution error: {e}"
 
     for k in agg:
         agg[k] = _dedup_cap(agg[k], 200 if k != "secrets" else 50)
 
-    out = [f"# JS 信息收集 — {url}  (抓取 {fetched} 个 JS)"]
+    out = [f"# JS recon — {url}  (fetched {fetched} JS files)"]
 
-    # 关键发现提前：敏感信息和未授权探测结果放最前面，减少被截断后 LLM 反复重调
+    # Surface key findings first: put sensitive info and unauth-probe results at the top so the LLM does not re-call repeatedly after truncation
     if agg["secrets"]:
-        out.append(f"\n## ⚠ 疑似敏感信息 ({len(agg['secrets'])})")
+        out.append(f"\n## ⚠ Suspected secrets — CREDENTIALS, do not share without approval ({len(agg['secrets'])})")
         out += [f"  {s}" for s in agg["secrets"]]
 
     auto_probe = args.get("auto_probe", True)
@@ -566,27 +566,27 @@ async def execute_js_recon(agent: Any, args: dict[str, Any]) -> str:
         )
         out.append("\n" + probe_out)
 
-    out.append(f"\n## 接口/路径 ({len(agg['paths'])})")
+    out.append(f"\n## Endpoints/paths ({len(agg['paths'])})")
     out += [f"  {p}" for p in agg["paths"][:120]]
-    out.append(f"\n## 关联域名 ({len(agg['domains'])})")
+    out.append(f"\n## Related domains ({len(agg['domains'])})")
     out += [f"  {d}" for d in agg["domains"][:60]]
-    out.append(f"\n## 绝对 URL ({len(agg['urls'])})")
+    out.append(f"\n## Absolute URLs ({len(agg['urls'])})")
     out += [f"  {u}" for u in agg["urls"][:60]]
     return "\n".join(out)
 
 
-# ── 未授权访问探测（JS 收集到的接口逐个验证）────────────────────────────────────
+# ── Unauthorized-access probing (verify each endpoint collected from JS) ────────────────────────────────────
 
-# 破坏性动作：即便只发 GET 也可能触发副作用（短信轰炸/改数据），一律跳过
+# Destructive actions: even a GET may trigger side effects (SMS bombing / data changes), so always skip
 _DESTRUCTIVE_RE = re.compile(
     r"(?i)(delete|remove|destroy|update|modify|edit|/add|/create|insert|/save|clear|"
     r"reset|drop|logout|sign ?out|sms|sendcode|send_?sms|captcha|verifycode|/pay|/order/cancel)"
 )
-# 强鉴权墙信号：出现即判定为登录/拦截页（避免把含 "login" 导航链接的公开页误判）
+# Strong auth-wall signals: their presence marks a login/intercept page (avoids misjudging public pages that merely contain a "login" nav link)
 _AUTHWALL_MARKERS = (
-    "请登录", "请先登录", "未登录", "未授权", "无权限", "权限不足", "登录后查看",
+    "please log in", "please sign in first", "not logged in", "unauthorized", "no permission", "insufficient permission", "log in to view",
     "unauthorized", "access denied", "not logged in", "please log in",
-    "authentication required", "需要登录",
+    "authentication required", "login required",
 )
 _PASSWORD_FIELD_RE = re.compile(r"""(?i)(?:type|name)\s*=\s*["']password["']""")
 
@@ -600,12 +600,12 @@ def _parse_auth_header(raw: Any) -> dict[str, str]:
     if ":" in text:
         name, _, value = text.partition(":")
         return {name.strip(): value.strip()}
-    # 裸 token → 当作 Bearer
+    # Bare token -> treat as Bearer
     return {"Authorization": f"Bearer {text.strip()}"}
 
 
 def _is_auth_wall(body: str) -> bool:
-    """是否为登录/鉴权拦截页：强文案信号或存在密码输入框（不靠裸 login 字样误判）。"""
+    """Whether this is a login/auth intercept page: strong text signals or a password input box (does not misjudge on the bare word 'login')."""
     head = body[:4000]
     low = head.lower()
     if any(m.lower() in low for m in _AUTHWALL_MARKERS):
@@ -614,26 +614,26 @@ def _is_auth_wall(body: str) -> bool:
 
 
 def _classify_unauth(status: int, body: str, ctype: str) -> tuple[str, bool]:
-    """返回 (判定文案, 是否疑似未授权线索)。"""
+    """Return (verdict text, whether it is a suspected unauthorized-access lead)."""
     if status in (401, 403):
-        return "✓ 已鉴权拦截", False
+        return "✓ blocked by auth", False
     if status in (301, 302, 307, 308):
-        return "↪ 跳转(疑似登录)", False
+        return "↪ redirect (likely login)", False
     if status == 404:
-        return "— 不存在", False
+        return "— not found", False
     if status == 405:
-        return "· 方法不允许", False
+        return "· method not allowed", False
     if status == 200:
         if not body.strip():
-            return "· 200 空响应", False
+            return "· 200 empty response", False
         if _is_auth_wall(body):
-            return "· 200 登录/鉴权墙", False
+            return "· 200 login/auth wall", False
         is_data = ("json" in ctype.lower()) or body.lstrip()[:1] in ("{", "[")
         if is_data:
-            return "⚠ 疑似未授权(返回数据)", True
+            return "⚠ suspected unauthorized (returned data)", True
         if "html" in ctype.lower() or body.lstrip()[:1] == "<":
-            return "· 200 HTML 页面(非接口)", False  # 公开页面，非接口未授权
-        return "⚠ 200 需人工确认", True
+            return "· 200 HTML page (not an API)", False  # public page, not API unauthorized access
+        return "⚠ 200 needs manual confirmation", True
     return f"? HTTP {status}", False
 
 
@@ -647,10 +647,10 @@ async def _probe_endpoints(
     todo: list[str] = []
     for ep in endpoints:
         full = ep if "://" in ep else urljoin(base, ep)
-        if _host_of(full) != base_host:  # 不打非授权范围的关联域名
+        if _host_of(full) != base_host:  # do not hit related domains outside the authorized scope
             continue
-        if _DESTRUCTIVE_RE.search(full):  # 读写分离红线：跳过破坏性接口
-            results.append({"url": full, "status": "-", "verdict": "🚫 跳过(破坏性接口)", "lead": False, "length": 0})
+        if _DESTRUCTIVE_RE.search(full):  # read/write separation red line: skip destructive endpoints
+            results.append({"url": full, "status": "-", "verdict": "🚫 skipped (destructive endpoint)", "lead": False, "length": 0})
             continue
         if full in seen:
             continue
@@ -658,7 +658,7 @@ async def _probe_endpoints(
         todo.append(full)
     todo = todo[:cap]
 
-    # REST CRUD list/query/search 端点通常需要 POST（含框架变体如 listForLayUI）
+    # REST CRUD list/query/search endpoints usually require POST (including framework variants like listForLayUI)
     _POST_VERBS_RE = re.compile(
         r"(?i)/(?:list|query|search|page|find|select|export|count|batch|all)"
         r"(?:[A-Z][a-zA-Z0-9]*)*(?:\?|$)"
@@ -666,7 +666,7 @@ async def _probe_endpoints(
 
     async def one(url: str) -> None:
         async with sem:
-            # 优先 GET；对 REST CRUD list/query 端点额外尝试 POST
+            # Prefer GET; for REST CRUD list/query endpoints, also try POST
             methods = ["GET"]
             if _POST_VERBS_RE.search(url):
                 methods.append("POST")
@@ -680,7 +680,7 @@ async def _probe_endpoints(
                         r = await client.post(url, content="{}", headers={"Content-Type": "application/json"})
                 except Exception as e:
                     if best_row is None:
-                        best_row = {"url": url, "status": "ERR", "verdict": f"请求失败:{e}",
+                        best_row = {"url": url, "status": "ERR", "verdict": f"request failed:{e}",
                                     "lead": False, "length": 0, "method": method}
                     continue
                 body = r.text
@@ -697,23 +697,23 @@ async def _probe_endpoints(
                         else:
                             ra = await client.get(url, headers=hdrs)
                         if ra.status_code == 200 and abs(len(ra.content) - len(r.content)) <= max(50, len(r.content) * 0.1):
-                            row["verdict"] = "🔴 未授权确认(无token=有token)"
+                            row["verdict"] = "🔴 unauthorized confirmed (no-token == with-token)"
                     except Exception:
                         pass
-                # 保留发现线索更强的那个方法
+                # Keep the method with the stronger lead
                 if best_row is None or (lead and not best_row.get("lead")) or (lead and len(r.content) > best_row.get("length", 0)):
                     best_row = row
             if best_row is not None:
                 results.append(best_row)
 
     await asyncio.gather(*(one(u) for u in todo))
-    # 线索优先、再按状态排序
+    # Sort by lead first, then by status
     results.sort(key=lambda x: (not x.get("lead"), str(x.get("status"))))
     return results
 
 
 async def execute_unauth_test(agent: Any, args: dict[str, Any]) -> str:
-    """对一批接口逐个做未授权访问探测（仅安全 GET，跳过破坏性接口）。"""
+    """Probe a batch of endpoints for unauthorized access one by one (safe GET only, destructive endpoints skipped)."""
     cfg = _get_recon_cfg(agent)
     base = str(args.get("base_url") or args.get("url") or "").strip()
     endpoints = args.get("endpoints") or []
@@ -722,7 +722,7 @@ async def execute_unauth_test(agent: Any, args: dict[str, Any]) -> str:
     if not base and endpoints:
         base = endpoints[0]
     if not base:
-        return "[!] unauth_test 需要 base_url（或在 endpoints 中给出完整 URL）"
+        return "[!] unauth_test requires base_url (or give full URLs in endpoints)"
     if "://" not in base:
         base = "http://" + base
     host = _host_of(base)
@@ -731,7 +731,7 @@ async def execute_unauth_test(agent: Any, args: dict[str, Any]) -> str:
     if violation:
         return violation
     if not endpoints:
-        return "[!] unauth_test 需要 endpoints（接口路径/URL 列表，通常来自 js_recon）"
+        return "[!] unauth_test requires endpoints (a list of endpoint paths/URLs, usually from js_recon)"
 
     auth = _parse_auth_header(args.get("auth_header"))
     cap = int(args.get("max_endpoints", 60) or 60)
@@ -740,24 +740,24 @@ async def execute_unauth_test(agent: Any, args: dict[str, Any]) -> str:
             sem = asyncio.Semaphore(cfg.max_concurrency)
             rows = await _probe_endpoints(client, base, endpoints, auth, cap, sem)
     except Exception as e:
-        return f"[!] unauth_test 执行错误: {e}"
+        return f"[!] unauth_test execution error: {e}"
 
     leads = [r for r in rows if r.get("lead")]
-    out = [f"# 未授权访问探测 — {host}  探测 {len(rows)} 个接口，疑似线索 {len(leads)}"]
+    out = [f"# Unauthorized-access probe — {host}  probed {len(rows)} endpoints, suspected leads {len(leads)}"]
     if auth:
-        out.append("  (已启用 有/无 token 差分对比)")
+        out.append("  (enabled with/without-token differential comparison)")
     for r in rows:
         st = r.get("status")
         method = r.get("method", "GET")
         tag = f"[{str(st):>3}]" if method == "GET" else f"[{str(st):>3} {method}]"
         out.append(f"  {tag:>12} {str(r.get('length','')):>7}B  {r['verdict']:<22} {r['url']}")
     if leads:
-        out.append("\n⚠ 重点人工复核（确认是否能读他人数据/是否敏感）：")
+        out.append("\n⚠ Priority manual review (confirm whether other users' data can be read / whether it is sensitive):")
         out += [f"  {r['url']}" for r in leads]
     return "\n".join(out)
 
 
-# ── 目录枚举（参考 dirsearch）──────────────────────────────────────────────────
+# ── Directory enumeration (dirsearch-style) ──────────────────────────────────────────────────
 
 
 def _load_wordlist(cfg: Any) -> list[str]:
@@ -777,11 +777,11 @@ _HIT_CODES = {200, 201, 204, 301, 302, 307, 401, 403, 405, 500}
 
 
 async def execute_dir_enum(agent: Any, args: dict[str, Any]) -> str:
-    """目录枚举：并发字典爆破，带 404 基线 / 全局伪装识别与状态码过滤。"""
+    """Directory enumeration: concurrent wordlist brute force with 404 baseline / global soft-404 detection and status-code filtering."""
     cfg = _get_recon_cfg(agent)
     base = str(args.get("url", "") or "").strip()
     if not base:
-        return "[!] dir_enum 需要 url 参数"
+        return "[!] dir_enum requires a url argument"
     if "://" not in base:
         base = "http://" + base
     base = base.rstrip("/") + "/"
@@ -799,7 +799,7 @@ async def execute_dir_enum(agent: Any, args: dict[str, Any]) -> str:
         extra = args["wordlist"]
         words = (extra if isinstance(extra, list) else [extra]) + words
 
-    # 展开扩展名
+    # Expand extensions
     candidates: list[str] = []
     for w in words:
         candidates.append(w)
@@ -811,17 +811,17 @@ async def execute_dir_enum(agent: Any, args: dict[str, Any]) -> str:
 
     try:
         async with _make_client(cfg) as client:
-            # 404 基线 + 全局伪装识别：请求随机不存在路径
+            # 404 baseline + global soft-404 detection: request a random nonexistent path
             baseline_len = None
             try:
                 rnd = await client.get(urljoin(base, "specter_nope_8f3a2c1e9b/"))
                 if rnd.status_code in (200, 301, 302):
                     baseline_len = len(rnd.text)
-                    # 随机路径竟返回 200 → 全局伪装响应，停止爆破（CLAUDE.md 铁律）
+                    # A random path returning 200 -> global soft-404 response, stop brute force (CLAUDE.md hard rule)
                     if rnd.status_code == 200:
                         return (
-                            f"[!] dir_enum 终止：随机路径 {base}specter_nope_... 返回 200"
-                            f"（长度 {baseline_len}），目标疑似对任意路径返回 200，目录爆破无意义。"
+                            f"[!] dir_enum aborted: random path {base}specter_nope_... returned 200"
+                            f"(length {baseline_len}); the target likely returns 200 for any path, making directory brute force pointless."
                         )
             except Exception:
                 pass
@@ -840,17 +840,17 @@ async def execute_dir_enum(agent: Any, args: dict[str, Any]) -> str:
                 length = len(r.content)
                 if code in _HIT_CODES:
                     if baseline_len is not None and code in (200, 301, 302) and length == baseline_len:
-                        return  # 与伪装基线同长，判为噪音
+                        return  # same length as the soft-404 baseline, treated as noise
                     hits.append((code, length, path))
 
             await asyncio.gather(*(probe(p) for p in candidates))
     except Exception as e:
-        return f"[!] dir_enum 执行错误: {e}"
+        return f"[!] dir_enum execution error: {e}"
 
     hits.sort(key=lambda x: (x[0], -x[1]))
-    out = [f"# 目录枚举 — {base}  请求 {len(candidates)} 条，命中 {len(hits)}"]
+    out = [f"# Directory enumeration — {base}  requested {len(candidates)}, hits {len(hits)}"]
     if baseline_len is not None:
-        out.append(f"  (404 基线长度 ≈ {baseline_len})")
+        out.append(f"  (404 baseline length ≈ {baseline_len})")
     for code, length, path in hits:
         out.append(f"  [{code}] {length:>8}B  {base}{path}")
-    return "\n".join(out) if hits else "\n".join(out + ["  (无有效命中)"])
+    return "\n".join(out) if hits else "\n".join(out + ["  (no valid hits)"])
