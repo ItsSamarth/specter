@@ -12,7 +12,7 @@ const TRANSLATIONS: Record<Lang, Translations> = {
   "zh-CN": zh as Translations,
 };
 
-/* ── 全局单例（供 taskLabels 等非 React 代码使用）── */
+/* ── Global singleton (for non-React code such as taskLabels) ── */
 
 let _currentLang: Lang = resolveInitialLang();
 let _currentTranslations: Translations = TRANSLATIONS[_currentLang];
@@ -27,12 +27,12 @@ function resolveInitialLang(): Lang {
 }
 
 /**
- * 全局翻译函数 — 可在 React 组件之外调用。
- *   t("key")                -> 翻译文本
- *   t("key", {a:"1"})       -> 替换 {a} 占位符
- *   t("key", {}, "fallback") -> key 不存在时使用 fallback
+ * Global translation function — callable outside React components.
+ *   t("key")                -> translated text
+ *   t("key", {a:"1"})       -> substitute the {a} placeholder
+ *   t("key", {}, "fallback") -> use fallback when the key is missing
  *
- * 保底链：当前语言 → 英文 → key 本身（或 fallback）
+ * Fallback chain: current language → English → the key itself (or fallback)
  */
 export function t(key: string, params?: Record<string, string>, fallback?: string): string {
   let text = _currentTranslations[key];
@@ -63,16 +63,17 @@ const I18nContext = createContext<I18nContextValue>({
 });
 
 /**
- * React Hook — 组件使用 `const { t, lang } = useT()` 获取翻译函数。
- * 当语言切换时自动触发重渲染。
+ * React Hook — components call `const { t, lang } = useT()` to get the
+ * translation function. Re-renders automatically when the language changes.
  */
 export function useT(): I18nContextValue {
   return useContext(I18nContext);
 }
 
 /**
- * I18nProvider — 在 main.tsx 中包裹 <App />。
- * 监听 preferences 变化，语言切换时更新 Context 和全局单例。
+ * I18nProvider — wraps <App /> in main.tsx.
+ * Watches preference changes and updates the Context and global singleton
+ * whenever the language switches.
  */
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(_currentLang);
