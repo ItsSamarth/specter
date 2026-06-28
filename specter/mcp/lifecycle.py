@@ -310,7 +310,7 @@ class MCPLifecycleManager:
                 name,
                 HealthStatus.HEALTHY.value if attached else HealthStatus.DEGRADED.value,
             )
-            # 探测失败时回退到静态已知工具，至少让 LLM 能看到工具名
+            # On probe failure, fall back to statically known tools so the LLM can at least see tool names
             if not attached:
                 self._register_known_tools(name)
             return True
@@ -495,14 +495,14 @@ class MCPLifecycleManager:
                     tool_defs = self._normalize_mcp_tools(getattr(tools, "tools", []) or [])
                     return True, f"initialized with {len(tool_defs)} tools", tool_defs
         except BaseException as exc:
-            # 从 ExceptionGroup 中提取根因（anyio TaskGroup 把真实异常包了一层）
+            # Extract the root cause from the ExceptionGroup (anyio TaskGroup wraps the real exception)
             detail = str(exc)
             if hasattr(exc, "exceptions"):
                 subs = list(getattr(exc, "exceptions", []))
                 if subs:
                     detail = "; ".join(str(s) for s in subs)
             if "already connected" in detail.lower():
-                detail += " (请重启 MCP 服务或关闭旧客户端连接)"
+                detail += " (restart the MCP service or close old client connections)"
             return False, detail, []
 
     def _probe_sse_server(
@@ -611,7 +611,7 @@ class MCPLifecycleManager:
 
         try:
             async with stdio_client(server) as (read_stream, write_stream):
-                # async with ClientSession 启动 _receive_loop，否则 initialize() 不会有人读响应而卡死。
+                # 'async with ClientSession' starts _receive_loop; otherwise nobody reads the initialize() response and it hangs.
                 async with ClientSession(read_stream, write_stream) as session:
                     await session.initialize()
                     tools = await session.list_tools()
@@ -743,7 +743,7 @@ class MCPLifecycleManager:
         session = ClientSession(
             read_stream, write_stream, read_timeout_seconds=timedelta(seconds=timeout_s)
         )
-        # 进入 ClientSession 上下文以启动 _receive_loop；否则后续调用读不到响应而卡死。
+        # Enter the ClientSession context to start _receive_loop; otherwise later calls get no response and hang.
         try:
             await session.__aenter__()
             await session.initialize()
@@ -829,7 +829,7 @@ class MCPLifecycleManager:
                 f"streamable-http session for {server_name} failed: {detail}"
             ) from None
 
-        # 首次连接时发现真实工具并替换启动时注册的静态占位工具
+        # On first connect, discover the real tools and replace the static placeholders registered at startup
         try:
             tools = await session.list_tools()
             tool_defs = self._normalize_mcp_tools(getattr(tools, "tools", []) or [])
@@ -1522,8 +1522,8 @@ class MCPLifecycleManager:
                         suggestion="Start the Burp MCP service and verify the proxy integration is ready.",
                     )
 
-            # 通用路径：任何经 SDK attach 成功的 stdio/streamable-http 服务（如自定义
-            # streamable-mcp-server）都走真实会话调用，而不是回落到 unsupported。
+            # Generic path: any stdio/streamable-http service successfully attached via the SDK (e.g. a custom
+            # streamable-mcp-server) goes through a real session call instead of falling back to unsupported.
             if self._is_sdk_attachable(server_name):
                 try:
                     content, structured = await self._call_attached_server(
@@ -1609,9 +1609,9 @@ class MCPLifecycleManager:
             return result
 
         except ImportError:
-            return "[!] httpx 未安装，无法执行 fetch 请求"
+            return "[!] httpx is not installed; cannot perform the fetch request"
         except Exception as e:
-            return f"[!] fetch 请求失败: {e}"
+            return f"[!] fetch request failed: {e}"
 
     async def _call_memory(self, tool_name: str, args: dict) -> str:
         """Execute a memory tool call (local implementation)."""
@@ -1621,11 +1621,11 @@ class MCPLifecycleManager:
 
         if tool_name == "save":
             store.save(args.get("key", ""), args.get("value", ""))
-            return f"[+] 已保存: {args.get('key', '')}"
+            return f"[+] Saved: {args.get('key', '')}"
         elif tool_name == "retrieve":
             value = store.retrieve(args.get("key", ""))
-            return str(value) if value else "[-] 未找到"
-        return "[!] 未知 memory 工具"
+            return str(value) if value else "[-] Not found"
+        return "[!] Unknown memory tool"
 
     async def _call_attached_server(
         self, server_name: str, tool_name: str, args: dict
