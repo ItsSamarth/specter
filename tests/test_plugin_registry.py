@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from vulnclaw.plugins import (
+from specter.plugins import (
     PluginContext,
     PluginFinding,
     PluginRegistry,

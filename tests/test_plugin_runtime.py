@@ -5,8 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from vulnclaw.agent.context import TaskConstraints
-from vulnclaw.plugins import (
+from specter.agent.context import TaskConstraints
+from specter.plugins import (
     PluginContext,
     PluginRegistry,
     PluginResult,

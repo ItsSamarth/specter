@@ -16,8 +16,8 @@ export interface BoundaryDefaults {
   blockActions: string[];
 }
 
-const STORAGE_KEY = "vulnclaw.ui.preferences";
-export const UI_PREFERENCES_EVENT = "vulnclaw.ui.preferences.updated";
+const STORAGE_KEY = "specter.ui.preferences";
+export const UI_PREFERENCES_EVENT = "specter.ui.preferences.updated";
 
 export const DEFAULT_UI_PREFERENCES: UiPreferences = {
   language: "en-US",

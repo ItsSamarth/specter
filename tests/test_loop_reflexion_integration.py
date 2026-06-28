@@ -1,13 +1,13 @@
 import pytest
 
-from vulnclaw.agent.context import PentestPhase
-from vulnclaw.agent.core import AgentCore
-from vulnclaw.agent.reflexion import FailureCategory
-from vulnclaw.config.schema import VulnClawConfig
+from specter.agent.context import PentestPhase
+from specter.agent.core import AgentCore
+from specter.agent.reflexion import FailureCategory
+from specter.config.schema import SpecterConfig
 
 
 def _make_agent(tmp_path, reflexion_enabled=True):
-    config = VulnClawConfig()
+    config = SpecterConfig()
     config.session.output_dir = tmp_path
     config.session.reflexion_enabled = reflexion_enabled
     config.session.reflexion_max_same_vuln_fails = 2
@@ -20,7 +20,7 @@ async def test_consecutive_same_failures_generate_reflexion_prompt(tmp_path, mon
     agent = _make_agent(tmp_path, reflexion_enabled=True)
     captured_contexts = []
 
-    from vulnclaw.agent import loop_controller
+    from specter.agent import loop_controller
 
     async def _fake_call_llm_auto(agent_obj, system_prompt, round_context, **kwargs):
         captured_contexts.append(round_context)

@@ -1,4 +1,4 @@
-"""VulnClaw MCP lifecycle robustness tests — restart, health, graceful stop."""
+"""Specter MCP lifecycle robustness tests — restart, health, graceful stop."""
 
 from __future__ import annotations
 
@@ -6,13 +6,13 @@ import asyncio
 
 import pytest
 
-from vulnclaw.config.schema import BUILTIN_MCP_SERVERS, MCPServerConfig, VulnClawConfig
-from vulnclaw.mcp.lifecycle import MCPLifecycleManager
-from vulnclaw.mcp.registry import HealthStatus
+from specter.config.schema import BUILTIN_MCP_SERVERS, MCPServerConfig, SpecterConfig
+from specter.mcp.lifecycle import MCPLifecycleManager
+from specter.mcp.registry import HealthStatus
 
 
 def _manager() -> MCPLifecycleManager:
-    return MCPLifecycleManager(VulnClawConfig())
+    return MCPLifecycleManager(SpecterConfig())
 
 
 class _FakeProc:
@@ -99,7 +99,7 @@ class TestStartStop:
 
     @pytest.mark.asyncio
     async def test_context_manager_starts_and_stops(self):
-        config = VulnClawConfig()
+        config = SpecterConfig()
         config.mcp.servers["fetch"] = MCPServerConfig(**BUILTIN_MCP_SERVERS["fetch"])
         async with MCPLifecycleManager(config) as m:
             assert "fetch" in m.registry.get_all_servers()
@@ -381,7 +381,7 @@ def _sse_server_config(name: str = "burp") -> MCPServerConfig:
 
 class TestStreamableHttp:
     def test_attach_success_registers_known_tools(self, monkeypatch):
-        import vulnclaw.mcp.lifecycle as _mod
+        import specter.mcp.lifecycle as _mod
 
         m = _manager()
         cfg = _http_server_config("chrome-devtools")
@@ -401,7 +401,7 @@ class TestStreamableHttp:
         assert "chrome_navigate" in m.list_available_tools()
 
     def test_attach_failure_degrades_and_falls_back(self, monkeypatch):
-        import vulnclaw.mcp.lifecycle as _mod
+        import specter.mcp.lifecycle as _mod
 
         m = _manager()
         cfg = _http_server_config("chrome-devtools")
@@ -432,7 +432,7 @@ class TestStreamableHttp:
         assert got is sentinel
 
     async def test_call_tool_routes_streamable_http_server(self, monkeypatch):
-        import vulnclaw.mcp.lifecycle as _mod
+        import specter.mcp.lifecycle as _mod
 
         m = _manager()
         m.config.mcp.servers["streamable-mcp-server"] = _http_server_config()
@@ -464,7 +464,7 @@ class TestStreamableHttp:
 
 class TestSseMcp:
     def test_burp_attach_success_registers_runtime_tools(self, monkeypatch):
-        import vulnclaw.mcp.lifecycle as _mod
+        import specter.mcp.lifecycle as _mod
 
         m = _manager()
         cfg = _sse_server_config()
@@ -511,7 +511,7 @@ class TestSseMcp:
         assert got is sentinel
 
     async def test_call_tool_routes_sse_server(self, monkeypatch):
-        import vulnclaw.mcp.lifecycle as _mod
+        import specter.mcp.lifecycle as _mod
 
         m = _manager()
         m.config.mcp.servers["burp"] = _sse_server_config()

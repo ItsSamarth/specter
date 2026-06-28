@@ -1,6 +1,6 @@
 <div align="center">
 
-# VulnClaw 🦞
+# Specter 👻
 
 > *AI 驱动的渗透测试 CLI 工具 — 说人话，打漏洞。*
 
@@ -8,7 +8,7 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![OpenAI Compatible](https://img.shields.io/badge/API-OpenAI_Compatible-green)](https://platform.openai.com/)
 [![MCP](https://img.shields.io/badge/Toolchain-MCP-orange)](https://modelcontextprotocol.io/)
-[![PyPI](https://img.shields.io/badge/PyPI-v0.3.2-blueviolet)](https://pypi.org/project/vulnclaw/)
+[![PyPI](https://img.shields.io/badge/PyPI-v0.3.2-blueviolet)](https://pypi.org/project/specter/)
 [![Security](https://img.shields.io/badge/Scope-Authorized_Only-red)](#-安全声明)
 <br>
 
@@ -35,7 +35,7 @@
 ```
 用户输入：帮我对 http://target.example.com 进行渗透测试
 
-VulnClaw 自动执行：
+Specter 自动执行：
   Round 1:  信息收集 → 指纹识别、端口扫描、目录枚举
   Round 2:  漏洞发现 → 检测注入点、已知 CVE、配置缺陷
   Round 3:  漏洞利用 → PoC 验证、权限获取
@@ -59,7 +59,7 @@ VulnClaw 自动执行：
 - **MCP 工具链** — 4 个 MCP 服务：`fetch` / `memory` 本地实现开箱即用，`chrome-devtools` / `burp` 对接外部 MCP 服务实现浏览器自动化和 HTTP 抓包重放
 - **AI Agent 核心** — OpenAI 兼容协议 + Tool Calling + 自主渗透循环
 - **结构化推理 + 自适应反思** — 已知事实/约束/攻击链结构化沉淀；失败自动归类并按 L0-L4 渐进升级 payload 绕过策略
-- **漏洞检测插件体系** — 低耦合插件运行时 + 内置只读 Web 插件，结果自动汇入报告链路（`vulnclaw plugins`）
+- **漏洞检测插件体系** — 低耦合插件运行时 + 内置只读 Web 插件，结果自动汇入报告链路（`specter plugins`）
 - **21 个渗透 Skill** — 7 核心 + 14 专项 Skill（含 CTF Web/Crypto/Misc、osint-recon、secknowledge-skill），含 180 个参考文档
 - **编解码/加解密工具** — 29 种操作（Base64/Hex/URL/AES/JWT/Morse 等），LLM 可精确调用，不再靠猜测
 - **Python 代码执行** — 内置 `python_execute` 工具，适合 payload 构造和响应解析；当前仍属高风险实验能力，不应视为强隔离沙箱
@@ -67,7 +67,7 @@ VulnClaw 自动执行：
 - **推理过程显示控制** — `think on/off` 一键切换 LLM 思考过程的显示/隐藏，默认关闭，干净输出只看结论
 - **沙盒模式提示词** — 解锁 AI 安全测试能力，CTF / 授权渗透场景专用
 - **自动报告 & PoC** — 生成结构化 Markdown 报告和可运行的 Python PoC 脚本
-- **Web UI 模式** — `vulnclaw web` 启动本地 Web 界面，浏览器操作渗透测试全流程，默认 `127.0.0.1:7788`
+- **Web UI 模式** — `specter web` 启动本地 Web 界面，浏览器操作渗透测试全流程，默认 `127.0.0.1:7788`
 - **安全知识库** — 已内置知识库模块与基础种子数据，CLI 可维护；检索增强正在逐步接入主流程
 
 ---
@@ -85,7 +85,7 @@ VulnClaw 自动执行：
 | **Fact** | 已被真实工具输出证实的客观事实（探索的落脚点） |
 | **Intent** | 声明的探索方向（尚未执行的一步），从 Fact 出发，结论后产出新 Fact |
 
-循环结构（`vulnclaw/agent/solver.py`）：
+循环结构（`specter/agent/solver.py`）：
 
 ```
 REASON（读全图）→ 目标达成? / 提出新探索方向 / 不提出
@@ -114,9 +114,9 @@ EXPLORE（领一个 Intent）→ 用工具实际执行 → 把确认的结论写
 
 ### 漏洞检测插件体系
 
-低耦合插件运行时（`vulnclaw/plugins/`）+ 内置只读 Web 插件（安全响应头 / JWT / JS 端点分析），插件结果可去重合并进 `SessionState.findings` 进入报告链路。
+低耦合插件运行时（`specter/plugins/`）+ 内置只读 Web 插件（安全响应头 / JWT / JS 端点分析），插件结果可去重合并进 `SessionState.findings` 进入报告链路。
 
-> 切回旧的固定轮数引擎：`vulnclaw config set session.engine rounds`
+> 切回旧的固定轮数引擎：`specter config set session.engine rounds`
 
 ---
 
@@ -126,11 +126,11 @@ EXPLORE（领一个 Intent）→ 用工具实际执行 → 把确认的结论写
 
 ```bash
 # 从 PyPI 安装（推荐）
-pip install vulnclaw
+pip install specter
 
 # 从源码安装
-git clone https://github.com/Unclecheng-li/VulnClaw.git
-cd VulnClaw
+git clone https://github.com/Unclecheng-li/Specter.git
+cd Specter
 pip install -e .
 ```
 
@@ -138,32 +138,32 @@ pip install -e .
 
 ```bash
 # 1. 选择提供商（自动填充 Base URL 和模型名）
-vulnclaw config provider minimax   (或 openai/deepseek/zhipu/moonshot/qwen/siliconflow)
+specter config provider minimax   (或 openai/deepseek/zhipu/moonshot/qwen/siliconflow)
 
 # 1.2（可选）自定义 Base URL 或模型名
-vulnclaw config set llm.base_url https://your-own-api.example.com/v1 
-vulnclaw config set llm.model your-model-name
+specter config set llm.base_url https://your-own-api.example.com/v1 
+specter config set llm.model your-model-name
 
 # 2. 设置 API Key
-vulnclaw config set llm.api_key sk-your-key-here
+specter config set llm.api_key sk-your-key-here
 
 # 3. 默认：打开原 CLI / REPL
-vulnclaw
+specter
 
 # 4. 可选：打开 TUI 工作台
-vulnclaw tui
+specter tui
 ```
 
 ### 环境检查
 
 ```bash
-vulnclaw doctor
+specter doctor
 ```
 
 输出示例：
 
 ```
-🦞 VulnClaw 环境检查
+👻 Specter 环境检查
 
   Python: 3.14.4
   Node.js: v24.14.1
@@ -181,21 +181,21 @@ MCP 服务:
   memory: 已启用 [P0]
   ...
 
-✅ 环境就绪，运行 vulnclaw 开始
+✅ 环境就绪，运行 specter 开始
 ```
 
 ---
 
 ## CLI 命令速查
 
-`vulnclaw --help` 查看所有命令：
+`specter --help` 查看所有命令：
 
 ```bash
-$ vulnclaw --help
+$ specter --help
 
-🦞 VulnClaw — AI-powered penetration testing CLI
+👻 Specter — AI-powered penetration testing CLI
 
- Usage: vulnclaw [OPTIONS] COMMAND [ARGS]...
+ Usage: specter [OPTIONS] COMMAND [ARGS]...
 
  Options:
    --version  Show version and exit.
@@ -220,38 +220,38 @@ $ vulnclaw --help
 
 | 命令 | 说明 | 示例 |
 |------|------|------|
-| `vulnclaw` | 默认打开原 CLI / REPL 交互界面 | `vulnclaw` |
-| `vulnclaw tui` | 显式打开终端图形化工作台 | `vulnclaw tui` / `vulnclaw tui --target target.com` |
-| `vulnclaw repl` | 启动经典 REPL 交互界面 | `vulnclaw repl` |
-| `vulnclaw solve <target>` | 目标驱动求解（无固定轮数，拿到目标即停） | `vulnclaw solve target.com --goal "拿到flag"` |
-| `vulnclaw run <target>` | 一键全流程渗透（默认走 solve 引擎） | `vulnclaw run 192.168.1.1` |
-| `vulnclaw persistent <target>` | 持续性渗透（100轮/周期） | `vulnclaw persistent 192.168.1.1` |
-| `vulnclaw recon <target>` | 仅信息收集（不利用漏洞） | `vulnclaw recon target.com` |
-| `vulnclaw scan <target>` | 漏洞扫描阶段 | `vulnclaw scan target.com --ports 80,443` |
-| `vulnclaw exploit <target>` | 漏洞利用阶段 | `vulnclaw exploit target.com --cve CVE-2024-1234` |
-| `vulnclaw report <session>` | 从会话 JSON 生成报告 | `vulnclaw report session_xxx.json` |
-| `vulnclaw config set <key> <value>` | 设置配置项 | `vulnclaw config set llm.api_key sk-xxx` |
-| `vulnclaw config get <key>` | 查看配置项 | `vulnclaw config get llm.model` |
-| `vulnclaw config list` | 列出所有配置 | `vulnclaw config list` |
-| `vulnclaw config provider <name>` | 切换 LLM 提供商 | `vulnclaw config provider minimax` |
-| `vulnclaw init` | 初始化配置文件 | `vulnclaw init` |
-| `vulnclaw doctor` | 检查运行环境 | `vulnclaw doctor` |
-| `vulnclaw plugins list` | 列出漏洞检测插件 | `vulnclaw plugins list --stage discovery` |
-| `vulnclaw plugins info <id>` | 查看插件元信息 | `vulnclaw plugins info builtin.web.headers` |
-| `vulnclaw plugins run <id>` | 运行插件（仅分析传入数据） | `vulnclaw plugins run builtin.web.headers --input headers.json --session s.json` |
-| `vulnclaw web` | 启动本地 Web UI | `vulnclaw web` / `vulnclaw web --port 8080` |
+| `specter` | 默认打开原 CLI / REPL 交互界面 | `specter` |
+| `specter tui` | 显式打开终端图形化工作台 | `specter tui` / `specter tui --target target.com` |
+| `specter repl` | 启动经典 REPL 交互界面 | `specter repl` |
+| `specter solve <target>` | 目标驱动求解（无固定轮数，拿到目标即停） | `specter solve target.com --goal "拿到flag"` |
+| `specter run <target>` | 一键全流程渗透（默认走 solve 引擎） | `specter run 192.168.1.1` |
+| `specter persistent <target>` | 持续性渗透（100轮/周期） | `specter persistent 192.168.1.1` |
+| `specter recon <target>` | 仅信息收集（不利用漏洞） | `specter recon target.com` |
+| `specter scan <target>` | 漏洞扫描阶段 | `specter scan target.com --ports 80,443` |
+| `specter exploit <target>` | 漏洞利用阶段 | `specter exploit target.com --cve CVE-2024-1234` |
+| `specter report <session>` | 从会话 JSON 生成报告 | `specter report session_xxx.json` |
+| `specter config set <key> <value>` | 设置配置项 | `specter config set llm.api_key sk-xxx` |
+| `specter config get <key>` | 查看配置项 | `specter config get llm.model` |
+| `specter config list` | 列出所有配置 | `specter config list` |
+| `specter config provider <name>` | 切换 LLM 提供商 | `specter config provider minimax` |
+| `specter init` | 初始化配置文件 | `specter init` |
+| `specter doctor` | 检查运行环境 | `specter doctor` |
+| `specter plugins list` | 列出漏洞检测插件 | `specter plugins list --stage discovery` |
+| `specter plugins info <id>` | 查看插件元信息 | `specter plugins info builtin.web.headers` |
+| `specter plugins run <id>` | 运行插件（仅分析传入数据） | `specter plugins run builtin.web.headers --input headers.json --session s.json` |
+| `specter web` | 启动本地 Web UI | `specter web` / `specter web --port 8080` |
 
 ### TUI 工作台
 
-`vulnclaw tui` 是可选的终端图形化工作台入口。它会在终端中展示授权目标、检查模式、运行概览、安全边界、命令预览、历史状态、报告和内联环境诊断，让用户先确认范围再启动任务。
+`specter tui` 是可选的终端图形化工作台入口。它会在终端中展示授权目标、检查模式、运行概览、安全边界、命令预览、历史状态、报告和内联环境诊断，让用户先确认范围再启动任务。
 
 ```bash
-vulnclaw tui
-vulnclaw tui --target https://target.example --mode quick --only-port 443
-vulnclaw tui --dry-run --target https://target.example --mode deep --only-path /admin
+specter tui
+specter tui --target https://target.example --mode quick --only-port 443
+specter tui --dry-run --target https://target.example --mode deep --only-path /admin
 ```
 
-默认 `vulnclaw` 仍然进入原 CLI / REPL 交互；只有显式输入 `vulnclaw tui` 才会进入 TUI。
+默认 `specter` 仍然进入原 CLI / REPL 交互；只有显式输入 `specter tui` 才会进入 TUI。
 运行概览会读取已选目标的历史快照、风险数量、持久化约束和约束拦截次数，帮助用户在继续测试前确认上下文没有衰减。
 在 TUI 的“设置测试范围”中可以直接编辑允许动作和禁止动作，例如只允许 `recon,scan`，或禁止 `exploit,post_exploitation`。
 
@@ -259,13 +259,13 @@ vulnclaw tui --dry-run --target https://target.example --mode deep --only-path /
 
 ```bash
 # 查看所有提供商并切换
-vulnclaw config provider --list    # 查看所有可用提供商
-vulnclaw config provider minimax   # 切换到 MiniMax
+specter config provider --list    # 查看所有可用提供商
+specter config provider minimax   # 切换到 MiniMax
 
 # 手动设置（custom 模式）
-vulnclaw config set llm.base_url https://your-api.com/v1
-vulnclaw config set llm.model your-model-name
-vulnclaw config set llm.api_key sk-your-key
+specter config set llm.base_url https://your-api.com/v1
+specter config set llm.model your-model-name
+specter config set llm.api_key sk-your-key
 ```
 
 ---
@@ -275,13 +275,13 @@ vulnclaw config set llm.api_key sk-your-key
 ### 方式一：原 CLI / REPL 交互模式（默认）
 
 ```bash
-$ vulnclaw
+$ specter
 ```
 
-无参数启动会进入原本的 🦞 交互界面，用自然语言对话：
+无参数启动会进入原本的 👻 交互界面，用自然语言对话：
 
 ```
-🦞 vulnclaw> 对 192.168.1.100 进行渗透测试，这是我授权的靶场
+👻 specter> 对 192.168.1.100 进行渗透测试，这是我授权的靶场
 
 [*] 进入自主渗透模式，按 Ctrl+C 可随时中断
 ── Round 1 ──
@@ -292,13 +292,13 @@ $ vulnclaw
 ### 方式二：TUI 工作台（显式启用）
 
 ```bash
-$ vulnclaw tui
+$ specter tui
 ```
 
 TUI 会先展示目标、检查模式、运行概览和安全边界，让你确认授权范围后再启动任务：
 
 ```text
-VulnClaw TUI 工作台
+Specter TUI 工作台
 
 授权目标        https://example.com
 检查模式        快速摸底 / recon
@@ -315,25 +315,25 @@ VulnClaw TUI 工作台
 常用启动方式：
 
 ```bash
-vulnclaw tui
-vulnclaw tui --target https://target.example --mode quick --only-port 443
-vulnclaw tui --dry-run --target https://target.example --mode deep --only-path /admin
+specter tui
+specter tui --target https://target.example --mode quick --only-port 443
+specter tui --dry-run --target https://target.example --mode deep --only-path /admin
 ```
 
 菜单 3 “设置测试范围”可编辑主机、端口、路径、排除项、允许动作和禁止动作；这些边界会进入启动前确认和实际任务命令。
-菜单 7 “环境诊断入口”会在 TUI 内显示 Python、Node/npx/uvx/nmap、LLM 配置和 MCP 服务/工具摘要；需要完整详情时再运行 `vulnclaw doctor`。
+菜单 7 “环境诊断入口”会在 TUI 内显示 Python、Node/npx/uvx/nmap、LLM 配置和 MCP 服务/工具摘要；需要完整详情时再运行 `specter doctor`。
 菜单 8 “模型/API 配置”可直接切换 Provider、Base URL、Model 和 API Key，保存后工作台会立刻使用新配置。
 
 ### 方式三：经典 REPL 子命令
 
 ```bash
-$ vulnclaw repl
+$ specter repl
 ```
 
-进入经典 🦞 交互界面，用自然语言对话：
+进入经典 👻 交互界面，用自然语言对话：
 
 ```
-🦞 vulnclaw> 对 192.168.1.100 进行渗透测试，这是我授权的靶场
+👻 specter> 对 192.168.1.100 进行渗透测试，这是我授权的靶场
 
 [*] 进入自主渗透模式，按 Ctrl+C 可随时中断
 ── Round 1 ──
@@ -346,7 +346,7 @@ $ vulnclaw repl
 ── Round 3 ──
   [+] 漏洞验证成功
 
-🦞 192.168.1.100 | 报告> 生成渗透报告
+👻 192.168.1.100 | 报告> 生成渗透报告
 [+] 报告已保存: ./reports/192.168.1.100_20260418.md
 [+] PoC 脚本已保存: ./pocs/CVE-202X-XXXX.py
 ```
@@ -364,11 +364,11 @@ $ vulnclaw repl
 | `persistent <host>`   | 对指定目标启动持续性渗透                   |
 | `clear`               | 清空当前会话                               |
 | `help`                | 显示帮助信息                               |
-| `exit` / `quit` / `q` | 退出 VulnClaw                              |
+| `exit` / `quit` / `q` | 退出 Specter                              |
 
 #### 自主渗透模式
 
-VulnClaw 检测到以下关键词 + 目标时，自动进入多轮自主渗透循环：
+Specter 检测到以下关键词 + 目标时，自动进入多轮自主渗透循环：
 
 | 触发方式 | 示例 |
 | -------- | ---- |
@@ -383,30 +383,30 @@ VulnClaw 检测到以下关键词 + 目标时，自动进入多轮自主渗透�
 
 ```bash
 # 一键全流程渗透测试
-vulnclaw run 192.168.1.100
+specter run 192.168.1.100
 
 # 持续性渗透测试（每周期100轮，最多10周期，自动生成报告）
-vulnclaw persistent 192.168.1.100
+specter persistent 192.168.1.100
 
 # 自定义周期参数
-vulnclaw persistent 192.168.1.100 --rounds 200 --cycles 5
+specter persistent 192.168.1.100 --rounds 200 --cycles 5
 
 # 仅信息收集
-vulnclaw recon 192.168.1.100
+specter recon 192.168.1.100
 
 # 漏洞扫描（可指定端口）
-vulnclaw scan 192.168.1.100 --ports 80,443,8080
+specter scan 192.168.1.100 --ports 80,443,8080
 
 # 漏洞利用（可指定 CVE）
-vulnclaw exploit 192.168.1.100 --cve CVE-2024-1234 --cmd id
+specter exploit 192.168.1.100 --cve CVE-2024-1234 --cmd id
 
 # 生成报告
-vulnclaw report session.json
+specter report session.json
 ```
 
 ### 方式三：持续性渗透模式
 
-适用于需要长时间深度渗透的场景。VulnClaw 以**周期循环**方式运行：
+适用于需要长时间深度渗透的场景。Specter 以**周期循环**方式运行：
 
 ```
 ┌──────────────────────────────────────────────┐
@@ -427,18 +427,18 @@ vulnclaw report session.json
 
 ```bash
 # CLI 方式
-vulnclaw persistent 192.168.1.100              # 默认 100轮/周期 × 10周期
-vulnclaw persistent 192.168.1.100 -r 200 -c 5  # 200轮/周期 × 5周期
-vulnclaw persistent 192.168.1.100 --no-report   # 不自动生成报告
+specter persistent 192.168.1.100              # 默认 100轮/周期 × 10周期
+specter persistent 192.168.1.100 -r 200 -c 5  # 200轮/周期 × 5周期
+specter persistent 192.168.1.100 --no-report   # 不自动生成报告
 
 # TUI 方式
-vulnclaw tui --target 192.168.1.100 --mode continuous
+specter tui --target 192.168.1.100 --mode continuous
 
 # REPL 方式
-🦞 vulnclaw> target 192.168.1.100
-🦞 vulnclaw> persistent
+👻 specter> target 192.168.1.100
+👻 specter> persistent
 # 或直接
-🦞 vulnclaw> persistent 192.168.1.100
+👻 specter> persistent 192.168.1.100
 ```
 
 ### 方式四：Web UI 模式
@@ -447,16 +447,16 @@ vulnclaw tui --target 192.168.1.100 --mode continuous
 
 ```bash
 # 安装 Web 依赖
-pip install vulnclaw[web]
+pip install specter[web]
 
 # 启动 Web UI（默认 127.0.0.1:7788）
-vulnclaw web
+specter web
 
 # 自定义端口
-vulnclaw web --port 8080
+specter web --port 8080
 
 # 仅检查启动信息（不实际启动服务）
-vulnclaw web --dry-run
+specter web --dry-run
 ```
 
 启动后浏览器访问 `http://127.0.0.1:7788` 即可使用。
@@ -467,11 +467,11 @@ vulnclaw web --dry-run
 
 ## LLM 提供商配置
 
-VulnClaw 支持所有 OpenAI 兼容协议的 API，内置 8 个提供商预设：
+Specter 支持所有 OpenAI 兼容协议的 API，内置 8 个提供商预设：
 
 ```bash
-vulnclaw config provider --list    # 查看所有提供商
-vulnclaw config provider minimax   # 一键切换
+specter config provider --list    # 查看所有提供商
+specter config provider minimax   # 一键切换
 ```
 
 | 提供商      | 命令                   | 默认模型              |
@@ -496,7 +496,7 @@ vulnclaw config provider minimax   # 一键切换
 
 ```
 ┌─────────────────────────────────────────────┐
-│                VulnClaw CLI                  │
+│                Specter CLI                  │
 │  ┌─────────┐  ┌─────────┐  ┌────────────┐  │
 │  │  自然语言 │  │  任务编排 │  │ 报告 & PoC │  │
 │  │  交互层  │  │  引擎    │  │   生成器   │  │
@@ -565,11 +565,11 @@ vulnclaw config provider minimax   # 一键切换
 # Linux/Mac
 google-chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-debug
 
-# Step 2: 启用 VulnClaw 配置（自动通过 npx 拉取，无需手动安装）
-vulnclaw config set mcp.servers.chrome-devtools.enabled true
+# Step 2: 启用 Specter 配置（自动通过 npx 拉取，无需手动安装）
+specter config set mcp.servers.chrome-devtools.enabled true
 ```
 
-VulnClaw 配置已内置 `npx -y chrome-devtools-mcp@latest`，启用后自动连接。如需指定 Chrome 调试地址，编辑 `~/.vulnclaw/config.yaml`：
+Specter 配置已内置 `npx -y chrome-devtools-mcp@latest`，启用后自动连接。如需指定 Chrome 调试地址，编辑 `~/.specter/config.yaml`：
 
 ```yaml
 mcp:
@@ -600,8 +600,8 @@ cd burp-mcp
 
 # Step 3: 在 Burp 的 MCP 标签页勾选 "Enabled"（默认监听 127.0.0.1:9876）
 
-# Step 4: 启用 VulnClaw 配置
-vulnclaw config set mcp.servers.burp.enabled true
+# Step 4: 启用 Specter 配置
+specter config set mcp.servers.burp.enabled true
 ```
 
 建议将 JAR 复制到固定位置并更新配置：
@@ -614,7 +614,7 @@ mcp:
       transport:
         type: stdio
         command: java
-        args: ["-jar", "~/.vulnclaw/tools/burp-mcp-all.jar", "--sse-url", "http://127.0.0.1:9876"]
+        args: ["-jar", "~/.specter/tools/burp-mcp-all.jar", "--sse-url", "http://127.0.0.1:9876"]
 ```
 
 > 详细部署说明参见 [docs/mcp-deployment.md](docs/mcp-deployment.md)
@@ -656,7 +656,7 @@ mcp:
 
 Skill 会根据用户输入自动调度，无需手动选择。专项 Skill 含 `references/` 目录下的详细方法论文档，LLM 可通过 `load_skill_reference` 工具按需加载。
 
-`secknowledge-skill` 集成自 [`Pa55w0rd/secknowledge-skill`](https://github.com/Pa55w0rd/secknowledge-skill)，上游 `references/` 的 38 个文档已完整纳入，并额外增加 `vulnclaw-ctf-src-routing.md` 作为 VulnClaw 的 CTF/SRC 场景导航。它会在 `SRC`、`漏洞挖掘`、`众测`、`GAARM`、`OWASP LLM/ASI/WSTG`、`Web+AI` 等强信号输入下触发，用于按需加载 SQLi、XSS、RCE、SSRF、AI/MCP、Agent、风险矩阵和测试方法论等资料。
+`secknowledge-skill` 集成自 [`Pa55w0rd/secknowledge-skill`](https://github.com/Pa55w0rd/secknowledge-skill)，上游 `references/` 的 38 个文档已完整纳入，并额外增加 `specter-ctf-src-routing.md` 作为 Specter 的 CTF/SRC 场景导航。它会在 `SRC`、`漏洞挖掘`、`众测`、`GAARM`、`OWASP LLM/ASI/WSTG`、`Web+AI` 等强信号输入下触发，用于按需加载 SQLi、XSS、RCE、SSRF、AI/MCP、Agent、风险矩阵和测试方法论等资料。
 
 ### 内置编解码/加解密工具 (crypto_decode)
 
@@ -677,12 +677,12 @@ Skill 会根据用户输入自动调度，无需手动选择。专项 Skill 含 
 ### 命令行配置
 
 ```bash
-vulnclaw config list                          # 查看所有配置
-vulnclaw config get llm.model                 # 查看单项
-vulnclaw config set llm.api_key sk-xx         # 设置 API Key
-vulnclaw config set session.max_rounds 30     # 设置自主渗透最大轮数（默认 15）
-vulnclaw config set session.stale_rounds_threshold 8  # 设置死循环检测阈值（默认 5）
-vulnclaw config set session.show_thinking false # 隐藏推理过程（也可在 REPL 中用 think off）
+specter config list                          # 查看所有配置
+specter config get llm.model                 # 查看单项
+specter config set llm.api_key sk-xx         # 设置 API Key
+specter config set session.max_rounds 30     # 设置自主渗透最大轮数（默认 15）
+specter config set session.stale_rounds_threshold 8  # 设置死循环检测阈值（默认 5）
+specter config set session.show_thinking false # 隐藏推理过程（也可在 REPL 中用 think off）
 ```
 
 ### 可配置项
@@ -700,7 +700,7 @@ vulnclaw config set session.show_thinking false # 隐藏推理过程（也可在
 | `session.solve_max_intents` | 3   | 每次 Reason 最多提出的新探索方向数        |
 | `session.solve_max_tool_rounds` | 6 | 每个 Intent 探索的最大工具调用轮数        |
 | `session.max_rounds`     | 15     | 旧 `rounds` 引擎的最大轮数（建议 10-50）  |
-| `session.output_dir`     | ./vulnclaw-output | 报告输出目录                    |
+| `session.output_dir`     | ./specter-output | 报告输出目录                    |
 | `session.report_format`  | markdown | 报告格式（markdown / html）            |
 | `session.poc_language`   | python | PoC 生成语言（python / bash）            |
 | `session.show_thinking`  | false  | 显示 LLM 推理过程（think 标签内容，默认关闭） |
@@ -713,22 +713,22 @@ vulnclaw config set session.show_thinking false # 隐藏推理过程（也可在
 
 | 变量                          | 说明                   |
 | ----------------------------- | ---------------------- |
-| `VULNCLAW_LLM_PROVIDER`       | LLM 提供商名称         |
-| `VULNCLAW_LLM_API_KEY`        | API Key                |
-| `VULNCLAW_LLM_BASE_URL`       | API 基础 URL           |
-| `VULNCLAW_LLM_MODEL`          | 模型名称               |
-| `VULNCLAW_SESSION_MAX_ROUNDS`| 自主渗透最大轮数       |
-| `VULNCLAW_SESSION_STALE_ROUNDS_THRESHOLD` | 死循环检测阈值 |
-| `VULNCLAW_SESSION_REASONING_STATE_ENABLED` | 结构化推理状态开关 |
-| `VULNCLAW_SESSION_REFLEXION_ENABLED` | 自适应反思引擎开关 |
-| `VULNCLAW_SESSION_REFLEXION_MAX_SAME_VULN_FAILS` | 同类漏洞连败触发反思阈值 |
-| `VULNCLAW_SESSION_ESCALATION_MAX_LEVEL` | Payload 升级上限（0-4） |
-| `VULNCLAW_SESSION_PLUGIN_RUNTIME_ENABLED` | 插件运行时开关 |
-| `VULNCLAW_SESSION_PLUGIN_MAX_REQUESTS_PER_TARGET` | 单目标插件请求预算 |
+| `SPECTER_LLM_PROVIDER`       | LLM 提供商名称         |
+| `SPECTER_LLM_API_KEY`        | API Key                |
+| `SPECTER_LLM_BASE_URL`       | API 基础 URL           |
+| `SPECTER_LLM_MODEL`          | 模型名称               |
+| `SPECTER_SESSION_MAX_ROUNDS`| 自主渗透最大轮数       |
+| `SPECTER_SESSION_STALE_ROUNDS_THRESHOLD` | 死循环检测阈值 |
+| `SPECTER_SESSION_REASONING_STATE_ENABLED` | 结构化推理状态开关 |
+| `SPECTER_SESSION_REFLEXION_ENABLED` | 自适应反思引擎开关 |
+| `SPECTER_SESSION_REFLEXION_MAX_SAME_VULN_FAILS` | 同类漏洞连败触发反思阈值 |
+| `SPECTER_SESSION_ESCALATION_MAX_LEVEL` | Payload 升级上限（0-4） |
+| `SPECTER_SESSION_PLUGIN_RUNTIME_ENABLED` | 插件运行时开关 |
+| `SPECTER_SESSION_PLUGIN_MAX_REQUESTS_PER_TARGET` | 单目标插件请求预算 |
 
 优先级：**环境变量 > 配置文件 > 内置默认值**
 
-配置文件位于 `~/.vulnclaw/config.yaml`。
+配置文件位于 `~/.specter/config.yaml`。
 
 ---
 
@@ -755,10 +755,10 @@ vulnclaw config set session.show_thinking false # 隐藏推理过程（也可在
 
 **核心：自主引擎从「固定轮数工作流」重构为「目标驱动求解」**
 
-- **新增目标驱动求解引擎（默认）** — 基于 Fact/Intent 黑板图的 OODA 循环，以「目标达成 / 探索前沿耗尽 / 安全预算」为终止条件，结构上杜绝"原地打转"；新增 `vulnclaw solve` 命令，`run`/REPL 自主模式默认改走该引擎（`session.engine=rounds` 可回退旧逻辑）。
+- **新增目标驱动求解引擎（默认）** — 基于 Fact/Intent 黑板图的 OODA 循环，以「目标达成 / 探索前沿耗尽 / 安全预算」为终止条件，结构上杜绝"原地打转"；新增 `specter solve` 命令，`run`/REPL 自主模式默认改走该引擎（`session.engine=rounds` 可回退旧逻辑）。
 - **新增证据级反幻觉闸门** — 录制所有真实工具输出作为唯一可信证据；声称的 flag/完成必须在真实输出里逐字符出现才被采信，否则判定幻觉并继续探索；拿到验证过的 flag 即时收敛。
 - **新增结构化推理 + 自适应反思** — 已知事实（带置信度）/约束/攻击链结构化沉淀并注入提示词；失败自动归类并按 L0–L4 渐进升级 payload 绕过策略，persistent 模式跨周期保留失败记忆。
-- **新增漏洞检测插件体系** — 低耦合插件运行时 + 内置只读 Web 插件（安全响应头 / JWT / JS 端点），结果可去重合并进 findings 与报告链路；新增 `vulnclaw plugins list/info/run` 命令。
+- **新增漏洞检测插件体系** — 低耦合插件运行时 + 内置只读 Web 插件（安全响应头 / JWT / JS 端点），结果可去重合并进 findings 与报告链路；新增 `specter plugins list/info/run` 命令。
 - **修复 #45 工具被误约束** — 动作约束不再把 HTTP 方法（OPTIONS/POST）或使用 `requests` 误判为「利用」；只有实际攻击载荷（SQLi/RCE/路径穿越等）才算 exploit；`load_skill_reference`/`crypto_decode` 等纯本地工具豁免范围约束。
 - 新增 `session.engine` / `solve_*` / `reflexion_*` / `plugin_*` 等配置项，均支持环境变量注入。
 
@@ -766,7 +766,7 @@ vulnclaw config set session.show_thinking false # 隐藏推理过程（也可在
 
 ## 安全声明
 
-VulnClaw 仅用于**已授权的安全测试**。使用本工具前，请确保：
+Specter 仅用于**已授权的安全测试**。使用本工具前，请确保：
 
 1. 你已获得目标系统的**明确授权**
 2. 测试范围已与目标所有者**书面确认**
@@ -789,13 +789,13 @@ VulnClaw 仅用于**已授权的安全测试**。使用本工具前，请确保�
 | 社区交流群 | 开发者群聊 |
 |:--:|:--:|
 | 欢迎加入讨论分享，获取最新产品动态与使用技巧 | 加入我们，参与开源贡献与技术深度探讨 |
-| ![VulnClaw 社区交流群](assets/社区交流群.jpg) | ![VulnClaw 开发者群聊](assets/VulnClaw开发者群聊.png) |
+| ![Specter 社区交流群](assets/社区交流群.jpg) | ![Specter 开发者群聊](assets/Specter开发者群聊.png) |
 | **QQ 群号：954402631** | **QQ 群号：1065858551** |
 
 ---
 
 <div align="center">
 
-> 🦞 **VulnClaw** — 让每一次渗透都有章可循。
+> 👻 **Specter** — 让每一次渗透都有章可循。
 
 </div>

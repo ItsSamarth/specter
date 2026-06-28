@@ -1,6 +1,6 @@
-"""Tests for vulnclaw.agent.token_counter — estimation + sliding-window truncation."""
+"""Tests for specter.agent.token_counter — estimation + sliding-window truncation."""
 
-from vulnclaw.agent.token_counter import (
+from specter.agent.token_counter import (
     estimate_message_tokens,
     estimate_tokens,
     truncate_messages,

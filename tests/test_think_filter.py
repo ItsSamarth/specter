@@ -2,8 +2,8 @@
 
 import pytest
 
-from vulnclaw.agent.core import AgentCore
-from vulnclaw.agent.think_filter import format_think_tags, strip_think_tags
+from specter.agent.core import AgentCore
+from specter.agent.think_filter import format_think_tags, strip_think_tags
 
 
 class _FakeMessage:

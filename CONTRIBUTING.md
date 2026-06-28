@@ -1,6 +1,6 @@
-# Contributing to VulnClaw
+# Contributing to Specter
 
-感谢你为 VulnClaw 做贡献。
+感谢你为 Specter 做贡献。
 
 这份文档的目标不是规定繁琐流程，而是帮助你快速理解当前代码结构，尽量在正确的层次修改代码，减少“功能能跑，但架构越来越乱”的情况。
 
@@ -9,8 +9,8 @@
 ## 项目结构
 
 ```text
-VulnClaw/
-|-- vulnclaw/
+Specter/
+|-- specter/
 |   |-- __init__.py              # 包版本与基础元数据
 |   |-- orchestrator.py          # CLI / Web 共享任务编排入口
 |   |-- repl_runner.py           # REPL 共享执行辅助
@@ -83,7 +83,7 @@ VulnClaw/
 
 ## 如何快速定位代码
 
-### 1. 修改 Agent 行为时，优先看 `vulnclaw/agent/`
+### 1. 修改 Agent 行为时，优先看 `specter/agent/`
 
 适用场景：
 - 自主 / 持续渗透循环行为
@@ -94,7 +94,7 @@ VulnClaw/
 
 当前架构里，`core.py` 更像协调壳层。除非确实是入口级逻辑，否则优先修改对应 helper/module，而不是继续把逻辑堆回 `core.py`。
 
-### 2. 修改共享任务流时，优先看 `vulnclaw/orchestrator.py` 和 `vulnclaw/repl_runner.py`
+### 2. 修改共享任务流时，优先看 `specter/orchestrator.py` 和 `specter/repl_runner.py`
 
 适用场景：
 - CLI / Web / REPL 共享任务生命周期
@@ -103,7 +103,7 @@ VulnClaw/
 
 如果同一行为同时出现在 CLI 和 Web，通常应该收敛到这里，而不是分别在 `cli/main.py` 和 `web/services/task_service.py` 各写一份。
 
-### 3. 修改命令行或 REPL 行为时，看 `vulnclaw/cli/main.py`
+### 3. 修改命令行或 REPL 行为时，看 `specter/cli/main.py`
 
 适用场景：
 - Typer 命令
@@ -114,7 +114,7 @@ VulnClaw/
 
 这一层负责入口、参数绑定和用户输出，不适合承载核心渗透逻辑。
 
-### 3.1 修改 TUI 工作台时，看 `vulnclaw/cli/tui.py` 和 `vulnclaw/cli/tui_textual.py`
+### 3.1 修改 TUI 工作台时，看 `specter/cli/tui.py` 和 `specter/cli/tui_textual.py`
 
 适用场景：
 - TUI 仪表盘布局与渲染
@@ -133,13 +133,13 @@ main.py (Typer CLI)
             │   ├─ CommandPalette     (一级：斜杠补全下拉)
             │   ├─ SecondaryPopup     (二级：参数输入弹窗)
             │   └─ RichLog + spinner  (执行模式：输出区 + 拖尾动画)
-            └─ VulnClawApp
+            └─ SpecterApp
 ```
 
 | 文件 | 职责 |
 |------|------|
 | `tui.py` | 数据类（`TuiState`、`TuiMode`、`TuiTaskDraft`）、Rich 仪表盘渲染（`build_dashboard`）、颜色常量（`C_PRIMARY` 等）、斜杠命令注册表（`SLASH_COMMANDS`）、入口 `run_tui()` |
-| `tui_textual.py` | Textual App 实现：`DashboardScreen`（布局 + 执行模式）、`CommandPalette`（一级下拉面板）、`SecondaryPopup`（二级弹窗）、`VulnClawApp`（CSS）、斜杠命令处理器、提示状态机、子进程执行引擎 |
+| `tui_textual.py` | Textual App 实现：`DashboardScreen`（布局 + 执行模式）、`CommandPalette`（一级下拉面板）、`SecondaryPopup`（二级弹窗）、`SpecterApp`（CSS）、斜杠命令处理器、提示状态机、子进程执行引擎 |
 
 **斜杠命令系统：**
 
@@ -187,7 +187,7 @@ main.py (Typer CLI)
 `/run` 或 `/start` 返回 `"launch"` 时不退出 TUI，改为 TUI 内子进程执行：
 1. 隐藏仪表盘（`#dashboard.-hidden`），显示 `RichLog` 输出区（`#output-log.-active`）
 2. 输入框左侧显示**拖尾动画**：5 个方块无间距，领头 `[bold #fab283]■` 带两级拖尾（`[#fab283]■` + `[#808080]■`），0.12s 更新一帧，左右来回弹跳
-3. 禁用输入框，通过 `subprocess.Popen` 启动子进程（`python -m vulnclaw.cli.main <cmd> <args>`），`encoding="utf-8"` 避免 GBK 解码错误，实时流式读取 `stdout` 管道
+3. 禁用输入框，通过 `subprocess.Popen` 启动子进程（`python -m specter.cli.main <cmd> <args>`），`encoding="utf-8"` 避免 GBK 解码错误，实时流式读取 `stdout` 管道
 4. 后台线程读取子进程输出推入 `Queue`，主线程通过 `set_timer(0.3s)` 轮询写入 `RichLog`
 5. 执行完成：隐藏拖尾动画、启用输入框、重新加载配置
 6. `Ctrl+Shift+C` 复制输出日志到系统剪贴板（Windows: `clip`，macOS: `pbcopy`，Linux: `xclip`）
@@ -207,14 +207,14 @@ main.py (Typer CLI)
 
 Textual CSS 中 UI 元素（Header、状态栏、输入框）使用终端自适应背景（`$background`、`$surface`、`$boost`），强调色硬编码上述色值。
 
-### 4. 修改配置时，看 `vulnclaw/config/`
+### 4. 修改配置时，看 `specter/config/`
 
 - `schema.py`：配置模型定义
 - `settings.py`：加载、保存、环境变量覆盖、目录路径
 
 不要在业务逻辑里到处手写配置解析。
 
-### 5. 修改报告逻辑时，看 `vulnclaw/report/`
+### 5. 修改报告逻辑时，看 `specter/report/`
 
 适用场景：
 - Markdown / HTML 报告渲染
@@ -224,7 +224,7 @@ Textual CSS 中 UI 元素（Header、状态栏、输入框）使用终端自适�
 
 主入口是 `generator.py`，但要注意它现在会同时影响 target-state 报告和 persistent-cycle 报告。
 
-### 6. 修改 MCP 行为时，看 `vulnclaw/mcp/`
+### 6. 修改 MCP 行为时，看 `specter/mcp/`
 
 - `registry.py`：服务状态、健康度、attach 状态、工具注册
 - `lifecycle.py`：attach / probe / call / degrade 逻辑
@@ -240,7 +240,7 @@ Textual CSS 中 UI 元素（Header、状态栏、输入框）使用终端自适�
 - error_type 分类
 - attach 失败后的降级行为
 
-### 7. 修改断点续测 / 成果继承时，看 `vulnclaw/target_state/`
+### 7. 修改断点续测 / 成果继承时，看 `specter/target_state/`
 
 适用场景：
 - target-state 持久化
@@ -250,7 +250,7 @@ Textual CSS 中 UI 元素（Header、状态栏、输入框）使用终端自适�
 
 这里负责“同一目标跨命令共享成果”。不要把这类逻辑重新塞回 `core.py`，也不要在页面层重复写。
 
-### 8. 修改 Web 后端时，看 `vulnclaw/web/`
+### 8. 修改 Web 后端时，看 `specter/web/`
 
 - `app.py`：FastAPI 路由与前端静态资源服务
 - `schemas.py`：请求/响应模型
@@ -267,7 +267,7 @@ Textual CSS 中 UI 元素（Header、状态栏、输入框）使用终端自适�
 - 前端 API 绑定
 - 控制台交互与样式优化
 
-前后端契约要和 `vulnclaw/web/schemas.py` 保持一致。
+前后端契约要和 `specter/web/schemas.py` 保持一致。
 
 ### 10. 修改打包 / 发布流程时，看 `scripts/`、`.github/workflows/`、`pyproject.toml`
 
@@ -278,9 +278,9 @@ Textual CSS 中 UI 元素（Header、状态栏、输入框）使用终端自适�
 - build include / exclude
 - 包元数据
 
-版本真源以 `pyproject.toml` 为主，`vulnclaw/__init__.py` 是 fallback。
+版本真源以 `pyproject.toml` 为主，`specter/__init__.py` 是 fallback。
 
-### 11. 修改或新增 Skill 时，看 `vulnclaw/skills/`
+### 11. 修改或新增 Skill 时，看 `specter/skills/`
 
 适用场景：
 - 新增核心渗透流程说明
@@ -292,8 +292,8 @@ Textual CSS 中 UI 元素（Header、状态栏、输入框）使用终端自适�
 
 | 格式 | 位置 | 用途 |
 |------|------|------|
-| flat-format | `vulnclaw/skills/core/*.md` | 核心流程型 Skill，例如 `pentest-flow`、`recon`、`reporting` |
-| directory-format | `vulnclaw/skills/specialized/<skill-name>/` | 专项 Skill，必须包含 `SKILL.md`，可选但建议包含 `references/` |
+| flat-format | `specter/skills/core/*.md` | 核心流程型 Skill，例如 `pentest-flow`、`recon`、`reporting` |
+| directory-format | `specter/skills/specialized/<skill-name>/` | 专项 Skill，必须包含 `SKILL.md`，可选但建议包含 `references/` |
 
 directory-format 约定：
 - `SKILL.md` 使用 YAML frontmatter，至少包含 `name` 和 `description`
@@ -303,9 +303,9 @@ directory-format 约定：
 - 新增或修改 Skill 后，同步更新 `tests/test_skills.py` 和 README 的 Skill 表
 
 `secknowledge-skill` 是当前的外部知识库集成示例：
-- 位置：`vulnclaw/skills/specialized/secknowledge-skill/`
+- 位置：`specter/skills/specialized/secknowledge-skill/`
 - 来源：`Pa55w0rd/secknowledge-skill`
-- 内容：上游 `references/` 的 38 个文档 + VulnClaw 专用 `vulnclaw-ctf-src-routing.md`
+- 内容：上游 `references/` 的 38 个文档 + Specter 专用 `specter-ctf-src-routing.md`
 - 触发：`SRC`、`漏洞挖掘`、`众测`、`GAARM`、`OWASP LLM/ASI/WSTG`、`Web+AI` 等 CTF/SRC 实战安全测试信号
 
 如果同步外部 Skill，请保留来源、许可证和集成说明，并用文件列表对比确认 reference 没有漏项。
@@ -335,7 +335,7 @@ directory-format 约定：
 ## Web UI Notes
 
 如果你在改 Web UI，优先看：
-- `vulnclaw/web/`
+- `specter/web/`
 - `frontend/`
 
 当前 Web 侧已经不只是占位骨架，主要包括：
@@ -362,7 +362,7 @@ python scripts/release_preflight.py --build
 ```
 
 它会检查：
-- `pyproject.toml` 与 `vulnclaw.__version__` 的版本一致性
+- `pyproject.toml` 与 `specter.__version__` 的版本一致性
 - 后端 `pytest -q`
 - 前端 `npx tsc -b`
 - 可选的 build 与 dist 产物校验

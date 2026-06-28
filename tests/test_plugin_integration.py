@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from vulnclaw.config.schema import SessionConfig, VulnClawConfig
-from vulnclaw.plugins import (
+from specter.config.schema import SessionConfig, SpecterConfig
+from specter.plugins import (
     PluginContext,
     PluginResult,
     PluginRuntime,
@@ -31,7 +31,7 @@ def test_global_registry_registers_and_finds_builtin_plugin():
 
 
 async def test_runtime_executes_builtin_plugin():
-    runtime = create_builtin_runtime(VulnClawConfig())
+    runtime = create_builtin_runtime(SpecterConfig())
 
     result = await runtime.execute(
         "builtin.web.headers",
@@ -56,8 +56,8 @@ def test_config_defaults_expose_plugin_runtime_and_budget_fields():
 
 
 def test_plugin_finding_converts_to_vuln_finding():
-    from vulnclaw.plugins.integration import plugin_finding_to_vuln_finding
-    from vulnclaw.plugins.result import PluginFinding, RiskLevel
+    from specter.plugins.integration import plugin_finding_to_vuln_finding
+    from specter.plugins.result import PluginFinding, RiskLevel
 
     pf = PluginFinding(
         title="Missing security headers",
@@ -78,9 +78,9 @@ def test_plugin_finding_converts_to_vuln_finding():
 
 
 def test_merge_plugin_results_dedups_into_session():
-    from vulnclaw.agent.context import SessionState
-    from vulnclaw.plugins.integration import merge_plugin_results_into_session
-    from vulnclaw.plugins.result import PluginFinding, PluginResult, RiskLevel
+    from specter.agent.context import SessionState
+    from specter.plugins.integration import merge_plugin_results_into_session
+    from specter.plugins.result import PluginFinding, PluginResult, RiskLevel
 
     finding = PluginFinding(title="Weak CSP", risk=RiskLevel.LOW, vuln_type="security_headers")
     result = PluginResult(plugin_id="builtin.web.headers", findings=[finding])
@@ -105,7 +105,7 @@ async def test_disabled_runtime_does_not_execute_plugin():
             calls += 1
             return PluginResult(plugin_id=self.plugin_id, stage=context.stage)
 
-    config = VulnClawConfig()
+    config = SpecterConfig()
     config.session.plugin_runtime_enabled = False
     plugin_registry = type(registry)()
     plugin_registry.register(DisabledPlugin)

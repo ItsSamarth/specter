@@ -1,5 +1,5 @@
 {
-  "brand.name": "VulnClaw",
+  "brand.name": "Specter",
   "brand.tagline": "攻击面测绘",
 
   "nav.scan": "扫描",
@@ -47,7 +47,7 @@
   "topbar.idle": "空闲",
 
   "shell.backend_unavailable": "后端不可用",
-  "shell.backend_hint": "启动 `vulnclaw web` 并打开本地地址以加载实时控制台。",
+  "shell.backend_hint": "启动 `specter web` 并打开本地地址以加载实时控制台。",
   "shell.retry": "重试",
 
   "banner.active_scan": "当前扫描",
@@ -78,16 +78,16 @@
   "toast.task_stopped": "任务已停止",
   "toast.task_stopped_copy": "保存的状态和报告仍然可用。",
   "toast.stop_sent": "已发送停止请求",
-  "toast.stop_sent_copy": "VulnClaw 正在结束当前任务。",
+  "toast.stop_sent_copy": "Specter 正在结束当前任务。",
 
   "confirm.stop_scan_title": "停止当前扫描？",
   "confirm.stop_scan_copy": "停止将结束当前任务，但保存的状态和报告仍然可用。",
   "confirm.stop_task_label": "停止任务",
 
-  "error.unreachable": "无法连接到 VulnClaw 后端 API。请启动 `vulnclaw web` 后重新连接。",
+  "error.unreachable": "无法连接到 Specter 后端 API。请启动 `specter web` 后重新连接。",
   "error.request_failed": "请求失败 ({status}): {detail}",
   "error.request_failed_simple": "请求失败 ({status})。请重试或打开高级诊断。",
-  "error.non_json": "后端 API 返回了非 JSON 内容。请确认后端已通过 `vulnclaw web` 启动。",
+  "error.non_json": "后端 API 返回了非 JSON 内容。请确认后端已通过 `specter web` 启动。",
   "error.failed_to_start": "启动任务失败",
   "error.invalid_port": "端口格式无效",
   "error.save_failed": "保存失败",
@@ -181,7 +181,7 @@
   "boundary.default_scope": "默认范围",
   "boundary.auto_scope": "自动范围",
 
-  "home.welcome": "欢迎使用 VulnClaw",
+  "home.welcome": "欢迎使用 Specter",
   "home.tagline": "攻击面测绘",
   "home.scan": "扫描",
   "home.starting": "启动中",
@@ -516,7 +516,7 @@
 
   "settings.output_dir": "输出目录",
   "settings.reports_note": "报告",
-  "settings.reports_note_text": "如未覆盖，报告将写入 VulnClaw 会话报告目录。",
+  "settings.reports_note_text": "如未覆盖，报告将写入 Specter 会话报告目录。",
 
   "settings.enable_local_script": "启用本地脚本助手",
   "settings.record_script_audit": "记录本地脚本审计",
@@ -576,7 +576,7 @@
   "console.continuous_only": "仅持续模式",
 
   "error_boundary.kicker": "UI 防护",
-  "error_boundary.title": "VulnClaw UI 遇到渲染错误",
+  "error_boundary.title": "Specter UI 遇到渲染错误",
   "error_boundary.copy": "已保存的目标、报告和任务历史未受影响。请重新加载 UI，然后从历史或报告继续操作。",
   "error_boundary.reload": "重新加载 UI",
   "error_boundary.technical": "技术错误",

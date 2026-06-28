@@ -1,4 +1,4 @@
-from vulnclaw.agent.reasoning_state import (
+from specter.agent.reasoning_state import (
     ConstraintCategory,
     ConstraintSeverity,
     PathStatus,

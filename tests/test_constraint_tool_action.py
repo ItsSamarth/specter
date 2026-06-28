@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from vulnclaw.agent.constraint_policy import infer_tool_action, validate_tool_action
-from vulnclaw.agent.context import TaskConstraints
+from specter.agent.constraint_policy import infer_tool_action, validate_tool_action
+from specter.agent.context import TaskConstraints
 
 
 def _scope_recon_scan() -> TaskConstraints:

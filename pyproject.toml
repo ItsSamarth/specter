@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "vulnclaw"
+name = "specter"
 version = "0.3.2"
-description = "🦞 AI-powered penetration testing CLI tool for cybersecurity professionals"
+description = "👻 AI-powered penetration testing CLI tool for cybersecurity professionals"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
@@ -59,12 +59,12 @@ kb = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Unclecheng-li/VulnClaw"
-Repository = "https://github.com/Unclecheng-li/VulnClaw"
-Issues = "https://github.com/Unclecheng-li/VulnClaw/issues"
+# Specter is a rebrand/fork of the original VulnClaw project (MIT). No canonical
+# Specter repository is published yet; this preserves attribution to the upstream.
+"Upstream (original VulnClaw)" = "https://github.com/Unclecheng-li/VulnClaw"
 
 [project.scripts]
-vulnclaw = "vulnclaw.cli.main:app"
+specter = "specter.cli.main:app"
 
 [tool.hatch.build]
 exclude = [
@@ -79,11 +79,11 @@ exclude = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["vulnclaw"]
+packages = ["specter"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/vulnclaw",
+    "/specter",
     "/frontend",
     "/tests",
     "/scripts",

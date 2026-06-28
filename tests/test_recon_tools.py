@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 from types import SimpleNamespace
 
-from vulnclaw.agent import recon_tools
-from vulnclaw.config.schema import ReconConfig, VulnClawConfig
+from specter.agent import recon_tools
+from specter.config.schema import ReconConfig, SpecterConfig
 
 
 def _agent(recon: ReconConfig | None = None):
-    cfg = VulnClawConfig()
+    cfg = SpecterConfig()
     if recon is not None:
         cfg.recon = recon
     return SimpleNamespace(config=cfg, session_state=SimpleNamespace(task_constraints=None))
@@ -178,7 +178,7 @@ async def test_dir_enum_aborts_on_global_200(monkeypatch):
 
 async def test_dir_enum_filters_and_reports_hits(monkeypatch):
     def router(method, url, params, content):
-        if "vulnclaw_nope" in url:
+        if "specter_nope" in url:
             return _Resp(text="not found", status=404)
         if url.rstrip("/").endswith("/admin"):
             return _Resp(text="ADMIN PANEL " * 20, status=200)

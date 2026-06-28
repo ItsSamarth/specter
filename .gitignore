@@ -32,8 +32,8 @@ env/
 Thumbs.db
 Desktop.ini
 
-# VulnClaw runtime
-.vulnclaw/
+# Specter runtime
+.specter/
 .workbuddy/
 .trae/
 sessions/
