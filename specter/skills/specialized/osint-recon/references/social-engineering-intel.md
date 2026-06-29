@@ -1,51 +1,51 @@
-# 社会工程信息汇总
+# Social Engineering Intelligence Summary
 
-## 人物画像构建框架
+## Persona Profiling Framework
 
-### 信息维度
+### Information Dimensions
 
-| 维度 | 数据源 | 提取方法 |
+| Dimension | Data Source | Extraction Method |
 |------|--------|---------|
-| 身份标识 | 页面 meta、GitHub | 正则提取 author/copyright |
-| 社交网络 | 页面外部链接 | `<a href>` 匹配社交媒体域名 |
-| 技术偏好 | GitHub 仓库语言分布 | GitHub API |
-| 地理位置 | GitHub location、博客 | 个人资料页 |
-| 职业信息 | GitHub company、LinkedIn | 个人资料页 |
-| 联系方式 | GitHub email、博客联系页 | API + 页面提取 |
-| 兴趣领域 | GitHub 仓库主题、博客文章 | 仓库 topics + 文章分类 |
+| Identity markers | Page meta, GitHub | Regex extract author/copyright |
+| Social networks | Page external links | `<a href>` matching social media domains |
+| Technology preferences | GitHub repository language distribution | GitHub API |
+| Geographic location | GitHub location, blog | Profile page |
+| Professional information | GitHub company, LinkedIn | Profile page |
+| Contact information | GitHub email, blog contact page | API + page extraction |
+| Areas of interest | GitHub repository topics, blog articles | Repository topics + article categories |
 
-## 信息交叉验证
+## Information Cross-Verification
 
-### 原则
-1. **单一来源不采信** — 关键信息需要至少 2 个独立来源确认
-2. **时效性标注** — 标注信息的获取时间，过时信息单独标记
-3. **置信度评级**：
-   - 🟢 **高**：多个独立来源确认
-   - 🟡 **中**：单一可靠来源
-   - 🔴 **低**：推断/未验证
+### Principles
+1. **Do not trust a single source** — key information requires confirmation from at least 2 independent sources
+2. **Timeliness annotation** — annotate the time information was obtained; flag outdated information separately
+3. **Confidence rating**:
+   - 🟢 **High**: confirmed by multiple independent sources
+   - 🟡 **Medium**: single reliable source
+   - 🔴 **Low**: inferred/unverified
 
-### 常见关联模式
+### Common Correlation Patterns
 
 ```
-博客 GitHub 链接 → GitHub 用户名 → GitHub API 获取邮箱
-                                  → GitHub API 获取仓库 → 技术栈推断
-                                  → GitHub 提交邮箱 → 关联其他身份
+Blog GitHub link → GitHub username → GitHub API to obtain email
+                                  → GitHub API to obtain repositories → infer tech stack
+                                  → GitHub commit email → correlate other identities
 
-博客 B站 链接 → B站 UID → B站主页 → 关注/粉丝 → 兴趣标签
-                                    → 投稿视频 → 技术领域
+Blog Bilibili link → Bilibili UID → Bilibili homepage → following/followers → interest tags
+                                    → uploaded videos → technical domain
 
-用户名 → 跨平台搜索 → 发现更多社交账号
-邮箱 → haveibeenpwned → 数据泄露记录
+Username → cross-platform search → discover more social accounts
+Email → haveibeenpwned → data breach records
 ```
 
-## 社交媒体信息提取
+## Social Media Information Extraction
 
-### B站
+### Bilibili
 ```python
 import re
 
 def extract_bilibili_uid(url):
-    """从 B站 URL 提取 UID"""
+    """Extract UID from a Bilibili URL"""
     # space.bilibili.com/12345
     m = re.search(r'bilibili\.com/(\d+)', url)
     if m:
@@ -53,21 +53,21 @@ def extract_bilibili_uid(url):
     return None
 ```
 
-### 微博
+### Weibo
 ```python
 def extract_weibo_uid(url):
-    """从微博 URL 提取 UID"""
-    # weibo.com/u/12345 或 weibo.com/username
+    """Extract UID from a Weibo URL"""
+    # weibo.com/u/12345 or weibo.com/username
     m = re.search(r'weibo\.com/(?:u/)?(\w+)', url)
     if m:
         return m.group(1)
     return None
 ```
 
-### 知乎
+### Zhihu
 ```python
 def extract_zhihu_username(url):
-    """从知乎 URL 提取用户名"""
+    """Extract username from a Zhihu URL"""
     # zhihu.com/people/username
     m = re.search(r'zhihu\.com/people/([^/?]+)', url)
     if m:
@@ -75,46 +75,46 @@ def extract_zhihu_username(url):
     return None
 ```
 
-## 信息汇总报告格式
+## Information Summary Report Format
 
 ```markdown
-# 目标侦察报告
+# Target Reconnaissance Report
 
-## 📋 基本信息
-| 项目 | 内容 | 置信度 | 来源 |
+## 📋 Basic Information
+| Item | Content | Confidence | Source |
 |------|------|--------|------|
-| 目标 | https://xxx | - | 用户输入 |
-| 框架 | Hexo | 🟢 | HTTP头+HTML特征 |
-| 服务器 | GitHub Pages | 🟢 | Server头 |
-| 作者 | XXX | 🟢 | meta author |
+| Target | https://xxx | - | User input |
+| Framework | Hexo | 🟢 | HTTP headers + HTML features |
+| Server | GitHub Pages | 🟢 | Server header |
+| Author | XXX | 🟢 | meta author |
 | ... | ... | ... | ... |
 
-## 👤 人物画像
-- **昵称**：XXX
-- **GitHub**：https://github.com/xxx
-- **B站**：https://space.bilibili.com/xxx
-- **技术栈**：Python / JavaScript
-- **位置**：深圳
+## 👤 Persona Profile
+- **Nickname**: XXX
+- **GitHub**: https://github.com/xxx
+- **Bilibili**: https://space.bilibili.com/xxx
+- **Tech stack**: Python / JavaScript
+- **Location**: Shenzhen
 - ...
 
-## 🔗 关联发现
-- [发现1]
-- [发现2]
+## 🔗 Correlation Findings
+- [Finding 1]
+- [Finding 2]
 
-## 📌 关键发现
+## 📌 Key Findings
 1. ...
 2. ...
 
 ---
-*报告生成时间：YYYY-MM-DD HH:MM*
-*数据来源：目标网站、GitHub API、社交媒体公开信息*
+*Report generated at: YYYY-MM-DD HH:MM*
+*Data sources: target website, GitHub API, public social media information*
 ```
 
-## 隐私与伦理
+## Privacy and Ethics
 
-- ✅ 只收集**公开信息**（不需要登录即可访问的内容）
-- ✅ 不尝试登录他人账号
-- ✅ 不利用收集的信息进行骚扰或社会工程攻击
-- ✅ 标注信息来源，确保可追溯
-- ❌ 不收集私人通讯内容
-- ❌ 不利用信息进行钓鱼或其他欺骗行为
+- ✅ Only collect **public information** (content accessible without login)
+- ✅ Do not attempt to log into others' accounts
+- ✅ Do not use collected information for harassment or social engineering attacks
+- ✅ Annotate information sources to ensure traceability
+- ❌ Do not collect private communication content
+- ❌ Do not use information for phishing or other deceptive behavior

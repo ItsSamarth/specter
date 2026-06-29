@@ -1,130 +1,129 @@
 ---
 name: crypto-toolkit
-description: 编码解码与加解密工具 — base64/URL/Hex/HTML实体编码解码，MD5/SHA哈希，AES/DES/RSA加解密，JWT解析，Caesar/ROT13密码，栅栏/Vigenere密码，Unicode转义，Morse电码等
+description: Encoding/decoding and encryption/decryption tools — base64/URL/Hex/HTML entity encoding/decoding, MD5/SHA hashing, AES/DES/RSA encryption/decryption, JWT parsing, Caesar/ROT13 ciphers, rail-fence/Vigenere ciphers, Unicode escaping, Morse code, etc.
 ---
 
-# 编码解码与加解密 Skill
+# Encoding/Decoding and Encryption/Decryption Skill
 
-针对渗透测试中常见的编码、加密、混淆场景，提供全面的编解码和加解密能力。
-**重要**：遇到任何编码/加密字符串时，优先使用 `crypto_decode` 工具进行解码，而非靠直觉猜测。
+Provides comprehensive encoding/decoding and encryption/decryption capabilities for the encoding, encryption, and obfuscation scenarios commonly encountered in penetration testing.
+**Important**: When you encounter any encoded/encrypted string, prefer using the `crypto_decode` tool to decode it rather than guessing by intuition.
 
-## 核心原则
+## Core Principles
 
-1. **工具优先** — 遇到 base64、hex、URL编码等字符串，调用 `crypto_decode` 工具解码，不要自行脑补
-2. **多格式尝试** — 如果一种解码方式结果不合理，尝试其他编码格式
-3. **链式解码** — CTF 中常见多层编码（如 base64→hex→ROT13），解码后检查结果是否还需再次解码
-4. **验证结果** — 解码后验证结果的合理性（是否为可读文本、是否像路径/URL/flag 等）
+1. **Tool first** — When you encounter base64, hex, URL-encoded, or similar strings, call the `crypto_decode` tool to decode them; do not improvise
+2. **Try multiple formats** — If one decoding method gives an unreasonable result, try other encoding formats
+3. **Chained decoding** — Multi-layer encoding is common in CTFs (e.g. base64→hex→ROT13); after decoding, check whether the result needs to be decoded again
+4. **Verify results** — After decoding, verify the plausibility of the result (is it readable text, does it look like a path/URL/flag, etc.)
 
-## 1. 编码识别与解码
+## 1. Encoding Identification and Decoding
 
-### 常见编码特征识别
+### Recognizing common encoding features
 
-| 编码类型 | 特征 | 示例 |
+| Encoding type | Features | Example |
 |---------|------|------|
-| Base64 | `A-Za-z0-9+/=` 结尾常有 `=` 填充 | `TnNTY1RmLnBocA==` |
+| Base64 | `A-Za-z0-9+/=`, often ends with `=` padding | `TnNTY1RmLnBocA==` |
 | Base32 | `A-Z2-7=` | `OBZHK5DFN2A====` |
-| Hex | `0-9a-f` 偶数长度 | `4e73536354662e706870` |
-| URL编码 | `%XX` 格式 | `%2F%61%64%6D%69%6E` |
-| HTML实体 | `&#xNN;` 或 `&#NNN;` | `&#x3C;script&#x3E;` |
-| Unicode转义 | `\uXXXX` 或 `\UXXXXXXXX` | `\u003c\u0073\u0063` |
-| JWT | 三段 `.` 分隔的 base64 | `eyJhbG...` |
+| Hex | `0-9a-f`, even length | `4e73536354662e706870` |
+| URL encoding | `%XX` format | `%2F%61%64%6D%69%6E` |
+| HTML entity | `&#xNN;` or `&#NNN;` | `&#x3C;script&#x3E;` |
+| Unicode escape | `\uXXXX` or `\UXXXXXXXX` | `\u003c\u0073\u0063` |
+| JWT | Three base64 segments separated by `.` | `eyJhbG...` |
 
-### 解码策略
+### Decoding strategy
 
-1. 识别编码类型 → 调用 `crypto_decode` 工具指定对应操作
-2. 检查解码结果是否可读/合理
-3. 不合理则尝试其他编码格式
-4. 如果结果仍像编码，重复步骤 1-3
+1. Identify the encoding type → call the `crypto_decode` tool specifying the corresponding operation
+2. Check whether the decoded result is readable/reasonable
+3. If unreasonable, try other encoding formats
+4. If the result still looks encoded, repeat steps 1-3
 
-## 2. 哈希与散列
+## 2. Hashing and Digests
 
-### 常见哈希类型
+### Common hash types
 
-| 类型 | 输出长度 | 特征 |
+| Type | Output length | Features |
 |------|---------|------|
 | MD5 | 32 hex | `e10adc3949ba59abbe56e057f20f883e` |
 | SHA1 | 40 hex | `aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d` |
 | SHA256 | 64 hex | `2c26b46b68ffc68ff99b453c1d30413413422d7064...` |
-| SHA512 | 128 hex | 更长的hex字符串 |
+| SHA512 | 128 hex | Longer hex string |
 | NTLM | 32 hex | Windows hash |
-| MySQL5 | 41字符 | `*E6CC90B878B948C35E92B003C792C46758BF4` |
+| MySQL5 | 41 characters | `*E6CC90B878B948C35E92B003C792C46758BF4` |
 
-### 哈希处理策略
+### Hash handling strategy
 
-- 识别哈希类型（通过长度和字符集）
-- 尝试在线彩虹表查询（通过 fetch 工具访问 crackstation 等）
-- 对于已知盐值的哈希，尝试带盐值暴力破解
+- Identify the hash type (by length and character set)
+- Try online rainbow table lookups (access crackstation, etc., via the fetch tool)
+- For hashes with a known salt, try salted brute force
 
-## 3. 对称加密
+## 3. Symmetric Encryption
 
 ### AES/DES/3DES
 
-- 需要密钥和模式（ECB/CBC/CTR 等）
-- CBC 模式需要 IV
-- 常见填充：PKCS7/ZeroPadding
-- 渗透中常遇到硬编码密钥，优先从源码中提取
+- Requires a key and a mode (ECB/CBC/CTR, etc.)
+- CBC mode requires an IV
+- Common padding: PKCS7/ZeroPadding
+- Hardcoded keys are often encountered in pentests; prefer extracting them from the source code
 
-## 4. 非对称加密
+## 4. Asymmetric Encryption
 
 ### RSA
 
-- 从公钥/私钥文件中提取参数
-- 模数过小的 RSA 可分解
-- 已知私钥可直接解密
+- Extract parameters from the public/private key file
+- RSA with a too-small modulus can be factored
+- A known private key can decrypt directly
 
-## 5. 古典密码
+## 5. Classical Ciphers
 
-| 类型 | 特征 | 破解方法 |
+| Type | Features | Cracking method |
 |------|------|---------|
-| Caesar/ROT13 | 字母位移 | 暴力25种位移 |
-| Vigenere | 多表替换 | Kasiski/频率分析 |
-| 栅栏密码 | 字符分组重组 | 尝试常见栏数 |
-| 培根密码 | AB 五元组 | 查表 |
-| Morse | `.-` 点划 | 查表 |
+| Caesar/ROT13 | Letter shift | Brute force all 25 shifts |
+| Vigenere | Polyalphabetic substitution | Kasiski/frequency analysis |
+| Rail-fence cipher | Character grouping and rearrangement | Try common rail counts |
+| Bacon cipher | AB five-letter groups | Lookup table |
+| Morse | `.-` dots and dashes | Lookup table |
 
-## 6. JWT 处理
+## 6. JWT Handling
 
-- 解码 Header + Payload（base64url）
-- 检查算法：`none` 算法绕过、RS256→HS256 算法混淆
-- 尝试弱密钥签名伪造
-- 检查 exp/nbf 等时间声明
+- Decode Header + Payload (base64url)
+- Check the algorithm: `none` algorithm bypass, RS256→HS256 algorithm confusion
+- Try weak-key signature forgery
+- Check time claims such as exp/nbf
 
-## 工具使用
+## Tool Usage
 
-### `crypto_decode` 工具
+### `crypto_decode` tool
 
-当遇到需要编码/解码/加密/解密的操作时，调用此工具：
+When you encounter an operation requiring encoding/decoding/encryption/decryption, call this tool:
 
 ```
 crypto_decode(operation="base64_decode", input="TnNTY1RmLnBocA==")
 ```
 
-支持的操作列表：
-- **编码**: `base64_encode`, `base32_encode`, `hex_encode`, `url_encode`, `html_encode`, `unicode_encode`, `rot13_encode`, `morse_encode`, `caesar_encode`, `base58_encode`
-- **解码**: `base64_decode`, `base32_decode`, `hex_decode`, `url_decode`, `html_decode`, `unicode_decode`, `rot13_decode`, `morse_decode`, `caesar_decode`, `base58_decode`
-- **哈希**: `md5_hash`, `sha1_hash`, `sha256_hash`, `sha512_hash`
-- **加密/解密**: `aes_encrypt`, `aes_decrypt`, `des_encrypt`, `des_decrypt`, `rsa_encrypt`, `rsa_decrypt`
+List of supported operations:
+- **Encoding**: `base64_encode`, `base32_encode`, `hex_encode`, `url_encode`, `html_encode`, `unicode_encode`, `rot13_encode`, `morse_encode`, `caesar_encode`, `base58_encode`
+- **Decoding**: `base64_decode`, `base32_decode`, `hex_decode`, `url_decode`, `html_decode`, `unicode_decode`, `rot13_decode`, `morse_decode`, `caesar_decode`, `base58_decode`
+- **Hashing**: `md5_hash`, `sha1_hash`, `sha256_hash`, `sha512_hash`
+- **Encryption/Decryption**: `aes_encrypt`, `aes_decrypt`, `des_encrypt`, `des_decrypt`, `rsa_encrypt`, `rsa_decrypt`
 - **JWT**: `jwt_decode`, `jwt_encode`
-- **自动识别**: `auto_decode` (自动识别编码类型并解码)
+- **Auto-identification**: `auto_decode` (automatically identifies the encoding type and decodes)
 
-## CTF 密码学攻击路由
+## CTF Cryptography Attack Routing
 
-> 当遇到密码学攻击场景（已知加密算法，需要恢复明文或密钥）时，优先使用 `ctf-crypto` Skill：
+> When you encounter a cryptography attack scenario (encryption algorithm known, need to recover plaintext or key), prefer using the `ctf-crypto` Skill:
 
-| 攻击场景 | 路由到 ctf-crypto | 参考文档 |
+| Attack scenario | Route to ctf-crypto | Reference document |
 |---------|-----------------|---------|
-| RSA 小指数/共模/Wiener | `ctf-crypto` | `references/rsa-attacks-cheatsheet.md` |
-| AES Padding Oracle/ECB 翻转 | `ctf-crypto` | `references/aes-and-block-cipher-attacks.md` |
-| ECC 小子群/离散对数 | `ctf-crypto` | `references/ecc-attacks-cheatsheet.md` |
-| PRNG/MT19937 预测 | `ctf-crypto` | `references/prng-and-stream-cipher-attacks.md` |
-| 古典密码（Vigenere/XOR） | `ctf-crypto` | `references/classic-cipher-attacks.md` |
-| 格攻击/LWE | `ctf-crypto` | `references/lattice-and-lwe-attacks.md` |
+| RSA small exponent/common modulus/Wiener | `ctf-crypto` | `references/rsa-attacks-cheatsheet.md` |
+| AES Padding Oracle/ECB flipping | `ctf-crypto` | `references/aes-and-block-cipher-attacks.md` |
+| ECC small subgroup/discrete logarithm | `ctf-crypto` | `references/ecc-attacks-cheatsheet.md` |
+| PRNG/MT19937 prediction | `ctf-crypto` | `references/prng-and-stream-cipher-attacks.md` |
+| Classical ciphers (Vigenere/XOR) | `ctf-crypto` | `references/classic-cipher-attacks.md` |
+| Lattice attacks/LWE | `ctf-crypto` | `references/lattice-and-lwe-attacks.md` |
 
-**本 Skill 侧重编解码操作工具**，密码学具体攻击方法和参数请参考 `ctf-crypto`。
+**This Skill focuses on encoding/decoding operation tools**; for specific cryptography attack methods and parameters, refer to `ctf-crypto`.
 
-## 参考文档
+## Reference Documents
 
-- `references/encoding-cheatsheet.md` — 编码识别速查表
-- `references/crypto-attacks.md` — 密码学攻击手法
-- `references/crypto-attacks-roadmap.md` — 密码学攻击分类路由（根据题目特征选择攻击方法）
-
+- `references/encoding-cheatsheet.md` — Encoding identification quick reference
+- `references/crypto-attacks.md` — Cryptography attack techniques
+- `references/crypto-attacks-roadmap.md` — Cryptography attack classification routing (choose an attack method based on the problem's characteristics)

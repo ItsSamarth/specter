@@ -1,101 +1,101 @@
-# 格攻击与 LWE
+# Lattice Attacks and LWE
 
-## 基础概念
+## Basic Concepts
 
 ```
-格 (Lattice): Z^n 中的离散加法子群
-格基 (Basis): 生成格的线性无关向量组
-LLL 算法: 求格基的近似最短向量 (SVP 近似)
-CVP (Closest Vector Problem): 找最近向量
-SVP (Shortest Vector Problem): 找最短向量
+Lattice: a discrete additive subgroup of Z^n
+Basis: a set of linearly independent vectors that generate the lattice
+LLL algorithm: finds an approximate shortest vector of the lattice basis (SVP approximation)
+CVP (Closest Vector Problem): find the closest vector
+SVP (Shortest Vector Problem): find the shortest vector
 ```
 
-## LLL 算法
+## LLL Algorithm
 
 ```python
-# SageMath 实现
+# SageMath implementation
 """
-A = matrix(ZZ, [[...], [...], ...])  # 格基矩阵
-B = A.LLL()  # LLL 规约基
-# B 的列向量是接近最短的格向量
+A = matrix(ZZ, [[...], [...], ...])  # lattice basis matrix
+B = A.LLL()  # LLL-reduced basis
+# the column vectors of B are near-shortest lattice vectors
 ```
 
 ## Hidden Number Problem (HNP)
 
 ```python
 """
-已知: (d_i, (t_i * a + k_i * d_i) mod p) 部分位
-恢复: a (私钥)
-利用 Coppersmith 求出 k_i
+Known: partial bits of (d_i, (t_i * a + k_i * d_i) mod p)
+Recover: a (private key)
+Use Coppersmith to recover k_i
 """
 # SageMath
 def hnp_attack(d, t, bits, p):
     F.<x> = PolynomialRing(Zmod(p))
-    # 构造多项式...
+    # construct the polynomial...
 ```
 
-## Coppersmith 相关
+## Coppersmith-Related
 
 ```python
 """
-Coppersmith 求多项式小根：
+Coppersmith finds small roots of a polynomial:
 f(x) = 0 mod n, |x| < n^(1/d)
-其中 d 是多项式次数
+where d is the polynomial degree
 """
 
 # SageMath
 def coppersmith_small_root(f, n, d, m):
-    """f(x) = 0 mod n, 求小根 x, |x| < n^(1/(d*omega))"""
-    # 构造格并 LLL
+    """f(x) = 0 mod n, find small root x, |x| < n^(1/(d*omega))"""
+    # construct the lattice and run LLL
 ```
 
 ## LWE (Learning With Errors)
 
 ```python
 """
-LWE 问题：
-已知: (A, b = As + e) mod q
-恢复: s (私钥)
-其中 e 是小误差向量
+LWE problem:
+Known: (A, b = As + e) mod q
+Recover: s (private key)
+where e is a small error vector
 
-常用攻击:
-1. 枚举小误差 (e 很小时)
-2. BKW 算法
-3. 规约到 SVP/CVP
+Common attacks:
+1. Enumerate the small error (when e is very small)
+2. BKW algorithm
+3. Reduce to SVP/CVP
 """
 ```
 
-## HNP 攻击模板
+## HNP Attack Template
 
 ```python
-# SageMath: 从部分私钥恢复 RSA 私钥
+# SageMath: recover the RSA private key from a partial private key
 """
-DCP (Diffie-Hellman Claw Problem) 变种
-利用格规约求解
+A variant of the DCP (Diffie-Hellman Claw Problem)
+Solve using lattice reduction
 """
 
-# 基本模板
+# Basic template
 """
 F = GF(p)
 P.<x> = PolynomialRing(F)
 
-# 构造格基矩阵
-# 应用 LLL
-# 从规约基中提取私钥
+# construct the lattice basis matrix
+# apply LLL
+# extract the private key from the reduced basis
 """
 ```
 
-## 格攻击通用模板
+## General Lattice Attack Template
 
 ```python
-# 当遇到以下场景时考虑格攻击：
-# 1. 多条等式有未知数和 "小误差"
-# 2. 部分私钥/部分明文恢复
-# 3. 规约到格最近向量问题
+# Consider a lattice attack when you encounter the following scenarios:
+# 1. Multiple equations with unknowns and a "small error"
+# 2. Partial private key / partial plaintext recovery
+# 3. Reducible to the lattice closest vector problem
 
-# 步骤：
-# 1. 将问题建模为格中的 CVP/SVP
-# 2. 构造格基矩阵
-# 3. 使用 LLL/BKZ 规约
-# 4. 从规约基提取解
+# Steps:
+# 1. Model the problem as a CVP/SVP in a lattice
+# 2. Construct the lattice basis matrix
+# 3. Reduce using LLL/BKZ
+# 4. Extract the solution from the reduced basis
 ```

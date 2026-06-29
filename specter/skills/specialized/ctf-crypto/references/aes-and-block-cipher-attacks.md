@@ -1,67 +1,67 @@
-# AES 与分组密码攻击
+# AES and Block Cipher Attacks
 
-## 加密模式速查
+## Encryption Mode Quick Reference
 
-| 模式 | 特点 | 可利用漏洞 |
+| Mode | Characteristics | Exploitable Weakness |
 |------|------|-----------|
-| ECB | 相同明文→相同密文 | 模式识别、重排攻击 |
-| CBC | 前一块密文参与当前加密 | IV 翻转、Padding Oracle |
-| CTR | 流式加密 | nonce 重用 → XOR 泄露 |
-| CFB | 类似流密码 | IV 翻转 |
-| OFB | 类似流密码 | nonce 重用 |
-| GCM | 认证加密 | nonce 重用 → 密钥流恢复 |
+| ECB | Same plaintext → same ciphertext | Pattern recognition, reordering attacks |
+| CBC | Previous ciphertext block feeds into current encryption | IV flipping, Padding Oracle |
+| CTR | Stream-style encryption | nonce reuse → XOR leakage |
+| CFB | Similar to a stream cipher | IV flipping |
+| OFB | Similar to a stream cipher | nonce reuse |
+| GCM | Authenticated encryption | nonce reuse → keystream recovery |
 
-## ECB 字节翻转
+## ECB Byte Flipping
 
 ```python
 from Crypto.Cipher import AES
 
-# ECB 模式下相同明文块产生相同密文块
-# 攻击：识别重复密文块 → 推断明文结构
-# 可重排密文块改变明文结构
+# In ECB mode, identical plaintext blocks produce identical ciphertext blocks
+# Attack: identify repeated ciphertext blocks → infer plaintext structure
+# Ciphertext blocks can be reordered to alter the plaintext structure
 
 def ecb_detect(ciphertext, block_size=16):
-    """检测 ECB 模式（查找重复块）"""
+    """Detect ECB mode (look for repeated blocks)"""
     blocks = [ciphertext[i:i+block_size] for i in range(0, len(ciphertext), block_size)]
     return len(blocks) != len(set(blocks))
 ```
 
-## CBC IV 翻转攻击
+## CBC IV Flipping Attack
 
 ```python
 """
-原理：在 CBC 中，P[i] = Decrypt(C[i]) XOR C[i-1]
-修改 C[i-1] 的某字节 → 对应 P[i] 的该字节也被翻转
+Principle: In CBC, P[i] = Decrypt(C[i]) XOR C[i-1]
+Modifying a byte of C[i-1] → flips the corresponding byte of P[i]
 
-用途：修改 IV 可改变第一块明文，修改 C[i-1] 可改变第 i 块明文
-代价：C[i-1] 对应的明文 P[i-1] 会被破坏
+Use: modifying the IV alters the first plaintext block; modifying C[i-1] alters the i-th plaintext block
+Cost: the plaintext P[i-1] corresponding to C[i-1] gets corrupted
 """
 
 def cbc_iv_flip(ciphertext, known_plain, target_plain, block_size=16):
-    """翻转 CBC 第一块明文（修改 IV）"""
+    """Flip the first CBC plaintext block (by modifying the IV)"""
     iv = bytearray(ciphertext[:block_size])
     for i in range(block_size):
         iv[i] = iv[i] ^ known_plain[i] ^ target_plain[i]
     return bytes(iv) + ciphertext[block_size:]
 ```
 
-## Padding Oracle 攻击
+## Padding Oracle Attack
 
 ```python
 """
-原理：CBC 解密时如果 Padding 不合法，服务器返回不同错误
-通过逐字节爆破，利用错误/正确差异恢复明文
+Principle: during CBC decryption, if the padding is invalid the server returns a different error
+By brute-forcing byte by byte, the error/success difference is used to recover the plaintext
 
-条件：
-1. 使用 CBC 模式
-2. 服务器对 Padding 错误和密文错误返回不同响应
-3. 可以反复提交修改后的密文
+Conditions:
+1. CBC mode is used
+2. The server returns different responses for padding errors vs. ciphertext errors
+3. Modified ciphertext can be submitted repeatedly
 """
 
 def padding_oracle_attack(oracle, ciphertext, block_size=16):
-    """Padding Oracle 攻击恢复明文
+    """Padding Oracle attack to recover plaintext
     
-    oracle: 函数，接受密文返回 True(padding正确)/False(padding错误)
+    oracle: a function that takes ciphertext and returns True (padding correct) / False (padding incorrect)
     """
     blocks = [ciphertext[i:i+block_size] for i in range(0, len(ciphertext), block_size)]
     plaintext = b''
@@ -74,7 +74,7 @@ def padding_oracle_attack(oracle, ciphertext, block_size=16):
         for byte_pos in range(block_size - 1, -1, -1):
             padding_val = block_size - byte_pos
             
-            # 构造测试密文
+            # Construct the test ciphertext
             test_block = bytearray(block_size)
             for k in range(byte_pos + 1, block_size):
                 test_block[k] = intermediate[k] ^ padding_val
@@ -92,42 +92,42 @@ def padding_oracle_attack(oracle, ciphertext, block_size=16):
             if not found:
                 raise Exception(f"Padding oracle attack failed at byte {byte_pos}")
         
-        # 恢复明文
+        # Recover the plaintext
         for i in range(block_size):
             plaintext += bytes([intermediate[i] ^ prev_block[i]])
     
     return plaintext
 ```
 
-## GCM Nonce 重用攻击
+## GCM Nonce Reuse Attack
 
 ```python
 """
-当同一个 nonce 被用于两次加密时：
-- 两次加密使用相同的密钥流
+When the same nonce is used for two encryptions:
+- Both encryptions use the same keystream
 - C1 = P1 XOR keystream
 - C2 = P2 XOR keystream
 - C1 XOR C2 = P1 XOR P2
 
-如果知道 P1，可以恢复 P2
+If P1 is known, P2 can be recovered
 """
 
 def gcm_nonce_reuse(c1, c2, p1):
-    """利用 GCM nonce 重用恢复明文"""
+    """Recover plaintext by exploiting GCM nonce reuse"""
     return bytes(a ^ b ^ c for a, b, c in zip(c1, c2, p1))
 ```
 
-## CTR Nonce 重用
+## CTR Nonce Reuse
 
 ```python
 """
-CTR 模式下 nonce 重用等价于流密码密钥重用
+In CTR mode, nonce reuse is equivalent to stream cipher key reuse
 C1 = P1 XOR keystream
 C2 = P2 XOR keystream
 C1 XOR C2 = P1 XOR P2
 """
 
 def ctr_nonce_reuse(c1, c2, known_p1):
-    """利用 CTR nonce 重用恢复明文"""
+    """Recover plaintext by exploiting CTR nonce reuse"""
     return bytes(a ^ b ^ c for a, b, c in zip(c1, c2, known_p1))
 ```

@@ -1,54 +1,53 @@
-# 供应链攻击
+# Supply Chain Attacks
 English: Supply Chain Attacks
 - Entry Count: 3
 - Use this file to shortlist relevant payloads, then open the linked source markdown for the full workflow and commands.
-## NPM包名仿冒(Typosquatting)
+## NPM Package Name Typosquatting
 - ID: supply-typosquat
 - Difficulty: intermediate
-- Subcategory: 包管理器投毒
-- Tags: 供应链, NPM, Typosquatting, 包投毒, postinstall
+- Subcategory: Package Manager Poisoning
+- Tags: supply chain, NPM, Typosquatting, package poisoning, postinstall
 - Original Extracted Source: original extracted web-security-wiki source/supply-typosquat.md
 Description:
-通过注册与流行NPM包名高度相似的恶意包(如lodash→1odash, colors→co1ors)，诱导开发者误安装。恶意包在install/postinstall钩子中执行反弹Shell、窃取环境变量或植入后门。
+By registering malicious packages with names highly similar to popular NPM package names (e.g. lodash→1odash, colors→co1ors), trick developers into installing them by mistake. The malicious package executes a reverse shell, steals environment variables, or plants a backdoor in the install/postinstall hook.
 Prerequisites:
-- NPM账号
-- 了解目标项目依赖
-- 恶意包基础设施
+- NPM account
+- Knowledge of the target project's dependencies
+- Malicious package infrastructure
 Execution Outline:
-1. 1. 侦察目标依赖
-2. 2. 生成仿冒包名
-3. 3. 构造恶意包
-4. 4. 检测与取证
-## CI/CD管道投毒
+1. 1. Reconnaissance of target dependencies
+2. 2. Generate typosquatted package names
+3. 3. Construct the malicious package
+4. 4. Detection and forensics
+## CI/CD Pipeline Poisoning
 - ID: supply-ci-poison
 - Difficulty: advanced
-- Subcategory: CI/CD攻击
-- Tags: 供应链, CI/CD, GitHub Actions, Jenkins, Pipeline
+- Subcategory: CI/CD Attacks
+- Tags: supply chain, CI/CD, GitHub Actions, Jenkins, Pipeline
 - Original Extracted Source: original extracted web-security-wiki source/supply-ci-poison.md
 Description:
-通过恶意Pull Request、Actions注入或构建脚本篡改来攻击CI/CD管道。攻击者可窃取构建密钥、投毒构建产物或在部署流程中植入后门代码。
+Attack the CI/CD pipeline through malicious Pull Requests, Actions injection, or build script tampering. The attacker can steal build secrets, poison build artifacts, or plant backdoor code in the deployment process.
 Prerequisites:
-- 目标使用公开CI/CD
-- 可提交PR或Fork
+- Target uses public CI/CD
+- Able to submit a PR or Fork
 Execution Outline:
-1. 1. 识别CI/CD配置
-2. 2. PR触发的工作流注入
-3. 3. Actions表达式注入
-4. 4. 构建产物投毒
-## 依赖混淆攻击
+1. 1. Identify CI/CD configuration
+2. 2. PR-triggered workflow injection
+3. 3. Actions expression injection
+4. 4. Build artifact poisoning
+## Dependency Confusion Attack
 - ID: supply-dependency-confusion
 - Difficulty: intermediate
-- Subcategory: 依赖混淆
-- Tags: 供应链, 依赖混淆, NPM, PyPI, Dependency Confusion
+- Subcategory: Dependency Confusion
+- Tags: supply chain, dependency confusion, NPM, PyPI, Dependency Confusion
 - Original Extracted Source: original extracted web-security-wiki source/supply-dependency-confusion.md
 Description:
-利用包管理器在公共注册表和私有注册表之间的解析优先级漏洞。当企业使用内部包名时，攻击者在公共NPM/PyPI注册更高版本号的同名包，包管理器会优先安装公共高版本包从而执行恶意代码。
+Exploit the resolution priority flaw of package managers between public and private registries. When an enterprise uses internal package names, the attacker registers a package with the same name but a higher version number on the public NPM/PyPI; the package manager preferentially installs the public higher-version package, thereby executing malicious code.
 Prerequisites:
-- 已知目标内部包名
-- 公共注册表账号
+- Known target internal package name
+- Public registry account
 Execution Outline:
-1. 1. 发现内部包名
-2. 2. 在公共注册表注册同名包
-3. 3. 监控DNS回调确认命中
-4. 4. 影响评估与报告
-
+1. 1. Discover internal package names
+2. 2. Register a package with the same name on the public registry
+3. 3. Monitor DNS callbacks to confirm a hit
+4. 4. Impact assessment and reporting

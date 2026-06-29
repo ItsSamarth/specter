@@ -1,72 +1,72 @@
 ---
 name: rapid-checklist
-description: 渗透速查与Payload — 快速Payload家族、绕过提醒、验证顺序、常见测试卡片，适用于已知测试方向后快速查找
+description: Pentest quick reference and Payloads — fast Payload families, bypass reminders, verification order, common test cards, suitable for quick lookup once the test direction is known
 ---
 
-# 渗透速查与 Payload Skill
+# Pentest Quick Reference and Payload Skill
 
-**仅在路由已明确后使用**。本 Skill 用于快速查找，不替代方法论或工作流选择。
+**Use only after the route is already clear**. This Skill is for quick lookup; it does not replace methodology or workflow selection.
 
-## 使用场景
+## Use Cases
 
-- 快速回忆某类漏洞或阻塞点应该先看什么
-- 快速筛选 Payload 家族、绕过方向和验证顺序
-- 快速确认 AI、MCP、容器、WebSocket、JWT、文件、认证、SSRF 等常见测试卡片
-- 从"我知道要测什么"进入"我先从哪一类验证开始"
+- Quickly recall what to look at first for a given vulnerability class or blocker
+- Quickly filter Payload families, bypass directions, and verification order
+- Quickly confirm common test cards for AI, MCP, containers, WebSocket, JWT, files, authentication, SSRF, etc.
+- Move from "I know what to test" to "which class of verification do I start with"
 
-## 不适用场景
+## When Not Applicable
 
-- 替代场景分流 → 用 `pentest-flow`
-- 替代方法论决策 → 用对应专项 Skill
-- 请求未抓到、重放未稳定时盲测 → 先用 `client-reverse`
+- Replacing scenario triage → use `pentest-flow`
+- Replacing methodology decisions → use the corresponding specialized Skill
+- Blind testing when the request was not captured or replay is not stable → use `client-reverse` first
 
-## CTF 专项速查
+## CTF Quick Reference
 
-> CTF 题目优先用 `ctf-web` / `ctf-crypto` / `ctf-misc` Skill，以下为快速卡片：
+> For CTF challenges, prefer the `ctf-web` / `ctf-crypto` / `ctf-misc` Skills; the following are quick cards:
 
-| 场景 | 快速定位 |
+| Scenario | Quick Location |
 |------|---------|
-| PHP 弱比较 → 0e 开头 MD5 值 | `ctf-web` → `php-bypass-cheatsheet.md` |
-| 命令注入空格绕过 → ${IFS}/$IFS$9/< | `ctf-web` → `command-injection-bypass.md` |
-| eval 无回显 → 写文件/DNS 外带 | `ctf-web` → `eval-and-rce-techniques.md` |
-| RSA 小指数 → 立方根/Coppersmith | `ctf-crypto` → `rsa-attacks-cheatsheet.md` |
+| PHP loose comparison → MD5 values starting with 0e | `ctf-web` → `php-bypass-cheatsheet.md` |
+| Command injection space bypass → ${IFS}/$IFS$9/< | `ctf-web` → `command-injection-bypass.md` |
+| eval with no echo → write file / DNS exfiltration | `ctf-web` → `eval-and-rce-techniques.md` |
+| RSA small exponent → cube root / Coppersmith | `ctf-crypto` → `rsa-attacks-cheatsheet.md` |
 | Python Jail → `__import__`/func_globals | `ctf-misc` → `python-jail-escape.md` |
-| 编码链 → base64→hex→ROT13 多层 | `ctf-misc` → `encoding-chain-reference.md` |
+| Encoding chain → base64→hex→ROT13 multi-layer | `ctf-misc` → `encoding-chain-reference.md` |
 
-## 快速路由卡片
+## Quick Routing Cards
 
-### Web 注入 / 输出执行
-- SQLi → `'`, `"`, `)`, 布尔差异, 时间差异, 报错差异
+### Web Injection / Output Execution
+- SQLi → `'`, `"`, `)`, boolean difference, time difference, error difference
 - XSS → `<script>`, `<img onerror>`, `javascript:`, DOM sink
-- 命令注入 → `;id`, `|id`, `` `id` ``, `$(id)`
-- SSTI → `{{7*7}}`, `${7*7}`, `<%= 7*7 %>`, 模板引擎指纹
-- XXE → `<!ENTITY>`, 参数实体, OOB 外带
+- Command injection → `;id`, `|id`, `` `id` ``, `$(id)`
+- SSTI → `{{7*7}}`, `${7*7}`, `<%= 7*7 %>`, template engine fingerprint
+- XXE → `<!ENTITY>`, parameter entity, OOB exfiltration
 
-### 认证 / 逻辑 / Token
-- JWT → none算法, 算法篡改, 密钥爆破, jku/x5u 注入
-- CSRF → 缺少 Token, Token 可预测, Referer 校验缺陷
-- IDOR → 修改 ID 参数, 批量遍历
-- 支付逻辑 → 金额篡改, 负数, 竞态
+### Authentication / Logic / Token
+- JWT → none algorithm, algorithm tampering, key brute force, jku/x5u injection
+- CSRF → missing Token, predictable Token, Referer validation flaw
+- IDOR → modify ID parameter, batch enumeration
+- Payment logic → amount tampering, negative numbers, race condition
 
-### 浏览器签名 / 反爬
-- 先用 `client-reverse` 稳定重放
-- 阶段: locate → recover → runtime → validation
+### Browser Signing / Anti-scraping
+- Use `client-reverse` first for stable replay
+- Phases: locate → recover → runtime → validation
 
-### 安卓运行态 / 签名恢复
-- 先用 `client-reverse` runtime-first 路径
-- 只有抓不到包/加密/无法重放时再逆向
+### Android Runtime / Signature Recovery
+- Use the `client-reverse` runtime-first path first
+- Only reverse engineer when packets cannot be captured / are encrypted / cannot be replayed
 
 ### AI / MCP
-- Prompt 注入 → 直接/间接/CoT 干扰
-- 工具滥用 → MCP 投毒/指令覆盖
-- 身份逃逸 → 角色越界/权限漂移
+- Prompt injection → direct/indirect/CoT interference
+- Tool abuse → MCP poisoning / instruction override
+- Identity escape → role boundary violation / privilege drift
 
-### 内网 / AD
-- 先用 `intranet-pentest-advanced`
-- 工具不确定时补看 `pentest-tools`
+### Intranet / AD
+- Use `intranet-pentest-advanced` first
+- When unsure about tools, supplement with `pentest-tools`
 
-## 参考文档
+## Reference Documents
 
-- `references/08-rapid-checklists-and-payloads.md` — 速查与 Payload 整合参考
-- `references/payloads.md` — Payload 详细集合
-- `references/testing-methodology.md` — 测试方法论
+- `references/08-rapid-checklists-and-payloads.md` — Quick reference and Payload integrated reference
+- `references/payloads.md` — Detailed Payload collection
+- `references/testing-methodology.md` — Testing methodology

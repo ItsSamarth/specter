@@ -1,535 +1,534 @@
-# AI应用安全 - 应用阶段 - Agent 与 CoT 攻击
+# AI Application Security - Application Phase - Agent and CoT Attacks
 
-> 来源: AISS绿盟大模型安全智链社区 | 拆自 ai-app-app.md
-> 风险类别: Agent/CoT（GAARM.0041.x Agent 利用与 SSRF/RCE / 0042.x CoT 注入与思维链干扰 / 0047 环境注入 / 0056.001 查询注入 / 0060 预期外代码执行）
+> Source: AISS NSFOCUS Large Model Security Intelligence Chain Community | Split from ai-app-app.md
+> Risk category: Agent/CoT (GAARM.0041.x Agent exploitation and SSRF/RCE / 0042.x CoT injection and chain-of-thought interference / 0047 environment injection / 0056.001 query injection / 0060 unexpected code execution)
 
 ---
 
-### CoT注入攻击
+### CoT Injection Attack
 
-> 风险编号: GAARM.0042
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0042
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-CoT（Chain of Thought）通过促使LLMs思考一系列的关键步骤来解决问题，有效提高了问题的推理解决能力。基于ReAct（Reason + Act）实现CoT推理的技术框架，并且利用Agent调度实现LLMs访问外部世界的交互能力，可以与各种外部系统无缝连接并执行复杂的任务。
-在CoT应用中，用户通过提供自然语言的问题，AI模型会生成一系列推理步骤来回答该问题，其中涉及到思考（Thought）、行动（Act）、观察（Obs）三个核心步骤，AI模型会循环上述三个步骤完成各种复杂问题的推理与解决，由于整个过程比传统代码逻辑更加开放与灵活，缺乏严格的流程控制结构，攻击者可以通过CoT注入攻击绕过特定的推理步骤，诱导AI模型执行非预期的动作，比如：业务功能风险（任意用户转账等）、技术功能风险（SSRF、RCE等），目前CoT注入攻击主要有两种攻击思路：
+CoT (Chain of Thought) effectively improves the reasoning and problem-solving ability of LLMs by prompting them to think through a series of key steps to solve a problem. The ReAct (Reason + Act) technical framework implements CoT reasoning, and by leveraging Agent scheduling it gives LLMs the ability to interact with the external world, seamlessly connecting to various external systems and performing complex tasks.
+In a CoT application, the user provides a natural-language question and the AI model generates a series of reasoning steps to answer it. This involves three core steps: Thought, Act, and Observation (Obs). The AI model loops through these three steps to reason about and solve various complex problems. Because the whole process is more open and flexible than traditional code logic and lacks a strict flow-control structure, an attacker can use a CoT injection attack to bypass specific reasoning steps and induce the AI model to perform unintended actions, such as: business-function risks (arbitrary user transfers, etc.) and technical-function risks (SSRF, RCE, etc.). There are currently two main approaches to CoT injection attacks:
 
-思维链干扰注入：通过观察CoT的调度过程，构造恶意输入以欺骗模型认为其已经获取到一个Agent的结果，通过伪造Agent的结果，实现对CoT运行过程的干扰；
-思维链操纵注入：通过观察CoT的调度过程，直接或利用对抗攻击手段构造恶意输入，实现对CoT过程的操纵，使模型跳过预置的CoT过程，直接调度敏感的Agent；
+Chain-of-thought interference injection: by observing the CoT scheduling process, the attacker crafts malicious input to deceive the model into believing it has already obtained an Agent's result; by forging the Agent's result, the attacker interferes with the CoT execution process.
+Chain-of-thought manipulation injection: by observing the CoT scheduling process, the attacker directly — or by using adversarial attack techniques — crafts malicious input to manipulate the CoT process, causing the model to skip the preset CoT process and directly schedule a sensitive Agent.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-该案例主要提出基于ReAct框架的LLMs应用，如何利用其CoT思维链过程实现对Agent的恶意利用
-
-
-案例二
-该研究发现，通过将越狱提示与 CoT 提示相结合，利用 CoT 绕过 LLM 的道德限制，可以导致模型生成私人信息
-
-
-案例三
-ReAct框架下的查询注入攻击CTF开源题目
-
-**攻击风险**
-
-在使用信息检索系统的LLMs应用中，攻击者可以污染信息检索数据库，使得恶意文本片段被注入到发送给LLM的查询中，从而影响最终的输出结果，导致用户隐私、恶意代码执行等一系列风险。
-在退款业务系统的LLMs应用中，攻击者可以干扰退款CoT流程，使得原先不具备退款条件的订单可以正常退款；或者直接恶意操纵退款操作的Agent，使得实际退款金额与预期退款金额不符，从而造成企业的经济损失。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-严格权限管控
-强制执行严格的特权控制，确保LLMs只能访问必需的内容以及Agent，从而最大程度地减少潜在的漏洞点
+Case 1
+This case mainly demonstrates how a ReAct-framework-based LLM application can be abused via its CoT chain-of-thought process to maliciously exploit Agents.
 
 
-LLMs Agent调度控制
-针对敏感操作的Agent实施外部严格的自动或者人工权限校验机制判断，避免LLMs直接具备相应的使用权限
+Case 2
+This research found that by combining jailbreak prompts with CoT prompts, CoT can be used to bypass the LLM's ethical restrictions, causing the model to generate private information.
 
 
-Prompt内容强化
-采用 OpenAI 聊天标记语言 （ChatML） 等解决方案，试图将真正的用户提示与其他内容隔离开来
+Case 3
+An open-source CTF challenge for query injection attacks under the ReAct framework.
 
-**参考**
+**Attack Risks**
+
+In LLM applications that use information retrieval systems, an attacker can poison the information retrieval database so that malicious text fragments are injected into the query sent to the LLM, thereby affecting the final output and causing a series of risks such as user privacy leakage and malicious code execution.
+In LLM applications for refund business systems, an attacker can interfere with the refund CoT process so that an order that originally did not meet the refund conditions can be refunded normally; or directly maliciously manipulate the refund-operation Agent so that the actual refund amount does not match the expected refund amount, causing financial loss to the enterprise.
+
+**Mitigations**
+
+Mitigation
+Description
+
+
+
+
+Strict permission control
+Enforce strict privilege controls to ensure that LLMs can only access the necessary content and Agents, thereby minimizing potential vulnerability points.
+
+
+LLMs Agent scheduling control
+For Agents that perform sensitive operations, implement strict external automated or manual permission-verification mechanisms, preventing the LLM from directly holding the corresponding usage privileges.
+
+
+Prompt content hardening
+Adopt solutions such as OpenAI Chat Markup Language (ChatML) to attempt to isolate the genuine user prompt from other content.
+
+**References**
 
 http://youtube.com/watch?v=7ZA0Z1R-MjQ
 http://youtube.com/watch?v=KksYizcLFH0
 
 ---
-### SSRF环境模拟探测
+### SSRF Environment Simulation Probing
 
-> 风险编号: GAARM.0041.001
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0041.001
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-SSRF的形成大多是由于服务端提供了从其他服务器应用获取数据的功能且没有对目标地址做过滤与限制。如果LLMs应用程序中存在SSRF漏洞，攻击者可以利用这个漏洞发起内部网络请求，访问应用程序内部的受限资源。同时，一些LLMs可能内置有网络访问功能的Agent，用于执行一些外部信息查询等操作。攻击者可以利用LLMs应用API SSRF漏洞或者LLMs中具备网络访问功能的Agent，执行意外请求或访问受限资源（如内部服务、API 或数据存储），进而访问模型内部系统，增加模型信息、内部服务、敏感数据等数据信息泄露的风险。
+SSRF usually arises because the server provides functionality to fetch data from other server applications without filtering or restricting the target address. If an SSRF vulnerability exists in an LLM application, an attacker can exploit it to make internal network requests and access restricted resources inside the application. In addition, some LLMs may have built-in Agents with network-access capabilities used to perform operations such as external information queries. An attacker can leverage an SSRF vulnerability in the LLM application API, or an Agent within the LLM that has network-access capabilities, to make unexpected requests or access restricted resources (such as internal services, APIs, or data stores), and then access the model's internal systems, increasing the risk of leaking data such as model information, internal services, and sensitive data.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-ChatGPT-Next-Web应用程序存在SSRF漏洞(CVE-2023-49785),可以使用此漏洞探测内网网络资源
-
-**攻击风险**
-
-访问内部资源：攻击者可以利用 SSRF 漏洞来发送请求，获取内部网络中的敏感信息
-攻击流量代理：通过利用 SSRF 漏洞，攻击者可以发送恶意请求来攻击内部系统、服务或资源
-数据泄露：攻击者可能利用该风险获取敏感数据，如云平台访问密钥等。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-LLMs API 调度控制和沙箱隔离
-实施适当的沙箱机制来隔离LLM，并限制其对网络资源、内部服务和API的访问。通过执行严格的访问控制，组织可以尽量减小未经授权的交互的可能性，并减轻SSRF漏洞的影响
+Case 1
+The ChatGPT-Next-Web application has an SSRF vulnerability (CVE-2023-49785), which can be used to probe intranet network resources.
+
+**Attack Risks**
+
+Accessing internal resources: an attacker can use the SSRF vulnerability to send requests and obtain sensitive information in the internal network.
+Attack traffic proxying: by exploiting the SSRF vulnerability, an attacker can send malicious requests to attack internal systems, services, or resources.
+Data leakage: an attacker may use this risk to obtain sensitive data, such as cloud-platform access keys.
+
+**Mitigations**
+
+Mitigation
+Description
 
 
-LLMs定期安全评估与审查
-对网络和应用程序安全设置进行定期审计和审查，以识别和处理任何错误配置，确保内部资源不会无意中暴露给LLM，加强整体安全体系
 
 
-输入/输出验证
-实施可靠的输入验证和处理技术，以确保提示经过彻底的检查和过滤，这有助于防止恶意或意外提示触发未经授权的请求，从而降低SSRF攻击的风险
+LLMs API scheduling control and sandbox isolation
+Implement appropriate sandboxing mechanisms to isolate the LLM and limit its access to network resources, internal services, and APIs. By enforcing strict access controls, organizations can minimize the possibility of unauthorized interactions and mitigate the impact of SSRF vulnerabilities.
 
 
-监控与日志记录
-实施全面的监控和记录机制以跟踪LLM交互。通过密切监控LLM的活动并记录相关信息，组织可以检测和分析潜在的SSRF漏洞，从而能够及时检测和修复
+LLMs periodic security assessment and review
+Conduct regular audits and reviews of network and application security settings to identify and address any misconfigurations, ensuring that internal resources are not inadvertently exposed to the LLM and strengthening the overall security posture.
 
-**参考**
+
+Input/output validation
+Implement robust input validation and processing techniques to ensure prompts are thoroughly inspected and filtered. This helps prevent malicious or unexpected prompts from triggering unauthorized requests, thereby reducing the risk of SSRF attacks.
+
+
+Monitoring and logging
+Implement comprehensive monitoring and logging mechanisms to track LLM interactions. By closely monitoring the LLM's activity and logging relevant information, organizations can detect and analyze potential SSRF vulnerabilities, enabling timely detection and remediation.
+
+**References**
 
 https://owasp.org/www-project-top-10-for-large-language-model-applications/Archive/0_1_vulns/SSRF.html
 
 ---
-### 代码执行注入
+### Code Execution Injection
 
-> 风险编号: GAARM.0041.002
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0041.002
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-在ReAct框架下，LLMs可以与外部系统交互，外部的代码解释器Agent可用于为LLMs提供代码执行能力，实现在业务应用过程中完成自动化图标绘制、复杂代码运算等需求。攻击者通过构建恶意输入提示词操纵LLMs执行预定的推理过程，使得LLMs调度代码执行Agent在底层系统上执行恶意代码、命令等操作，从而实现对LLMs基座运行环境的攻击与利用，出现此攻击的主要原因为:
+Under the ReAct framework, LLMs can interact with external systems, and an external code-interpreter Agent can be used to provide LLMs with code-execution capability, enabling needs such as automated chart drawing and complex code computation during business application processes. An attacker constructs malicious input prompts to manipulate the LLM into executing a predetermined reasoning process, causing the LLM to schedule the code-execution Agent to run malicious code, commands, and other operations on the underlying system, thereby attacking and exploiting the LLM's base runtime environment. The main causes of this attack are:
 
-未能对用户输入进行有效检测验证或限制，允许攻击者未经授权的开展恶意代码执行操作。
-沙盒环境不足或LLMs的能力限制不足，导致它以意外的方式与底层系统进行交互。
-无意中将系统级功能或接口暴露给LLMs。
+Failure to effectively detect, validate, or restrict user input, allowing an attacker to carry out unauthorized malicious code-execution operations.
+Insufficient sandboxing or insufficient capability restriction of the LLM, causing it to interact with the underlying system in unexpected ways.
+Unintentionally exposing system-level functions or interfaces to the LLM.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-GPT-4新功能上线后，其中发现Python代码解释器疑似存在沙盒逃逸漏洞
-
-**攻击风险**
-
-代码执行风险：攻击者可以执行任意Python代码，这可能导致服务器受损、数据泄露或其他恶意行为。
-系统权限控制：如果CodeExecutor没有适当的安全措施，执行的代码结合容器逃逸等攻击手段，可能会获取系统的高级权限。
-持续性访问控制：攻击者可能利用这次机会建立一个长期的访问通道，用于持续攻击。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-输入验证
-实施严格的输入检测与限制流程，防止恶意或意外的提示被LLMs处理
+Case 1
+After GPT-4's new features were launched, the Python code interpreter was found to apparently have a sandbox-escape vulnerability.
+
+**Attack Risks**
+
+Code execution risk: an attacker can execute arbitrary Python code, which may lead to server compromise, data leakage, or other malicious behavior.
+System privilege control: if the CodeExecutor lacks appropriate security measures, the executed code combined with attack techniques such as container escape may obtain elevated system privileges.
+Persistent access control: an attacker may use this opportunity to establish a long-term access channel for continuous attacks.
+
+**Mitigations**
+
+Mitigation
+Description
 
 
-最小权限原则
-确保正确的沙盒化并限制LLMs的能力，以限制其与底层系统的交互能力，避免执行可能导致系统级影响的操作
 
 
-监控与日志记录
-记录所有通过LLM执行的操作，并进行实时监控，以便快速检测和响应可疑活动
+Input validation
+Implement strict input detection and restriction processes to prevent malicious or unexpected prompts from being processed by the LLM.
 
-**参考**
+
+Principle of least privilege
+Ensure proper sandboxing and restrict the LLM's capabilities to limit its ability to interact with the underlying system, avoiding operations that could cause system-level impact.
+
+
+Monitoring and logging
+Log all operations performed through the LLM and conduct real-time monitoring to quickly detect and respond to suspicious activity.
+
+**References**
 
 https://owasp.org/www-project-top-10-for-large-language-model-applications/Archive/0_1_vulns/Unauthorized_Code_Execution.html
 https://www.calvin-risk.com/blog/decoding-llm-risks-a-comprehensive-look-at-unauthorized-code-execution
 
 ---
-### 应用智能体Agent利用
+### Application Agent Exploitation
 
-> 风险编号: GAARM.0041
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0041
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-LLMs应用API主要分为两类应用场景，因此应用API利用风险主要围绕下列两类应用场景展开：
-
-
-LLMs应用平台基于API对外提供服务能力；
-
-攻击者利用大模型（如OpenAI的GPT系列）的API接口中存在的API安全风险实施攻击过程，收集API接口的信息进行漏洞寻找，基于所发现的漏洞构造恶意API请求，企图绕过认证或者注入恶意代码。例如：以未授权的方式访问或执行更高权限的操作、利用对外提供服务的API接口漏洞执行恶意代码命令等。
+LLM application APIs fall mainly into two application scenarios, so the API exploitation risk centers on the following two scenarios:
 
 
+An LLM application platform provides service capabilities externally based on an API;
 
-LLMs Agent调度以及第三方应用集成基于API实现相关能力到模型的接入；
-
-攻击者利用模型具有访问敏感信息或操作的API访问能力，基于API访问权限间接的通过构造恶意提示词，让模型执行危险的操作，例如访问敏感信息，篡改系统配置等。由于模型自身具备对API的操作与调用能力，有相应的访问权限，导致恶意操作可能会绕过正常的安全控制，发起实际的恶意攻击行为，该攻击可能导致越权、未授权访问他人信息等风险。
-
-**攻击案例**
-
-案例
-描述
+An attacker exploits API security risks present in the API interfaces of large models (such as OpenAI's GPT series) to carry out the attack, collecting information about the API interface to look for vulnerabilities, and based on the discovered vulnerabilities crafting malicious API requests in an attempt to bypass authentication or inject malicious code. For example: accessing or performing higher-privileged operations in an unauthorized manner, or executing malicious code commands by exploiting vulnerabilities in the externally exposed API interface.
 
 
+LLMs Agent scheduling and third-party application integration use APIs to connect relevant capabilities to the model;
 
+An attacker leverages the model's API-access capability for accessing sensitive information or operations and, based on the API access privileges, indirectly crafts malicious prompts to make the model perform dangerous operations, such as accessing sensitive information or tampering with system configurations. Because the model itself has the ability to operate and call the API and holds the corresponding access privileges, malicious operations may bypass normal security controls and launch actual malicious attacks. This attack may lead to risks such as privilege escalation and unauthorized access to others' information.
 
-案例一
-普通用户账号原本只能使用GPT-3.5模型，但通过特定的API地址，攻击者能够越权访问GPT-4模型
+**Attack Cases**
 
-
-案例二
-攻击者使用API直接在系统上执行命令，删除文件
-
-
-案例三
-构建多种LLMs API应用场景，基于LLMs利用恶意利用API功能实现命令执行、账户删除等攻击行为
-
-
-案例四
-Stable Diffusion提供了API接口，允许开发者通过编程方式调用模型进行图像生成。攻击者利用这一点，构造了一些恶意的文本提示词，然后通过Stable Diffusion的API接口,让模型生成这些非法或极端主义的图像内容
-
-**攻击风险**
-
-数据泄露：攻击者可能获取敏感数据，如用户信息和密码。
-服务中断：恶意操作可能导致服务中断，如删除用户记录或数据库条目。
-信任下降：LLM生成的不准确或敏感信息可能破坏用户和组织的信任。
-法律责任：由于LLM生成的不当内容，组织可能面临法律责任。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-LLMs API 调度控制
-限制 LLMs 可以访问的 API 和数据，以最大程度地减少被利用时的潜在危害
+Case 1
+A normal user account could originally only use the GPT-3.5 model, but through a specific API address, the attacker could gain unauthorized access to the GPT-4 model.
 
 
-输入/输出验证
-仔细清理用户输入，以防止恶意提示被注入到 LLM 中
+Case 2
+The attacker used the API to directly execute commands on the system and delete files.
 
 
-监控与日志记录
-记录所有通过LLM执行的操作，并进行实时监控，以便快速检测和响应可疑活动
+Case 3
+Building multiple LLM API application scenarios, the attacker maliciously abuses API functionality based on the LLM to achieve attacks such as command execution and account deletion.
 
 
-人工干预审批
-提供给用户更多的控制权，让他们能够管理插件的使用和数据的流向
+Case 4
+Stable Diffusion provides an API interface that allows developers to programmatically call the model to generate images. The attacker exploited this by crafting malicious text prompts and then, through Stable Diffusion's API interface, made the model generate illegal or extremist image content.
 
-**参考**
+**Attack Risks**
+
+Data leakage: an attacker may obtain sensitive data such as user information and passwords.
+Service disruption: malicious operations may cause service disruption, such as deleting user records or database entries.
+Loss of trust: inaccurate or sensitive information generated by the LLM may damage the trust of users and the organization.
+Legal liability: due to inappropriate content generated by the LLM, the organization may face legal liability.
+
+**Mitigations**
+
+Mitigation
+Description
+
+
+
+
+LLMs API scheduling control
+Restrict the APIs and data that the LLM can access to minimize the potential harm when exploited.
+
+
+Input/output validation
+Carefully sanitize user input to prevent malicious prompts from being injected into the LLM.
+
+
+Monitoring and logging
+Log all operations performed through the LLM and conduct real-time monitoring to quickly detect and respond to suspicious activity.
+
+
+Human-in-the-loop approval
+Give users more control so they can manage plugin usage and the flow of data.
+
+**References**
 
 https://portswigger.net/web-security/llm-attacks
 
 ---
-### 思维链干扰注入
+### Chain-of-Thought Interference Injection
 
-> 风险编号: GAARM.0042.001
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0042.001
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险是CoT注入攻击的子风险，攻击者通过观察CoT的调度过程，构造恶意输入，以此欺骗模型认为其已经获取到了正确的agent结果，通过伪造agent结果进行对CoT的干扰。
+This risk is a sub-risk of the CoT injection attack. By observing the CoT scheduling process, the attacker crafts malicious input to deceive the model into believing it has already obtained a correct agent result; by forging the agent result, the attacker interferes with the CoT.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-该案例展示了对CoT的干扰，通过构造输入的手段欺骗模型，以达到非法的目的
-
-**攻击风险**
-
-干扰注入：通过构造恶意的输入，达到干扰LLM的目的，进而实现违规的操作。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-严格权限管控
-确保 LLM 只能访问基本内容，最大限度地减少潜在的违规点
+Case 1
+This case demonstrates interference with the CoT, deceiving the model by crafting input to achieve an illegitimate goal.
 
+**Attack Risks**
 
-加入人工监督
-增加一层验证，作为防止意外 LLM 行为的保障
+Interference injection: by crafting malicious input, the attacker interferes with the LLM and thereby performs non-compliant operations.
 
+**Mitigations**
 
-设定明确的信任边界
-将 LLM 视为不受信任的，始终在决策中保持外部控制，并对可能不可信的 LLM 响应保持警惕。
-
-**参考**
-
-https://labs.withsecure.com/publications/llm-agent-prompt-injection
-
----
-### 思维链操纵注入
-
-> 风险编号: GAARM.0042.002
-> 生命周期: 应用阶段
-
-**攻击概述**
-
-该风险是CoT注入攻击的子风险，攻击者通过观察CoT的调度过程，构造恶意输入，使模型跳过预置的CoT过程，直接调度敏感的Agent。例如，跳过预置的验证步骤，允许用户直接执行理应经过验证后才可执行的操作。
-
-**攻击案例**
-
-案例
-描述
+Mitigation
+Description
 
 
 
 
-案例一
-该案例展示了对CoT的直接操纵，通过构造输入的手段欺骗模型，让模型跳过了理应进行的验证步骤，不经审核地给用户退款了大额数目
+Strict permission control
+Ensure the LLM can only access essential content, minimizing potential points of violation.
 
 
-案例二
-攻击者利用结合多种攻击对抗手段，通过角色逃逸攻击绕过之前提示词规则后，使用CoT操纵注入成功调用approveTransfer函数完成转账操作
-
-**攻击风险**
-
-操纵注入：通过构造恶意的输入，达到操控LLM的目的，进而实现违规的操作。
-
-**缓解措施**
-
-缓解方式
-描述
+Add human oversight
+Add a layer of verification as a safeguard against unexpected LLM behavior.
 
 
+Set clear trust boundaries
+Treat the LLM as untrusted, always maintain external control in decision-making, and stay vigilant about potentially untrustworthy LLM responses.
 
-
-严格权限管控
-确保 LLM 只能访问基本内容，最大限度地减少潜在的违规点
-
-
-加入人工监督
-增加一层验证，作为防止意外 LLM 行为的保障
-
-
-设定明确的信任边界
-将 LLM 视为不受信任的，始终在决策中保持外部控制，并对可能不可信的 LLM 响应保持警惕。
-
-**参考**
+**References**
 
 https://labs.withsecure.com/publications/llm-agent-prompt-injection
 
 ---
-### 查询注入攻击
+### Chain-of-Thought Manipulation Injection
 
-> 风险编号: GAARM.0056.001
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0042.002
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险是CoT注入攻击中的一种子技术，查询注入攻击主要用于利用CoT应用下的数据查询Agent实现任意数据的泄露。在CoT应用中，用户通过提供自然语言的问题，AI模型会生成一系列推理步骤来回答该问题。攻击者可以在问题中注入恶意的SQL代码，试图绕过模型的安全检查，直接访问后端数据库。当CoT思维链应用外部接入传统数据库、向量数据库、知识图谱等外挂数据库的时候，需要通过Agent实现外部数据查询与获取，攻击者可以通过干扰或者操纵CoT过程，例如在查询外部数据时，错误的把用户提供的语句当作了外部的数据，导致任意数据被查询和获取。
+This risk is a sub-risk of the CoT injection attack. By observing the CoT scheduling process, the attacker crafts malicious input to make the model skip the preset CoT process and directly schedule a sensitive Agent. For example, skipping a preset verification step allows the user to directly perform operations that should only be executable after verification.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-ReAct框架下的查询注入攻击CTF开源题目
-
-**攻击风险**
-
-在使用信息检索系统的LLMs应用中，攻击者可以污染信息检索数据库，使得恶意文本片段被注入到发送给LLM的查询中，从而影响最终的输出结果，导致用户隐私、恶意代码执行等一系列风险。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-严格权限管控
-强制执行严格的特权控制，确保LLMs只能访问必需的内容以及Agent，从而最大程度地减少潜在的漏洞点
+Case 1
+This case demonstrates direct manipulation of the CoT: by crafting input to deceive the model, the model skipped a verification step that should have been performed and refunded a large sum to the user without review.
 
 
-LLMs Agent调度控制
-针对敏感操作的Agent实施外部严格的自动或者人工权限校验机制判断，避免LLMs直接具备相应的使用权限
+Case 2
+The attacker combined multiple adversarial attack techniques: after bypassing the previous prompt rules via a role-escape attack, they used CoT manipulation injection to successfully call the approveTransfer function and complete the transfer operation.
+
+**Attack Risks**
+
+Manipulation injection: by crafting malicious input, the attacker controls the LLM and thereby performs non-compliant operations.
+
+**Mitigations**
+
+Mitigation
+Description
 
 
-Prompt内容强化
-采用 OpenAI 聊天标记语言 （ChatML） 等解决方案，试图将真正的用户提示与其他内容隔离开来
 
-**参考**
+
+Strict permission control
+Ensure the LLM can only access essential content, minimizing potential points of violation.
+
+
+Add human oversight
+Add a layer of verification as a safeguard against unexpected LLM behavior.
+
+
+Set clear trust boundaries
+Treat the LLM as untrusted, always maintain external control in decision-making, and stay vigilant about potentially untrustworthy LLM responses.
+
+**References**
+
+https://labs.withsecure.com/publications/llm-agent-prompt-injection
+
+---
+### Query Injection Attack
+
+> Risk ID: GAARM.0056.001
+> Lifecycle: Application phase
+
+**Attack Overview**
+
+This risk is a sub-technique of the CoT injection attack. Query injection attacks are mainly used to exploit the data-query Agent in a CoT application to leak arbitrary data. In a CoT application, the user provides a natural-language question and the AI model generates a series of reasoning steps to answer it. The attacker can inject malicious SQL code into the question in an attempt to bypass the model's security checks and directly access the backend database. When a CoT chain-of-thought application externally connects to an attached database such as a traditional database, a vector database, or a knowledge graph, an Agent is needed to query and obtain external data. The attacker can interfere with or manipulate the CoT process; for example, when querying external data, the model mistakenly treats the user-supplied statement as external data, causing arbitrary data to be queried and obtained.
+
+**Attack Cases**
+
+Case
+Description
+
+
+
+
+Case 1
+An open-source CTF challenge for query injection attacks under the ReAct framework.
+
+**Attack Risks**
+
+In LLM applications that use information retrieval systems, an attacker can poison the information retrieval database so that malicious text fragments are injected into the query sent to the LLM, thereby affecting the final output and causing a series of risks such as user privacy leakage and malicious code execution.
+
+**Mitigations**
+
+Mitigation
+Description
+
+
+
+
+Strict permission control
+Enforce strict privilege controls to ensure that LLMs can only access the necessary content and Agents, thereby minimizing potential vulnerability points.
+
+
+LLMs Agent scheduling control
+For Agents that perform sensitive operations, implement strict external automated or manual permission-verification mechanisms, preventing the LLM from directly holding the corresponding usage privileges.
+
+
+Prompt content hardening
+Adopt solutions such as OpenAI Chat Markup Language (ChatML) to attempt to isolate the genuine user prompt from other content.
+
+**References**
 
 http://youtube.com/watch?v=7ZA0Z1R-MjQ
 http://youtube.com/watch?v=KksYizcLFH0
 
 ---
-### 环境注入攻击
+### Environment Injection Attack
 
-> 风险编号: GAARM.0047
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0047
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-环境注入攻击是指攻击者通过间接提示词注入攻击的思路，将恶意指令嵌入到外部网页、接口、邮件等环境中，当AI Agent处理外部内容时，将嵌入的指令当做用户指令执行，导致数据泄露或达到控制模型或窃取数据的目的。攻击者可能通过篡改环境变量、修改依赖库或污染配置文件，诱导模型生成错误输出、泄露敏感信息或执行未经授权的操作。
+An environment injection attack refers to an attacker using the indirect prompt injection approach to embed malicious instructions into external web pages, interfaces, emails, and other environments. When the AI Agent processes the external content, it executes the embedded instructions as if they were user instructions, leading to data leakage or achieving the goal of controlling the model or stealing data. The attacker may, by tampering with environment variables, modifying dependency libraries, or poisoning configuration files, induce the model to generate erroneous output, leak sensitive information, or perform unauthorized operations.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-攻击者在公共仓库创建含提示注入的恶意议题，用户向Claude发送常规请求时，AI获取公共仓库议题触发恶意指令，进而将私有仓库数据拉取至上下文环境，并在公共仓库创建含私有数据的PR，导致数据泄露。
-
-**攻击风险**
-
-环境注入攻击可能对模型开发和部署生态造成严重威胁，以下是主要风险：
-
-恶意输出生成：攻击者可通过环境注入诱导模型生成虚假信息或有害内容，误导用户或引发信任危机。
-数据泄露：通过篡改环境配置，攻击者可能获取敏感信息，如训练数据集、用户提示或API密钥。
-系统完整性破坏：攻恶意注入可能导致开发环境被破坏，影响模型训练或部署的稳定性，甚至植入后门程序。
-供应链攻击：攻击者通过污染第三方依赖库或工具链，影响多个模型开发项目，造成广泛的安全隐患。
-信任危机：成功攻击可能削弱用户对模型及其开发环境的信任，限制其在高安全性场景中的应用。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-环境配置验证
-对所有环境变量、配置文件和依赖库进行严格验证，使用哈希校验确保其完整性，防止未授权修改。
+Case 1
+The attacker created a malicious issue containing a prompt injection in a public repository. When a user sent a routine request to Claude, the AI fetched the public-repository issue and triggered the malicious instruction, which then pulled private-repository data into the context and created a PR in the public repository containing the private data, causing data leakage.
+
+**Attack Risks**
+
+Environment injection attacks can pose serious threats to the model development and deployment ecosystem. The main risks are:
+
+Malicious output generation: an attacker can use environment injection to induce the model to generate false information or harmful content, misleading users or triggering a crisis of trust.
+Data leakage: by tampering with the environment configuration, an attacker may obtain sensitive information such as training datasets, user prompts, or API keys.
+System integrity compromise: malicious injection may corrupt the development environment, affecting the stability of model training or deployment, and may even plant backdoor programs.
+Supply chain attack: by poisoning third-party dependency libraries or toolchains, an attacker can affect multiple model development projects, creating widespread security hazards.
+Crisis of trust: a successful attack may weaken users' trust in the model and its development environment, limiting its application in high-security scenarios.
+
+**Mitigations**
+
+Mitigation
+Description
 
 
-依赖管理
-使用可信的依赖源（如官方PyPI镜像），并定期检查依赖包的版本和签名，防止供应链攻击。
 
 
-环境隔离
-将开发、测试和生产环境完全隔离，限制外部输入对核心环境的访问，降低攻击面。
+Environment configuration validation
+Strictly validate all environment variables, configuration files, and dependency libraries, using hash verification to ensure their integrity and prevent unauthorized modification.
 
 
-安全监控与审计
-实施实时监控，记录环境配置和依赖变更日志，定期进行安全审计，检测潜在的注入行为。
+Dependency management
+Use trusted dependency sources (such as the official PyPI mirror), and regularly check the versions and signatures of dependency packages to prevent supply chain attacks.
 
 
-最小权限原则
-对环境中的API访问和文件操作实施最小权限控制，使用加密签名验证配置来源，防止恶意篡改。
+Environment isolation
+Completely isolate development, testing, and production environments, restrict external input's access to the core environment, and reduce the attack surface.
 
-**参考**
+
+Security monitoring and auditing
+Implement real-time monitoring, log environment configuration and dependency change logs, and conduct regular security audits to detect potential injection behavior.
+
+
+Principle of least privilege
+Implement least-privilege control over API access and file operations in the environment, and use cryptographic signatures to verify the source of configurations and prevent malicious tampering.
+
+**References**
 
 https://mp.weixin.qq.com/s/9JwADiu9t3kqcfqnRMC2zQ
 https://finance.sina.com.cn/tech/digi/2025-06-01/doc-ineypqvh0855918.shtml
 https://zhuanlan.zhihu.com/p/1900540531131523166
 
 ---
-### 预期外代码执行
+### Unexpected Code Execution
 
-> 风险编号: GAARM.0060
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0060
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-预期外代码执行是指智能体在执行任务过程中，由于Prompt注入、工具误用或逻辑缺陷等原因，执行了超出预期范围或未被授权的代码操作。这种风险的核心在于智能体缺乏对代码执行边界的有效控制，可能通过动态代码生成、工具链调用或脚本执行等方式，执行恶意的、危险的或非预期的代码，导致系统被入侵、数据被篡改、敏感信息泄露或服务被中断等严重后果。
+Unexpected code execution refers to an agent, during task execution, performing code operations beyond the expected scope or that are unauthorized, due to causes such as prompt injection, tool misuse, or logic flaws. The core of this risk is that the agent lacks effective control over code-execution boundaries and may, through dynamic code generation, toolchain invocation, script execution, and similar means, execute malicious, dangerous, or unintended code, leading to serious consequences such as system compromise, data tampering, sensitive information leakage, or service disruption.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-漏洞源于表单节点在处理Content-Type时未作校验，致使攻击者可指定任意本地敏感文件路径，最终通过信息泄露伪造管理员身份并执行恶意工作流命令。
-
-
-案例二
-该案例展示了 AI 红队通过提示注入，诱导具备桌面操作能力的多模态模型下载并执行恶意程序，最终建立 C2 通信通道，实现非预期的代码执行与远程控制，使宿主系统沦为“僵尸主机”。
-
-
-案例三
-该案例展示了通过提示注入操控 ChatGPT 的长期记忆（Memory）机制，植入攻击者定义的隐蔽指令逻辑，使模型在后续对话中持续与远程 C2 通信并执行指令，形成模型层面的“僵尸化控制”与非预期行为执行。
-
-**攻击风险**
-
-系统入侵：恶意代码执行导致系统被完全控制
-数据破坏：执行破坏性操作导致数据丢失或篡改
-权限提升：通过代码执行获得更高的系统权限
-后门植入：在系统中植入持久化后门
-服务中断：执行恶意代码导致服务不可用
-横向渗透：利用代码执行攻击其他系统
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-代码执行沙箱
-将代码执行限制在安全隔离环境中，使用容器或虚拟机隔离，限制文件系统、网络和系统调用访问
+Case 1
+The vulnerability originated from the form node not validating the Content-Type during processing, allowing an attacker to specify an arbitrary local sensitive file path, ultimately forging an administrator identity through information disclosure and executing malicious workflow commands.
 
 
-代码审查验证
-实施静态代码安全分析，建立代码安全规则库，动态检测恶意代码模式
+Case 2
+This case demonstrates an AI red team using prompt injection to induce a multimodal model with desktop-operation capabilities to download and execute a malicious program, ultimately establishing a C2 communication channel and achieving unexpected code execution and remote control, turning the host system into a "zombie host."
 
 
-权限控制
-实施最小权限原则，限制代码执行工具的权限范围，建立代码执行审批机制
+Case 3
+This case demonstrates manipulating ChatGPT's long-term memory (Memory) mechanism via prompt injection to plant covert instruction logic defined by the attacker, causing the model to continuously communicate with a remote C2 and execute instructions in subsequent conversations, forming model-level "zombification control" and unexpected behavior execution.
+
+**Attack Risks**
+
+System compromise: malicious code execution leads to full control of the system.
+Data destruction: executing destructive operations leads to data loss or tampering.
+Privilege escalation: obtaining higher system privileges through code execution.
+Backdoor planting: planting a persistent backdoor in the system.
+Service disruption: executing malicious code makes the service unavailable.
+Lateral movement: using code execution to attack other systems.
+
+**Mitigations**
+
+Mitigation
+Description
 
 
-输入验证过滤
-严格验证代码生成输入，过滤危险函数和操作，检测潜在的恶意意图
 
-**参考**
 
-n8n远程代码执行漏洞
+Code execution sandbox
+Restrict code execution to a securely isolated environment, use container or virtual-machine isolation, and limit access to the file system, network, and system calls.
+
+
+Code review and validation
+Implement static code security analysis, build a code security rule base, and dynamically detect malicious code patterns.
+
+
+Permission control
+Implement the principle of least privilege, restrict the permission scope of code-execution tools, and establish a code-execution approval mechanism.
+
+
+Input validation and filtering
+Strictly validate code-generation input, filter dangerous functions and operations, and detect potential malicious intent.
+
+**References**
+
+n8n remote code execution vulnerability
 ZombAIs: From Prompt Injection to C2 with Claude Computer Use
 AI Domination: Remote Controlling ChatGPT ZombAI Instances
 

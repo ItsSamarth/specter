@@ -1,19 +1,19 @@
-# Web 指纹识别
+# Web Fingerprinting
 
-## 检查项清单
+## Checklist
 
-### HTTP 响应头指纹
-| 响应头 | 推断信息 | 示例 |
+### HTTP Response Header Fingerprints
+| Response header | Inferred information | Example |
 |--------|---------|------|
-| `Server` | Web 服务器 | `nginx/1.18.0`、`Apache/2.4.41`、`GitHub.com` |
-| `X-Powered-By` | 后端语言/框架 | `PHP/7.4.3`、`Express`、`Next.js` |
-| `X-AspNet-Version` | .NET 版本 | `4.0.30319` |
-| `Set-Cookie` | 框架特征 | `PHPSESSID`→PHP、`JSESSIONID`→Java、`csrf_token`→Django |
-| `X-Generator` | CMS | `Hugo`、`WordPress`、`Ghost` |
+| `Server` | Web server | `nginx/1.18.0`, `Apache/2.4.41`, `GitHub.com` |
+| `X-Powered-By` | Backend language/framework | `PHP/7.4.3`, `Express`, `Next.js` |
+| `X-AspNet-Version` | .NET version | `4.0.30319` |
+| `Set-Cookie` | Framework signature | `PHPSESSID`→PHP, `JSESSIONID`→Java, `csrf_token`→Django |
+| `X-Generator` | CMS | `Hugo`, `WordPress`, `Ghost` |
 | `X-DRupal-Cache` | CMS | Drupal |
-| `Via` | 代理/CDN | `1.1 varnish`→Varnish CDN |
+| `Via` | Proxy/CDN | `1.1 varnish`→Varnish CDN |
 
-### HTML 源码指纹
+### HTML Source Fingerprints
 ```python
 import re
 
@@ -50,57 +50,57 @@ def detect_framework(html):
     return frameworks
 ```
 
-### JavaScript 文件指纹
-- 框架特有 JS 文件路径：`/wp-includes/js/` → WordPress
-- Vue/React DevTools 检测：`__VUE_DEVTOOLS_GLOBAL_HOOK__`、`__REACT_DEVTOOLS_GLOBAL_HOOK__`
-- 框架版本通常在 JS 注释或变量中
+### JavaScript File Fingerprints
+- Framework-specific JS file paths: `/wp-includes/js/` → WordPress
+- Vue/React DevTools detection: `__VUE_DEVTOOLS_GLOBAL_HOOK__`, `__REACT_DEVTOOLS_GLOBAL_HOOK__`
+- Framework version is usually in JS comments or variables
 
-### CSS 指纹
+### CSS Fingerprints
 - `/wp-content/themes/` → WordPress
-- Hexo 主题特征 class 名
-- Bootstrap/Tailwind class 特征
+- Hexo theme-specific class names
+- Bootstrap/Tailwind class signatures
 
-### 特征文件
-| 文件路径 | 推断信息 |
+### Signature Files
+| File path | Inferred information |
 |---------|---------|
-| `/robots.txt` | CMS 信息、隐藏路径 |
-| `/sitemap.xml` | 站点结构 |
-| `/favicon.ico` | 框架默认图标 |
-| `/.well-known/security.txt` | 安全联系方式 |
-| `/humans.txt` | 开发者信息 |
-| `/.git/HEAD` | Git 仓库泄露 |
-| `/.env` | 环境变量泄露 |
+| `/robots.txt` | CMS information, hidden paths |
+| `/sitemap.xml` | Site structure |
+| `/favicon.ico` | Framework default icon |
+| `/.well-known/security.txt` | Security contact |
+| `/humans.txt` | Developer information |
+| `/.git/HEAD` | Git repository leak |
+| `/.env` | Environment variable leak |
 
-## GitHub Pages 特征
-- 响应头 `Server: GitHub.com`
-- `X-GitHub-Request-Id` 存在
+## GitHub Pages Signatures
+- Response header `Server: GitHub.com`
+- `X-GitHub-Request-Id` present
 - `X-Cache: HIT` + `X-Fastly-Request-ID` → Fastly CDN
-- `Via: 1.1 varnish` → Varnish 缓存
-- 常见框架：Jekyll、Hexo、Hugo
+- `Via: 1.1 varnish` → Varnish cache
+- Common frameworks: Jekyll, Hexo, Hugo
 
 ---
 
-## WAF 检测
+## WAF Detection
 
-### 常见 WAF 识别特征
-| WAF | 响应头/页面特征 | 拦截状态码 |
+### Common WAF Identification Signatures
+| WAF | Response header/page signature | Block status code |
 |-----|----------------|-----------|
 | Cloudflare | `Server: cloudflare`, `CF-Ray` | 403 |
 | AWS WAF | `x-amz-request-id`, `x-amz-cf-id` | 403 |
-| 阿里云 WAF | Cookie 含 `acw_tc` | 405/403 |
-| 腾讯云 WAF | 特定 JSON 拦截页面 | 403 |
-| 宝塔 WAF | 拦截页面含 "宝塔" | 403 |
-| 安全狗 | 拦截页面含 "safedog" | 403/404 |
-| ModSecurity | 特定 403 + Server 头 | 403 |
-| Nginx WAF | `HTTP/1.1 444` 或特殊 403 | 444/403 |
+| Alibaba Cloud WAF | Cookie contains `acw_tc` | 405/403 |
+| Tencent Cloud WAF | Specific JSON block page | 403 |
+| aaPanel WAF | Block page contains "宝塔" | 403 |
+| SafeDog | Block page contains "safedog" | 403/404 |
+| ModSecurity | Specific 403 + Server header | 403 |
+| Nginx WAF | `HTTP/1.1 444` or special 403 | 444/403 |
 
-### WAF 检测方法
-1. **正常请求 vs 攻击请求对比** — 发送带攻击特征的请求，观察响应差异
-2. **响应头检查** — 某些 WAF 会添加特定响应头
-3. **Cookie 检查** — 部分 WAF 设置追踪 Cookie
-4. **状态码异常** — 攻击请求返回异常状态码（403/406/429/444）
+### WAF Detection Methods
+1. **Normal request vs attack request comparison** — send a request with attack signatures and observe response differences
+2. **Response header inspection** — some WAFs add specific response headers
+3. **Cookie inspection** — some WAFs set tracking cookies
+4. **Status code anomalies** — attack requests return abnormal status codes (403/406/429/444)
 
-### 常见 WAF 绕过触发 payload
+### Common WAF Bypass Trigger Payloads
 ```
 /?id=1' OR 1=1--
 /?search=<script>alert(1)</script>

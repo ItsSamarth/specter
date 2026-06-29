@@ -5,90 +5,90 @@ Use this template for browser-side sign, token, anti-bot, worker, wasm, cookie-h
 ## Template
 
 ```markdown
-# 浏览器请求链记录
+# Browser Request Chain Record
 
-## 基本信息
+## Basic Information
 
-- 目标页面：
-- 目标请求：
-- 目标字段：
-- 触发动作：
-- 当前阶段：locate / recover / runtime / validation
-- 当前状态：🟡 进行中 / ✅ 已闭环 / ⛔ 阻塞
-- 目标：
-- 约束：
+- Target page:
+- Target request:
+- Target field:
+- Trigger action:
+- Current stage: locate / recover / runtime / validation
+- Current status: 🟡 In progress / ✅ Closed loop / ⛔ Blocked
+- Goal:
+- Constraints:
 
-## 样本与现象
+## Samples and Observations
 
-- 正常态样本：
-- 风控态样本：
-- 浏览器现象：
-- 本地现象：
-- 当前差异：
+- Normal-state sample:
+- Risk-control-state sample:
+- Browser observation:
+- Local observation:
+- Current difference:
 
-## 请求链主表
+## Request Chain Master Table
 
-| 项目 | 内容 |
+| Item | Content |
 | --- | --- |
 | writer |  |
 | builder |  |
 | entry |  |
 | source |  |
-| 上游依赖 |  |
-| 状态载体 |  |
-| 风控分叉点 |  |
-| 当前结论 |  |
+| Upstream dependency |  |
+| State carrier |  |
+| Risk-control branch point |  |
+| Current conclusion |  |
 
-## 关键证据
+## Key Evidence
 
-| 证据类型 | 位置/点位 | 内容 | 结论 |
+| Evidence type | Location/point | Content | Conclusion |
 | --- | --- | --- | --- |
-| 请求样本 |  |  |  |
-| 调用栈 |  |  |  |
-| 断点/Hook |  |  |  |
-| 中间值 |  |  |  |
+| Request sample |  |  |  |
+| Call stack |  |  |  |
+| Breakpoint/Hook |  |  |  |
+| Intermediate value |  |  |  |
 | Cookie/Storage |  |  |  |
 
-## 阶段补充
+## Stage Supplements
 
-### Locate 补充
+### Locate Supplement
 
-- Sink：
-- 真实写入点：
-- 上游请求：
-- 正常态 / 风控态区分：
+- Sink:
+- Real write point:
+- Upstream request:
+- Normal-state / risk-control-state distinction:
 
-### Recover 补充
+### Recover Supplement
 
-- 遮蔽层类型：
-- 当前恢复级别：A / B / C
-- 已恢复契约：
-- 仍未恢复缺口：
+- Obfuscation layer type:
+- Current recovery level: A / B / C
+- Recovered contracts:
+- Still-unrecovered gaps:
 
-### Runtime 补充
+### Runtime Supplement
 
-- 缺失对象：
-- 缺失状态：
-- 固定源：
-- 首个分歧点：
-- 风控 / 反调试：
+- Missing objects:
+- Missing state:
+- Fixed source:
+- First divergence point:
+- Risk control / anti-debugging:
 
-### Validation 补充
+### Validation Supplement
 
-| 检查点 | 浏览器侧 | 本地/恢复侧 | 结果 | 证据 | 缺口 |
+| Checkpoint | Browser side | Local/recovery side | Result | Evidence | Gap |
 | --- | --- | --- | --- | --- | --- |
-| 检查点1 |  |  |  |  |  |
+| Checkpoint 1 |  |  |  |  |  |
 
-## Burp 重放基线
+## Burp Replay Baseline
 
-- Method：
-- Path：
-- Query：
-- Headers：
-- Body：
-- 必须保留字段：
-- 可变异字段：
-- 前置状态：
+- Method:
+- Path:
+- Query:
+- Headers:
+- Body:
+- Fields that must be preserved:
+- Mutable fields:
+- Prerequisite state:
 
 ## Stage Handoff
 
@@ -99,11 +99,11 @@ Proven:
 Open:
 Invalidated:
 
-## 下一步
+## Next Steps
 
-- 下一动作：
-- 预期输出：
-- 阻塞点：
+- Next action:
+- Expected output:
+- Blockers:
 ```
 
 ## Minimum Required Fields

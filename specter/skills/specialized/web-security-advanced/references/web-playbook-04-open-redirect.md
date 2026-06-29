@@ -1,50 +1,49 @@
-# 开放重定向
+# Open Redirect
 English: Open Redirect
 - Entry Count: 3
 - Use this file to shortlist relevant payloads, then open the linked source markdown for the full workflow and commands.
-## 基础开放重定向
+## Basic Open Redirect
 - ID: redirect-basic
 - Difficulty: beginner
-- Subcategory: 基础
+- Subcategory: Basic
 - Tags: redirect, url, phishing
 - Original Extracted Source: original extracted web-security-wiki source/redirect-basic.md
 Description:
-URL跳转漏洞利用
+URL redirection vulnerability exploitation
 Prerequisites:
-- 目标参数控制跳转地址
+- Target parameter controls the redirect address
 Execution Outline:
-1. 直接跳转
-2. 绕过验证
-3. 斜杠绕过
-## 重定向绕过
+1. Direct redirect
+2. Bypass validation
+3. Slash bypass
+## Redirect Bypass
 - ID: redirect-bypass
 - Difficulty: intermediate
 - Subcategory: Bypass
 - Tags: redirect, bypass
 - Original Extracted Source: original extracted web-security-wiki source/redirect-bypass.md
 Description:
-开放重定向绕过技巧
+Open redirect bypass techniques
 Prerequisites:
-- 存在重定向参数
+- A redirect parameter exists
 Execution Outline:
-1. URL编码
-2. @符号
-3. 反斜杠
-## 重定向到SSRF
+1. URL encoding
+2. @ symbol
+3. Backslash
+## Redirect to SSRF
 - ID: redirect-ssrf
 - Difficulty: intermediate
 - Subcategory: SSRF
 - Tags: redirect, ssrf
 - Original Extracted Source: original extracted web-security-wiki source/redirect-ssrf.md
 Description:
-利用开放重定向漏洞作为跳板将SSRF探测引导到内部网络，绕过SSRF的URL白名单/黑名单限制
+Leverage an open redirect vulnerability as a pivot to steer SSRF probing into the internal network, bypassing the SSRF URL allowlist/blocklist restrictions
 Prerequisites:
-- 目标存在开放重定向(Open Redirect)漏洞
-- 目标存在SSRF功能点(URL参数/Webhook等)
-- SSRF过滤仅检查初始URL而不跟踪重定向
+- Target has an Open Redirect vulnerability
+- Target has an SSRF entry point (URL parameter/Webhook, etc.)
+- SSRF filtering only checks the initial URL and does not follow redirects
 Execution Outline:
-1. 识别开放重定向点
-2. 通过重定向绕过SSRF过滤
-3. 短链接和DNS重绑定辅助
-4. 完整利用链: 重定向→SSRF→内网探测
-
+1. Identify the open redirect point
+2. Bypass SSRF filtering via the redirect
+3. Short links and DNS rebinding assistance
+4. Full exploitation chain: redirect → SSRF → internal network probing

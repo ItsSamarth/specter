@@ -18,7 +18,7 @@ Execution Outline:
 2. 2. DNS out-of-band test
 3. 3. Build a malicious LDAP server
 4. 4. Obtain a shell
-## Spring Actuator漏洞
+## Spring Actuator Vulnerability
 - ID: spring-actuator
 - Difficulty: intermediate
 - Subcategory: Spring
@@ -50,7 +50,7 @@ Execution Outline:
 2. 2. JNDI injection
 3. 3. Stand up a malicious service
 4. 4. Bypass the AutoType check
-## Spring SpEL注入
+## Spring SpEL Injection
 - ID: spring-spel
 - Difficulty: intermediate
 - Subcategory: Spring SpEL
@@ -66,7 +66,7 @@ Execution Outline:
 2. 2. Command execution
 3. 3. File read
 4. 4. DNS out-of-band
-## Spring Cloud漏洞
+## Spring Cloud Vulnerabilities
 - ID: spring-cloud
 - Difficulty: advanced
 - Subcategory: Spring Cloud
@@ -81,7 +81,7 @@ Execution Outline:
 1. 1. Spring Cloud Gateway RCE
 2. 2. Spring Cloud Function SpEL
 3. 3. Spring Cloud Netflix
-## Struts2远程代码执行
+## Struts2 Remote Code Execution
 - ID: struts2-rce
 - Difficulty: intermediate
 - Subcategory: Struts2
@@ -97,7 +97,7 @@ Execution Outline:
 2. 2. S2-046 vulnerability
 3. 3. S2-057 vulnerability
 4. 4. S2-061/S2-062 vulnerabilities
-## Struts2 OGNL表达式注入
+## Struts2 OGNL Expression Injection
 - ID: struts2-ognl
 - Difficulty: advanced
 - Subcategory: Struts2 OGNL
@@ -113,7 +113,7 @@ Execution Outline:
 2. 2. Bypassing security restrictions
 3. 3. Command execution techniques
 4. 4. File operations
-## WebLogic远程代码执行
+## WebLogic Remote Code Execution
 - ID: weblogic-rce
 - Difficulty: advanced
 - Subcategory: WebLogic
@@ -128,7 +128,7 @@ Execution Outline:
 1. 1. CVE-2017-10271
 2. 2. CVE-2019-2725
 3. 3. CVE-2020-14882
-## WebLogic T3协议攻击
+## WebLogic T3 Protocol Attack
 - ID: weblogic-t3
 - Difficulty: advanced
 - Subcategory: WebLogic T3
@@ -143,7 +143,7 @@ Execution Outline:
 1. 1. Probe the T3 service
 2. 2. Attack using tooling
 3. 3. Build a malicious T3 request
-## WebLogic IIOP协议攻击
+## WebLogic IIOP Protocol Attack
 - ID: weblogic-iiop
 - Difficulty: advanced
 - Subcategory: WebLogic IIOP
@@ -158,22 +158,22 @@ Execution Outline:
 1. 1. Probe the IIOP service
 2. 2. CVE-2020-2551
 3. 3. Build an IIOP request
-## ThinkPHP远程代码执行
+## ThinkPHP Remote Code Execution
 - ID: thinkphp-rce
 - Difficulty: intermediate
 - Subcategory: ThinkPHP
 - Tags: thinkphp, rce, php, framework
 - Original Extracted Source: original extracted web-security-wiki source/thinkphp-rce.md
 Description:
-ThinkPHP框架RCE漏洞
+ThinkPHP framework RCE vulnerability
 Prerequisites:
-- 使用ThinkPHP框架
-- 存在漏洞版本
+- Uses the ThinkPHP framework
+- A vulnerable version is present
 Execution Outline:
 1. 1. ThinkPHP 5.x RCE
 2. 2. ThinkPHP 5.1.x RCE
 3. 3. ThinkPHP 5.0.23 RCE
-4. 4. 信息收集
+4. 4. Information gathering
 ## Laravel远程代码执行
 - ID: laravel-rce
 - Difficulty: intermediate
@@ -181,15 +181,15 @@ Execution Outline:
 - Tags: laravel, rce, php, framework
 - Original Extracted Source: original extracted web-security-wiki source/laravel-rce.md
 Description:
-Laravel框架RCE漏洞
+Laravel framework RCE vulnerability
 Prerequisites:
-- 使用Laravel框架
-- 存在漏洞版本或配置
+- Uses the Laravel framework
+- A vulnerable version or configuration is present
 Execution Outline:
 1. 1. CVE-2021-3129
-2. 2. 调试模式信息泄露
-3. 3. .env文件泄露
-4. 4. APP_KEY利用
+2. 2. Debug mode information disclosure
+3. 3. .env file disclosure
+4. 4. APP_KEY exploitation
 ## Apache Shiro反序列化
 - ID: shiro-deserialize
 - Difficulty: intermediate
@@ -197,15 +197,15 @@ Execution Outline:
 - Tags: shiro, deserialization, java, rememberme
 - Original Extracted Source: original extracted web-security-wiki source/shiro-deserialize.md
 Description:
-Apache Shiro RememberMe反序列化漏洞
+Apache Shiro RememberMe deserialization vulnerability
 Prerequisites:
-- 使用Apache Shiro
-- 存在漏洞版本
+- Uses Apache Shiro
+- A vulnerable version is present
 Execution Outline:
-1. 1. 检测Shiro
-2. 2. 使用ysoserial生成payload
-3. 3. 发送恶意请求
-4. 4. 常见密钥列表
+1. 1. Detect Shiro
+2. 2. Generate a payload with ysoserial
+3. 3. Send the malicious request
+4. 4. Common key list
 ## JBoss漏洞利用
 - ID: jboss-vuln
 - Difficulty: intermediate
@@ -213,15 +213,15 @@ Execution Outline:
 - Tags: jboss, rce, java, deserialization
 - Original Extracted Source: original extracted web-security-wiki source/jboss-vuln.md
 Description:
-JBoss应用服务器漏洞
+JBoss application server vulnerabilities
 Prerequisites:
-- 使用JBoss服务器
-- 存在漏洞版本
+- Uses a JBoss server
+- A vulnerable version is present
 Execution Outline:
-1. 1. JMXInvokerServlet反序列化
-2. 2. JMX Console部署War包
-3. 3. BSHDeployer部署
-4. 4. 使用工具
+1. 1. JMXInvokerServlet deserialization
+2. 2. Deploy a War package via JMX Console
+3. 3. BSHDeployer deployment
+4. 4. Use tooling
 ## Apache Tomcat漏洞
 - ID: tomcat-vuln
 - Difficulty: intermediate
@@ -229,15 +229,15 @@ Execution Outline:
 - Tags: tomcat, rce, java, manager
 - Original Extracted Source: original extracted web-security-wiki source/tomcat-vuln.md
 Description:
-Apache Tomcat服务器漏洞利用
+Apache Tomcat server exploitation
 Prerequisites:
-- 使用Tomcat服务器
-- 存在漏洞版本或配置
+- Uses a Tomcat server
+- A vulnerable version or configuration is present
 Execution Outline:
-1. 1. Manager App弱口令
-2. 2. 部署War包
+1. 1. Manager App weak password
+2. 2. Deploy a War package
 3. 3. CVE-2020-1938 Ghostcat
-4. 4. PUT方法任意文件写入
+4. 4. Arbitrary file write via the PUT method
 ## Django框架漏洞
 - ID: django-vuln
 - Difficulty: intermediate
@@ -245,15 +245,15 @@ Execution Outline:
 - Tags: django, python, framework, sql
 - Original Extracted Source: original extracted web-security-wiki source/django-vuln.md
 Description:
-Django框架安全漏洞
+Django framework security vulnerabilities
 Prerequisites:
-- 使用Django框架
-- 存在漏洞版本
+- Uses the Django framework
+- A vulnerable version is present
 Execution Outline:
-1. 1. SQL注入
-2. 2. 调试模式信息泄露
-3. 3. SECRET_KEY利用
-4. 4. 路径遍历
+1. 1. SQL injection
+2. 2. Debug mode information disclosure
+3. 3. SECRET_KEY exploitation
+4. 4. Path traversal
 ## Flask框架漏洞
 - ID: flask-vuln
 - Difficulty: intermediate
@@ -261,15 +261,15 @@ Execution Outline:
 - Tags: flask, python, framework, ssti
 - Original Extracted Source: original extracted web-security-wiki source/flask-vuln.md
 Description:
-Flask框架安全漏洞
+Flask framework security vulnerabilities
 Prerequisites:
-- 使用Flask框架
-- 存在漏洞配置
+- Uses the Flask framework
+- A vulnerable configuration is present
 Execution Outline:
-1. 1. SSTI模板注入
-2. 2. SECRET_KEY利用
-3. 3. 调试模式RCE
-4. 4. PIN码绕过
+1. 1. SSTI template injection
+2. 2. SECRET_KEY exploitation
+3. 3. Debug mode RCE
+4. 4. PIN code bypass
 ## WebLogic XMLDecoder
 - ID: weblogic-xmldecoder
 - Difficulty: intermediate
@@ -277,15 +277,15 @@ Execution Outline:
 - Tags: weblogic, xmldecoder, rce
 - Original Extracted Source: original extracted web-security-wiki source/weblogic-xmldecoder.md
 Description:
-利用WebLogic Server中XMLDecoder反序列化漏洞(CVE-2017-10271/CVE-2017-3506)实现远程代码执行
+Exploit the XMLDecoder deserialization vulnerability in WebLogic Server (CVE-2017-10271/CVE-2017-3506) to achieve remote code execution
 Prerequisites:
-- 目标运行WebLogic Server
-- 存在/wls-wsat/或/_async/路径
-- XMLDecoder组件未被禁用
-- WebLogic版本存在漏洞(10.3.6.0/12.1.3.0等)
+- Target runs WebLogic Server
+- The /wls-wsat/ or /_async/ path exists
+- The XMLDecoder component is not disabled
+- The WebLogic version is vulnerable (10.3.6.0/12.1.3.0, etc.)
 Execution Outline:
-1. 探测WebLogic版本和路径
+1. Probe the WebLogic version and paths
 2. CVE-2017-10271 XMLDecoder RCE
-3. CVE-2019-2725 反序列化RCE
-4. 写入Webshell获取持久权限
+3. CVE-2019-2725 deserialization RCE
+4. Write a Webshell to gain persistent access
 

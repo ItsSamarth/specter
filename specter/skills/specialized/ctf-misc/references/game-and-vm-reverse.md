@@ -1,9 +1,9 @@
-# 游戏与自定义 VM 逆向
+# Game and Custom VM Reversing
 
 ## Brainfuck
 
 ```python
-# Brainfuck 解释器
+# Brainfuck interpreter
 import sys
 
 def brainfuck(code, input_data=''):
