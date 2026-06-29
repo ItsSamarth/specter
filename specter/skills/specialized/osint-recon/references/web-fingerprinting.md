@@ -110,29 +110,29 @@ def detect_framework(html):
 
 ---
 
-## 源码泄露检查
+## Source Code Leak Detection
 
-### 常见源码泄露类型与检测
-| 类型 | 路径 | 检测方法 | 危害等级 |
-|------|------|---------|---------|
-| Git 仓库 | `/.git/config`, `/.git/HEAD` | 200 且含 git 内容 | 🔴 Critical |
-| SVN 仓库 | `/.svn/entries` | 200 且含 svn 内容 | 🔴 Critical |
-| .DS_Store | `/.DS_Store` | 下载后解析目录结构 | 🟡 Medium |
-| .env 文件 | `/.env` | 含 DB_PASSWORD 等 | 🔴 Critical |
-| web.config | `/web.config` | IIS 配置泄露 | 🟡 Medium |
-| 备份文件 | `/.bak`, `/.swp`, `/.old`, `/.tar.gz` | 直接下载 | 🟡 Medium |
-| Docker | `/Dockerfile`, `/docker-compose.yml` | 容器配置 | 🟡 Medium |
-| package.json | `/package.json` | Node.js 依赖 | 🟢 Low |
-| composer.json | `/composer.json` | PHP 依赖 | 🟢 Low |
-| webpack | `/webpack.json`, `/map Files` | 源码映射 | 🟡 Medium |
+### Common Source Code Leak Types and Detection
+| Type | Path | Detection Method | Severity |
+|------|------|-----------------|----------|
+| Git repository | `/.git/config`, `/.git/HEAD` | 200 with git content | 🔴 Critical |
+| SVN repository | `/.svn/entries` | 200 with svn content | 🔴 Critical |
+| .DS_Store | `/.DS_Store` | Download and parse directory structure | 🟡 Medium |
+| .env file | `/.env` | Contains DB_PASSWORD etc. | 🔴 Critical |
+| web.config | `/web.config` | IIS config leak | 🟡 Medium |
+| Backup files | `/.bak`, `/.swp`, `/.old`, `/.tar.gz` | Direct download | 🟡 Medium |
+| Docker | `/Dockerfile`, `/docker-compose.yml` | Container config | 🟡 Medium |
+| package.json | `/package.json` | Node.js dependencies | 🟢 Low |
+| composer.json | `/composer.json` | PHP dependencies | 🟢 Low |
+| webpack | `/webpack.json`, `/map Files` | Source maps | 🟡 Medium |
 
-### Git 泄露利用流程
-1. 访问 `/.git/HEAD` → 获取 ref 路径
-2. 访问 `/.git/config` → 获取远程仓库信息
-3. 访问 `/.git/objects/` → 遍历 Git 对象
-4. 使用 GitHack/scrabble 工具自动恢复源码
+### Git Leak Exploitation Flow
+1. Access `/.git/HEAD` → get ref path
+2. Access `/.git/config` → get remote repo info
+3. Access `/.git/objects/` → enumerate Git objects
+4. Use GitHack/scrabble tool to automatically recover source code
 
-### 敏感文件扫描路径列表
+### Sensitive File Scan Path List
 ```
 /.git/config
 /.git/HEAD

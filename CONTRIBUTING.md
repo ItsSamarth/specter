@@ -1,368 +1,367 @@
 # Contributing to Specter
 
-感谢你为 Specter 做贡献。
+Thank you for contributing to Specter.
 
-这份文档的目标不是规定繁琐流程，而是帮助你快速理解当前代码结构，尽量在正确的层次修改代码，减少“功能能跑，但架构越来越乱”的情况。
+This document's goal is not to prescribe a bureaucratic process, but to help you quickly understand the current code structure so you make changes at the right layer — reducing the "it works, but the architecture gets messier" problem.
 
 ---
 
-## 项目结构
+## Project Structure
 
 ```text
 Specter/
 |-- specter/
-|   |-- __init__.py              # 包版本与基础元数据
-|   |-- orchestrator.py          # CLI / Web 共享任务编排入口
-|   |-- repl_runner.py           # REPL 共享执行辅助
-|   |-- agent/                   # Agent 核心逻辑
-|   |   |-- core.py              # AgentCore 壳层与协调入口
-|   |   |-- llm_client.py        # LLM 调用、重试、工具总结回传
-|   |   |-- tool_call_manager.py # tool-call 去重、执行、结果封装
-|   |   |-- builtin_tools.py     # python_execute / nmap_scan / MCP 桥接
-|   |   |-- context.py           # 会话状态、finding、步骤、生命周期状态
-|   |   |-- runtime_state.py     # 运行时循环状态
-|   |   |-- loop_controller.py   # auto / persistent 主循环
-|   |   |-- finding_parser.py    # finding 提取、证据等级与生命周期归类
-|   |   |-- prompt_context.py    # 回合上下文与攻击摘要
-|   |   |-- prompts.py           # prompt 构建辅助
-|   |   |-- system_prompt.py     # 动态 system prompt 组合
-|   |   |-- input_analysis.py    # 目标、阶段、漏洞提示提取
-|   |   |-- anti_loop.py         # 防死循环、失败目标、攻击路径跟踪
-|   |   |-- recon_tracker.py     # recon 维度完成度追踪
-|   |   |-- ctf_mode.py          # CTF flag 识别与验证
-|   |   |-- skill_context.py     # Skill 上下文选择
-|   |   |-- kb_context.py        # 知识库上下文注入
-|   |   `-- think_filter.py      # think 标签显示与隐藏
+|   |-- __init__.py              # package version and basic metadata
+|   |-- orchestrator.py          # CLI / Web shared task orchestration entry
+|   |-- repl_runner.py           # REPL shared execution helper
+|   |-- agent/                   # Agent core logic
+|   |   |-- core.py              # AgentCore shell and coordination entry
+|   |   |-- llm_client.py        # LLM calls, retries, tool summary passback
+|   |   |-- tool_call_manager.py # tool-call dedup, execution, result wrapping
+|   |   |-- builtin_tools.py     # python_execute / nmap_scan / MCP bridging
+|   |   |-- context.py           # session state, findings, steps, lifecycle state
+|   |   |-- runtime_state.py     # runtime loop state
+|   |   |-- loop_controller.py   # auto / persistent main loop
+|   |   |-- finding_parser.py    # finding extraction, evidence level and lifecycle classification
+|   |   |-- prompt_context.py    # round context and attack summary
+|   |   |-- prompts.py           # prompt construction helpers
+|   |   |-- system_prompt.py     # dynamic system prompt assembly
+|   |   |-- input_analysis.py    # target, phase, vuln-hint extraction
+|   |   |-- anti_loop.py         # anti-deadloop, failed targets, attack path tracking
+|   |   |-- recon_tracker.py     # recon dimension completion tracking
+|   |   |-- ctf_mode.py          # CTF flag detection and verification
+|   |   |-- skill_context.py     # Skill context selection
+|   |   |-- kb_context.py        # knowledge base context injection
+|   |   `-- think_filter.py      # think tag display and hiding
 |   |-- cli/
-|   |   |-- main.py              # CLI 命令、doctor、web 启动、target-state CLI
-|   |   |-- tui.py               # TUI 数据类、仪表盘渲染、配色常量
-|   |   `-- tui_textual.py       # Textual 驱动的 TUI 工作台
-|   |-- config/                  # 配置 schema、加载、保存、环境变量覆盖
-|   |-- kb/                      # 知识库存储、检索、更新
+|   |   |-- main.py              # CLI commands, doctor, web launch, target-state CLI
+|   |   |-- tui.py               # TUI data classes, dashboard rendering, color constants
+|   |   `-- tui_textual.py       # Textual-driven TUI workbench
+|   |-- config/                  # config schema, loading, saving, env var overrides
+|   |-- kb/                      # knowledge base storage, retrieval, updates
 |   |-- mcp/
-|   |   |-- lifecycle.py         # attach / probe / call / degrade 行为
-|   |   |-- registry.py          # 服务状态、健康度、attach 状态、工具注册
-|   |   `-- router.py            # 自然语言意图到 MCP 工具建议
-|   |-- report/                  # 报告生成、过滤、PoC 生成
-|   |-- skills/                  # 内置 markdown skills、loader、dispatcher
-|   |   |-- core/                  # 7 个核心 flat-format Skill（单个 .md 文件）
-|   |   |-- specialized/           # 目录格式专项 Skill，每个子目录含 SKILL.md
+|   |   |-- lifecycle.py         # attach / probe / call / degrade behavior
+|   |   |-- registry.py          # service state, health, attach state, tool registration
+|   |   `-- router.py            # natural language intent to MCP tool suggestion
+|   |-- report/                  # report generation, filtering, PoC generation
+|   |-- skills/                  # built-in markdown skills, loader, dispatcher
+|   |   |-- core/                  # 7 core flat-format Skills (single .md files)
+|   |   |-- specialized/           # directory-format specialized Skills, each subdirectory contains SKILL.md
 |   |   |   |-- <skill-name>/
-|   |   |   |   |-- SKILL.md      # frontmatter + 触发条件 + 行为准则
-|   |   |   |   `-- references/  # 可由 load_skill_reference 按需加载的资料
-|   |   |   `-- secknowledge-skill/ # CTF/SRC/Web+AI 安全测试知识库集成
-|   |   |-- crypto_tools.py        # crypto_decode 内置工具实现
-|   |   |-- dispatcher.py          # 自然语言意图到 Skill 的路由
-|   |   `-- loader.py             # flat/directory Skill 加载与 reference 读取
-|   |-- target_state/            # 目标历史、preview、diff、rollback、resume plan
+|   |   |   |   |-- SKILL.md      # frontmatter + trigger conditions + behavior guidelines
+|   |   |   |   `-- references/  # documents loadable on demand via load_skill_reference
+|   |   |   `-- secknowledge-skill/ # CTF/SRC/Web+AI security testing knowledge base integration
+|   |   |-- crypto_tools.py        # crypto_decode built-in tool implementation
+|   |   |-- dispatcher.py          # natural language intent to Skill routing
+|   |   `-- loader.py             # flat/directory Skill loading and reference reading
+|   |-- target_state/            # target history, preview, diff, rollback, resume plan
 |   |-- web/
-|   |   |-- app.py               # FastAPI 路由与静态前端服务
-|   |   |-- schemas.py           # Web API 请求/响应模型
-|   |   |-- task_manager.py      # Web 任务状态与历史持久化
-|   |   |-- stream.py            # SSE 事件编码
-|   |   |-- services/            # config / report / target / task / MCP 服务层
-|   |   `-- static/              # 当前端 dist 不存在时的 fallback 静态页
-|   `-- warstories/              # 内置案例 markdown 内容
+|   |   |-- app.py               # FastAPI routes and static frontend serving
+|   |   |-- schemas.py           # Web API request/response models
+|   |   |-- task_manager.py      # Web task state and history persistence
+|   |   |-- stream.py            # SSE event encoding
+|   |   |-- services/            # config / report / target / task / MCP service layer
+|   |   `-- static/              # fallback static page when frontend dist doesn't exist
+|   `-- warstories/              # built-in case study markdown content
 |-- frontend/
 |   |-- src/
 |   |   |-- pages/               # Dashboard / Tasks / Target / Snapshots / Reports / Settings
-|   |   |-- api/                 # 前端 API 请求封装
+|   |   |-- api/                 # frontend API request wrappers
 |   |   |-- hooks/               # React Query hooks
-|   |   `-- types/               # 前端共享类型
-|   `-- package.json             # 前端构建与开发脚本
-|-- scripts/                     # release preflight / dist 校验脚本
-|-- tests/                       # 后端、CLI、MCP、release、web、report 测试
-|-- .github/workflows/           # CI / preflight / release 工作流
-|-- README.md                    # 中文说明
-|-- README_EN.md                 # 英文说明
-|-- pyproject.toml               # 打包元数据与 Hatch 构建规则
-`-- CONTRIBUTING.md              # 本文件
+|   |   `-- types/               # shared frontend types
+|   `-- package.json             # frontend build and development scripts
+|-- scripts/                     # release preflight / dist verification scripts
+|-- tests/                       # backend, CLI, MCP, release, web, report tests
+|-- .github/workflows/           # CI / preflight / release workflows
+|-- README.md                    # project documentation
+|-- pyproject.toml               # packaging metadata and Hatch build rules
+`-- CONTRIBUTING.md              # this file
 ```
 
 ---
 
-## 如何快速定位代码
+## How to Find the Right Code
 
-### 1. 修改 Agent 行为时，优先看 `specter/agent/`
+### 1. Modifying Agent behavior → `specter/agent/`
 
-适用场景：
-- 自主 / 持续渗透循环行为
-- 工具调用编排
-- LLM 请求与响应处理
-- recon / CTF / anti-loop 逻辑
-- finding 生命周期、证据等级、结果解析
+Applies to:
+- Autonomous / persistent pentest loop behavior
+- Tool call orchestration
+- LLM request and response handling
+- recon / CTF / anti-loop logic
+- finding lifecycle, evidence level, result parsing
 
-当前架构里，`core.py` 更像协调壳层。除非确实是入口级逻辑，否则优先修改对应 helper/module，而不是继续把逻辑堆回 `core.py`。
+In the current architecture, `core.py` acts more as a coordination shell. Unless it's truly entry-level logic, prefer modifying the corresponding helper/module rather than piling more logic back into `core.py`.
 
-### 2. 修改共享任务流时，优先看 `specter/orchestrator.py` 和 `specter/repl_runner.py`
+### 2. Modifying shared task flow → `specter/orchestrator.py` and `specter/repl_runner.py`
 
-适用场景：
-- CLI / Web / REPL 共享任务生命周期
-- restore -> run -> save -> summarize 流程
-- REPL 单次执行辅助
+Applies to:
+- CLI / Web / REPL shared task lifecycle
+- restore → run → save → summarize flow
+- REPL single-execution helper
 
-如果同一行为同时出现在 CLI 和 Web，通常应该收敛到这里，而不是分别在 `cli/main.py` 和 `web/services/task_service.py` 各写一份。
+If the same behavior appears in both CLI and Web, it should typically be consolidated here rather than written separately in `cli/main.py` and `web/services/task_service.py`.
 
-### 3. 修改命令行或 REPL 行为时，看 `specter/cli/main.py`
+### 3. Modifying CLI or REPL behavior → `specter/cli/main.py`
 
-适用场景：
-- Typer 命令
-- REPL 体验
-- `doctor` 输出
-- `web` 启动器行为
-- `target-state` 子命令
+Applies to:
+- Typer commands
+- REPL experience
+- `doctor` output
+- `web` launcher behavior
+- `target-state` subcommands
 
-这一层负责入口、参数绑定和用户输出，不适合承载核心渗透逻辑。
+This layer handles entry, parameter binding, and user output — it's not the right place for core pentest logic.
 
-### 3.1 修改 TUI 工作台时，看 `specter/cli/tui.py` 和 `specter/cli/tui_textual.py`
+### 3.1 Modifying the TUI workbench → `specter/cli/tui.py` and `specter/cli/tui_textual.py`
 
-适用场景：
-- TUI 仪表盘布局与渲染
-- 斜杠命令系统（`/target`、`/mode`、`/start` 等）
-- 命令面板（Command Palette）交互
-- 提示/确认状态机
-- TUI 配色主题
+Applies to:
+- TUI dashboard layout and rendering
+- Slash command system (`/target`, `/mode`, `/start`, etc.)
+- Command Palette interaction
+- Prompt/confirm state machine
+- TUI color theme
 
-**架构关系：**
+**Architecture:**
 
 ```
 main.py (Typer CLI)
-  └─ tui.py (run_tui → 委托)
+  └─ tui.py (run_tui → delegates)
        └─ tui_textual.py (run_tui_textual → Textual App)
             ├─ DashboardScreen
-            │   ├─ CommandPalette     (一级：斜杠补全下拉)
-            │   ├─ SecondaryPopup     (二级：参数输入弹窗)
-            │   └─ RichLog + spinner  (执行模式：输出区 + 拖尾动画)
+            │   ├─ CommandPalette     (level 1: slash completion dropdown)
+            │   ├─ SecondaryPopup     (level 2: parameter input popup)
+            │   └─ RichLog + spinner  (execution mode: output area + trailing animation)
             └─ SpecterApp
 ```
 
-| 文件 | 职责 |
-|------|------|
-| `tui.py` | 数据类（`TuiState`、`TuiMode`、`TuiTaskDraft`）、Rich 仪表盘渲染（`build_dashboard`）、颜色常量（`C_PRIMARY` 等）、斜杠命令注册表（`SLASH_COMMANDS`）、入口 `run_tui()` |
-| `tui_textual.py` | Textual App 实现：`DashboardScreen`（布局 + 执行模式）、`CommandPalette`（一级下拉面板）、`SecondaryPopup`（二级弹窗）、`SpecterApp`（CSS）、斜杠命令处理器、提示状态机、子进程执行引擎 |
+| File | Responsibility |
+|------|----------------|
+| `tui.py` | Data classes (`TuiState`, `TuiMode`, `TuiTaskDraft`), Rich dashboard rendering (`build_dashboard`), color constants (`C_PRIMARY` etc.), slash command registry (`SLASH_COMMANDS`), entry `run_tui()` |
+| `tui_textual.py` | Textual App implementation: `DashboardScreen` (layout + execution mode), `CommandPalette` (level-1 dropdown panel), `SecondaryPopup` (level-2 popup), `SpecterApp` (CSS), slash command handlers, prompt state machine, subprocess execution engine |
 
-**斜杠命令系统：**
+**Slash command system:**
 
-命令通过函数装饰器 `@_register_handler("...")` 注册，`_dispatch()` 根据输入分发。命令签名：`fn(session: dict, args: str) -> str | None`。
-`SLASH_COMMANDS` 字典（`tui.py`）决定命令面板中可见的命令列表。
+Commands are registered via the function decorator `@_register_handler("...")`, and `_dispatch()` routes based on input. Command signature: `fn(session: dict, args: str) -> str | None`.
+`SLASH_COMMANDS` dict (`tui.py`) determines which commands are visible in the command palette.
 
-- 返回 `"quit"` → 退出 TUI
-- 返回 `"launch"` → 启动渗透任务（TUI 内子进程执行，不再退回 CLI）
-- 返回 `None` → 设置提示状态（触发二级弹窗）
+- Returns `"quit"` → exit TUI
+- Returns `"launch"` → start pentest task (subprocess execution within TUI, not returning to CLI)
+- Returns `None` → set prompt state (triggers level-2 popup)
 
-支持内联参数：`/target example.com`、`/mode deep`、`/scope host=1.2.3.4`，无参数时弹出二级弹窗进行交互式输入。
+Inline arguments supported: `/target example.com`, `/mode deep`, `/scope host=1.2.3.4`; without args, a level-2 popup opens for interactive input.
 
-**提示状态机：**
+**Prompt state machine:**
 
-`session["_prompt"]` 元组类型（同时设置 `_show_popup = True` 触发二级弹窗）：
-- `("input", label, callback, default)` — 弹窗显示描述 + 输入框，Enter 确认
-- `("choice", label, choices, callback)` — 弹窗显示描述 + 选项列表，方向键选择 + Enter 确认
-- `("confirm", label, callback)` — 弹窗显示描述 + y/n，按键直接确认（y = True, n/esc = False）
-- `("message", text)` — 弹窗显示纯文本，Enter/Escape 关闭（回调为 None）
-- `("chain", fields, idx, callback)` — 弹窗显示链式多字段输入（如 scope 逐项设置），每步 Enter 进入下一字段，完成后触发 callback（可级联弹窗）
+`session["_prompt"]` tuple type (also set `_show_popup = True` to trigger level-2 popup):
+- `("input", label, callback, default)` — popup shows description + input box, Enter confirms
+- `("choice", label, choices, callback)` — popup shows description + option list, arrow keys + Enter
+- `("confirm", label, callback)` — popup shows description + y/n, keypress confirms directly (y = True, n/esc = False)
+- `("message", text)` — popup shows plain text, Enter/Escape closes (callback is None)
+- `("chain", fields, idx, callback)` — popup shows chained multi-field input (e.g. scope step-by-step), each Enter moves to the next field, callback triggers on completion (can cascade popups)
 
-**命令面板（CommandPalette）：**
+**Command Palette:**
 
-继承 `ListView`，输入 `/` 时弹出在输入框上方。`↑↓` 移动高亮指针（不填入输入框），`Tab`/`Enter` 选中补全。`show_commands()` 使用 `query_children(ListItem).remove()` 清空旧条目 + `mount()` 挂载新条目（标准 Textual API，替代旧版私有 `_nodes` 操作）。CSS 含 `.-highlight` 高亮样式（`#fab283 30%` 背景 + 白色文字）。方向键导航通过 `DashboardScreen.on_key` 拦截 `up`/`down` 后调用 `action_cursor_up/down`。
+Inherits `ListView`, pops up above the input box when `/` is typed. `↑↓` moves the highlight pointer (doesn't fill the input box), `Tab`/`Enter` selects and completes. `show_commands()` uses `query_children(ListItem).remove()` to clear old entries + `mount()` to mount new ones (standard Textual API, replaces old private `_nodes` operations). CSS contains `.-highlight` style (`#fab283 30%` background + white text). Arrow key navigation intercepts `up`/`down` in `DashboardScreen.on_key` then calls `action_cursor_up/down`.
 
-**二级弹窗（SecondaryPopup）：**
+**Secondary Popup:**
 
-继承 `Vertical`，当斜杠命令缺少参数时自动弹出。五种子模式：
-| 模式 | 示例 | 组件 |
-|------|------|------|
-| `input` | `/target` | `Static` 描述 + `Input` 输入框 |
-| `choice` | `/mode` | `Static` 描述 + `ListView` 选项列表（方向键 + Enter） |
-| `confirm` | `/start`（深度验证） | `Static` 描述 + y/n 提示（按键直接确认） |
-| `message` | `/diag` | `Static` 描述（Enter/Escape 关闭） |
-| `chain` | `/scope` | 逐字段输入 `[1/7] → [2/7] → ...`，完成后级联触发下一个弹窗 |
+Inherits `Vertical`, pops up automatically when a slash command is missing parameters. Five sub-modes:
+| Mode | Example | Component |
+|------|---------|-----------|
+| `input` | `/target` | `Static` description + `Input` box |
+| `choice` | `/mode` | `Static` description + `ListView` option list (arrow keys + Enter) |
+| `confirm` | `/start` (deep validation) | `Static` description + y/n prompt (keypress confirms directly) |
+| `message` | `/diag` | `Static` description (Enter/Escape closes) |
+| `chain` | `/scope` | Field-by-field input `[1/7] → [2/7] → ...`, cascades to next popup on completion |
 
-`_resolve(value)` 确认并调用回调修改状态，`_cancel()` 关闭弹窗不修改状态。Escape 键在弹窗打开时调用 `_cancel()`（不改变原值）。`_on_done` 回调确保弹窗关闭后仪表盘自动刷新。
+`_resolve(value)` confirms and calls callback to modify state; `_cancel()` closes popup without modifying state. Escape key calls `_cancel()` when popup is open (original value unchanged). `_on_done` callback ensures the dashboard auto-refreshes after the popup closes.
 
-**Escape 键行为：**
+**Escape key behavior:**
 
-逐层关闭：二级弹窗 `_cancel()` → 命令面板 `hide_palette()` → prompt `_cancel_prompt()`。空闲状态下不再退出 TUI（仅 `/quit` 或 `Ctrl+C` 退出）。
+Closes layer by layer: secondary popup `_cancel()` → command palette `hide_palette()` → prompt `_cancel_prompt()`. In idle state, no longer exits TUI (only `/quit` or `Ctrl+C` exits).
 
-**执行模式：**
+**Execution mode:**
 
-`/run` 或 `/start` 返回 `"launch"` 时不退出 TUI，改为 TUI 内子进程执行：
-1. 隐藏仪表盘（`#dashboard.-hidden`），显示 `RichLog` 输出区（`#output-log.-active`）
-2. 输入框左侧显示**拖尾动画**：5 个方块无间距，领头 `[bold #fab283]■` 带两级拖尾（`[#fab283]■` + `[#808080]■`），0.12s 更新一帧，左右来回弹跳
-3. 禁用输入框，通过 `subprocess.Popen` 启动子进程（`python -m specter.cli.main <cmd> <args>`），`encoding="utf-8"` 避免 GBK 解码错误，实时流式读取 `stdout` 管道
-4. 后台线程读取子进程输出推入 `Queue`，主线程通过 `set_timer(0.3s)` 轮询写入 `RichLog`
-5. 执行完成：隐藏拖尾动画、启用输入框、重新加载配置
-6. `Ctrl+Shift+C` 复制输出日志到系统剪贴板（Windows: `clip`，macOS: `pbcopy`，Linux: `xclip`）
+When `/run` or `/start` returns `"launch"`, TUI doesn't exit; instead it runs a subprocess within TUI:
+1. Hide dashboard (`#dashboard.-hidden`), show `RichLog` output area (`#output-log.-active`)
+2. Left of input box shows **trailing animation**: 5 squares with no gaps, leading `[bold #fab283]■` with two-level trail (`[#fab283]■` + `[#808080]■`), updates 0.12s per frame, bounces left and right
+3. Disable input box, launch subprocess via `subprocess.Popen` (`python -m specter.cli.main <cmd> <args>`), `encoding="utf-8"` to avoid GBK decode errors, real-time streaming of `stdout` pipe
+4. Background thread reads subprocess output into `Queue`, main thread polls via `set_timer(0.3s)` and writes to `RichLog`
+5. Execution complete: hide trailing animation, enable input box, reload config
+6. `Ctrl+Shift+C` copies output log to system clipboard (Windows: `clip`, macOS: `pbcopy`, Linux: `xclip`)
 
-**配色方案（opencode 风格）：**
+**Color scheme (opencode style):**
 
-| 变量 | 色值 | 用途 |
-|------|------|------|
-| `C_PRIMARY` | `#fab283` | 菜单键、高亮选择 |
-| `C_SECONDARY` | `#5c9cf5` | 模式标签、信息标识 |
-| `C_ACCENT` | `#9d7cd8` | 标题、Header |
-| `C_SUCCESS` | `#7fd88f` | 已配置/成功状态 |
-| `C_WARNING` | `#f5a742` | 未设置/需关注 |
-| `C_ERROR` | `#e06c75` | 错误/无效输入 |
-| `C_MUTED` | `#808080` | 次要文字、描述 |
-| `C_BORDER` | `#484848` | 面板边框 |
+| Variable | Value | Usage |
+|----------|-------|-------|
+| `C_PRIMARY` | `#fab283` | menu keys, highlight selection |
+| `C_SECONDARY` | `#5c9cf5` | mode labels, info identifiers |
+| `C_ACCENT` | `#9d7cd8` | titles, headers |
+| `C_SUCCESS` | `#7fd88f` | configured/success state |
+| `C_WARNING` | `#f5a742` | not set / needs attention |
+| `C_ERROR` | `#e06c75` | error / invalid input |
+| `C_MUTED` | `#808080` | secondary text, descriptions |
+| `C_BORDER` | `#484848` | panel borders |
 
-Textual CSS 中 UI 元素（Header、状态栏、输入框）使用终端自适应背景（`$background`、`$surface`、`$boost`），强调色硬编码上述色值。
+Textual CSS UI elements (Header, status bar, input box) use terminal-adaptive backgrounds (`$background`, `$surface`, `$boost`); accent colors are hard-coded to the values above.
 
-### 4. 修改配置时，看 `specter/config/`
+### 4. Modifying configuration → `specter/config/`
 
-- `schema.py`：配置模型定义
-- `settings.py`：加载、保存、环境变量覆盖、目录路径
+- `schema.py`: configuration model definitions
+- `settings.py`: loading, saving, env var overrides, directory paths
 
-不要在业务逻辑里到处手写配置解析。
+Don't scatter config parsing all over business logic.
 
-### 5. 修改报告逻辑时，看 `specter/report/`
+### 5. Modifying report logic → `specter/report/`
 
-适用场景：
-- Markdown / HTML 报告渲染
-- 报告内容过滤
-- PoC 生成
-- 验证摘要与定位信息
+Applies to:
+- Markdown / HTML report rendering
+- Report content filtering
+- PoC generation
+- Verification summaries and location info
 
-主入口是 `generator.py`，但要注意它现在会同时影响 target-state 报告和 persistent-cycle 报告。
+The main entry point is `generator.py`, but note it now affects both target-state reports and persistent-cycle reports.
 
-### 6. 修改 MCP 行为时，看 `specter/mcp/`
+### 6. Modifying MCP behavior → `specter/mcp/`
 
-- `registry.py`：服务状态、健康度、attach 状态、工具注册
-- `lifecycle.py`：attach / probe / call / degrade 逻辑
-- `router.py`：自然语言意图到 MCP 工具建议
+- `registry.py`: service state, health, attach state, tool registration
+- `lifecycle.py`: attach / probe / call / degrade logic
+- `router.py`: natural language intent to MCP tool suggestion
 
-当前状态：
-- `fetch` / `memory`：本地可执行
-- `chrome-devtools` / `burp`：已有真实 stdio attach、动态工具发现、持久会话骨架
-- 其他服务：大多仍然降级到结构化 placeholder
+Current status:
+- `fetch` / `memory`: locally executable
+- `chrome-devtools` / `burp`: have real stdio attach, dynamic tool discovery, persistent session skeleton
+- Other services: mostly still degrade to structured placeholders
 
-如果改动 MCP，请同步考虑：
-- diagnostics 展示
-- error_type 分类
-- attach 失败后的降级行为
+When modifying MCP, also consider:
+- diagnostics display
+- `error_type` classification
+- degradation behavior after attach failure
 
-### 7. 修改断点续测 / 成果继承时，看 `specter/target_state/`
+### 7. Modifying resume/findings inheritance → `specter/target_state/`
 
-适用场景：
-- target-state 持久化
-- merge 规则
+Applies to:
+- target-state persistence
+- merge rules
 - preview / diff / rollback
-- resume strategy 与 summary 生成
+- resume strategy and summary generation
 
-这里负责“同一目标跨命令共享成果”。不要把这类逻辑重新塞回 `core.py`，也不要在页面层重复写。
+This module handles "sharing findings across commands for the same target." Don't push this logic back into `core.py` or duplicate it in the page layer.
 
-### 8. 修改 Web 后端时，看 `specter/web/`
+### 8. Modifying the Web backend → `specter/web/`
 
-- `app.py`：FastAPI 路由与前端静态资源服务
-- `schemas.py`：请求/响应模型
-- `task_manager.py`：Web 任务状态与历史
-- `services/`：config / report / target / task / MCP 服务层
+- `app.py`: FastAPI routes and frontend static file serving
+- `schemas.py`: request/response models
+- `task_manager.py`: Web task state and history
+- `services/`: config / report / target / task / MCP service layer
 
-原则上优先把逻辑放进 `web/services/`，避免路由函数变成大杂烩。
+As a principle, put logic in `web/services/` to keep route functions from becoming catch-alls.
 
-### 9. 修改 Web UI 时，看 `frontend/`
+### 9. Modifying the Web UI → `frontend/`
 
-适用场景：
-- Dashboard / Task Console / Target State / Snapshots / Reports / Settings 页面
+Applies to:
+- Dashboard / Task Console / Target State / Snapshots / Reports / Settings pages
 - React Query hooks
-- 前端 API 绑定
-- 控制台交互与样式优化
+- Frontend API bindings
+- Console interaction and style improvements
 
-前后端契约要和 `specter/web/schemas.py` 保持一致。
+Keep frontend/backend contracts in sync with `specter/web/schemas.py`.
 
-### 10. 修改打包 / 发布流程时，看 `scripts/`、`.github/workflows/`、`pyproject.toml`
+### 10. Modifying packaging / release → `scripts/`, `.github/workflows/`, `pyproject.toml`
 
-适用场景：
-- 本地 preflight
-- dist 产物校验
-- CI / release workflow
+Applies to:
+- Local preflight
+- dist artifact verification
+- CI / release workflows
 - build include / exclude
-- 包元数据
+- package metadata
 
-版本真源以 `pyproject.toml` 为主，`specter/__init__.py` 是 fallback。
+Version source of truth is `pyproject.toml`; `specter/__init__.py` is the fallback.
 
-### 11. 修改或新增 Skill 时，看 `specter/skills/`
+### 11. Modifying or adding Skills → `specter/skills/`
 
-适用场景：
-- 新增核心渗透流程说明
-- 新增专项知识库或 reference 文档
-- 调整自然语言到 Skill 的自动调度规则
-- 更新 `load_skill_reference` 可读取的资料集
+Applies to:
+- Adding core pentest workflow descriptions
+- Adding specialized knowledge bases or reference documents
+- Adjusting natural-language-to-Skill automatic routing rules
+- Updating reference documents readable via `load_skill_reference`
 
-当前 Skill 有两种格式：
+There are two Skill formats:
 
-| 格式 | 位置 | 用途 |
-|------|------|------|
-| flat-format | `specter/skills/core/*.md` | 核心流程型 Skill，例如 `pentest-flow`、`recon`、`reporting` |
-| directory-format | `specter/skills/specialized/<skill-name>/` | 专项 Skill，必须包含 `SKILL.md`，可选但建议包含 `references/` |
+| Format | Location | Purpose |
+|--------|----------|---------|
+| flat-format | `specter/skills/core/*.md` | Core workflow Skills, e.g. `pentest-flow`, `recon`, `reporting` |
+| directory-format | `specter/skills/specialized/<skill-name>/` | Specialized Skills, must contain `SKILL.md`, optionally `references/` |
 
-directory-format 约定：
-- `SKILL.md` 使用 YAML frontmatter，至少包含 `name` 和 `description`
-- `references/` 下放 `.md`、`.yaml`、`.yml` 文件，文件名会暴露给 Agent
-- reference 内容应按主题拆分，避免把大型知识库全部塞进 `SKILL.md`
-- 需要触发该 Skill 时，在 `dispatcher.py` 的 `SKILL_INTENT_MAP` 增加强信号关键词
-- 新增或修改 Skill 后，同步更新 `tests/test_skills.py` 和 README 的 Skill 表
+Directory-format conventions:
+- `SKILL.md` uses YAML frontmatter with at least `name` and `description`
+- `references/` contains `.md`, `.yaml`, `.yml` files; filenames are exposed to the Agent
+- Reference content should be split by topic — avoid cramming large knowledge bases into `SKILL.md`
+- To trigger the Skill, add strong-signal keywords to `SKILL_INTENT_MAP` in `dispatcher.py`
+- After adding or modifying a Skill, update `tests/test_skills.py` and the Skill table in README
 
-`secknowledge-skill` 是当前的外部知识库集成示例：
-- 位置：`specter/skills/specialized/secknowledge-skill/`
-- 来源：`Pa55w0rd/secknowledge-skill`
-- 内容：上游 `references/` 的 38 个文档 + Specter 专用 `specter-ctf-src-routing.md`
-- 触发：`SRC`、`漏洞挖掘`、`众测`、`GAARM`、`OWASP LLM/ASI/WSTG`、`Web+AI` 等 CTF/SRC 实战安全测试信号
+`secknowledge-skill` is the current external knowledge base integration example:
+- Location: `specter/skills/specialized/secknowledge-skill/`
+- Source: `Pa55w0rd/secknowledge-skill`
+- Content: 38 upstream `references/` documents + Specter's `specter-ctf-src-routing.md`
+- Triggers: `SRC`, vulnerability research, bug bounty, `GAARM`, `OWASP LLM/ASI/WSTG`, `Web+AI` and other CTF/SRC security testing signals
 
-如果同步外部 Skill，请保留来源、许可证和集成说明，并用文件列表对比确认 reference 没有漏项。
+When syncing an external Skill, preserve the source, license, and integration notes, and use a file list comparison to confirm no reference documents are missing.
 
 ---
 
 ## Contribution Tips
 
-- 尽量在正确模块里改代码，不要把已经拆出去的职责重新堆回 `core.py`
-- 如果改的是共享任务流，优先考虑 `orchestrator.py` / `repl_runner.py`
-- 改行为逻辑时，尽量同步补测试
-- 改打包/发布逻辑时，同时检查 `pyproject.toml`、`scripts/`、`.github/workflows/`
-- 改文档时，确保能力描述和当前真实实现一致，尤其是 MCP、sandbox、安全边界这类容易误导的部分
+- Make changes in the correct module — don't pile responsibilities that were already extracted back into `core.py`
+- If modifying shared task flow, consider `orchestrator.py` / `repl_runner.py` first
+- When changing behavior logic, add tests alongside
+- When changing packaging/release logic, also check `pyproject.toml`, `scripts/`, `.github/workflows/`
+- When updating documentation, ensure capability descriptions match the current actual implementation — especially MCP, sandbox, and security boundary details, which are easy to misrepresent
 
 ---
 
-## 提交 PR 前建议确认
+## Pre-PR Checklist
 
-至少检查：
-1. 相关测试通过
-2. 文档和实现一致
-3. 新逻辑放在正确模块，而不是重新把职责塞回大文件
-4. 如果影响版本、CLI 输出、README、打包流程，相关文件已同步更新
+At minimum check:
+1. Relevant tests pass
+2. Documentation and implementation are consistent
+3. New logic is in the correct module, not shoved back into a large file
+4. If version, CLI output, README, or packaging flow is affected, those files are updated
 
 ---
 
 ## Web UI Notes
 
-如果你在改 Web UI，优先看：
+If you're modifying the Web UI, start with:
 - `specter/web/`
 - `frontend/`
 
-当前 Web 侧已经不只是占位骨架，主要包括：
-- 后端 API
-- 任务状态持久化
+The Web side is no longer just a placeholder skeleton; it now includes:
+- Backend API
+- Task state persistence
 - target preview / diff
 - MCP diagnostics
-- Settings 安全模式配置
+- Settings security mode configuration
 
-原则：
-- Web 层复用现有 agent / target_state / report 主干
-- 不在 Web 层复制一套新的恢复逻辑
-- 不让前端直接持有敏感密钥
+Principles:
+- Web layer reuses existing agent / target_state / report trunk
+- Don't duplicate a new restore logic in the Web layer
+- Don't let the frontend hold sensitive keys directly
 
 ---
 
 ## Suggested Preflight
 
-提交前建议至少跑一遍：
+Before submitting, run at least once:
 
 ```bash
 python scripts/release_preflight.py
 python scripts/release_preflight.py --build
 ```
 
-它会检查：
-- `pyproject.toml` 与 `specter.__version__` 的版本一致性
-- 后端 `pytest -q`
-- 前端 `npx tsc -b`
-- 可选的 build 与 dist 产物校验
+It checks:
+- Version consistency between `pyproject.toml` and `specter.__version__`
+- Backend `pytest -q`
+- Frontend `npx tsc -b`
+- Optional build and dist artifact verification

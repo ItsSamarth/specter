@@ -1,19 +1,19 @@
-# 作者追踪方法
+# Author Tracking Methods
 
-## 核心流程
+## Core Flow
 
 ```
-页面提取作者标识 → 确定唯一标识符(用户名/邮箱) → 跨平台搜索 → 信息汇总
+Extract author identifier from page → Determine unique identifier (username/email) → Cross-platform search → Consolidate info
 ```
 
-## Step 1: 从页面提取作者标识
+## Step 1: Extract Author Identifier from Page
 
-### HTML Meta 标签
+### HTML Meta Tags
 ```python
 import re
 
 def extract_author_from_meta(html):
-    """从 HTML meta 标签提取作者信息"""
+    """Extract author information from HTML meta tags"""
     authors = []
     
     # <meta name="author" content="XXX">
@@ -24,17 +24,17 @@ def extract_author_from_meta(html):
     m = re.findall(r'<meta\s+name=["\']copyright["\']\s+content=["\']([^"\']+)["\']', html)
     authors.extend(m)
     
-    # OG 标签
+    # OG tags
     m = re.findall(r'<meta\s+property=["\']article:author["\']\s+content=["\']([^"\']+)["\']', html)
     authors.extend(m)
     
     return list(set(authors))
 ```
 
-### 页面链接提取
+### Page Link Extraction
 ```python
 def extract_social_links(html):
-    """从页面提取社交媒体链接"""
+    """Extract social media links from a page"""
     links = re.findall(r'href=["\'](https?://[^"\']+)["\']', html)
     
     social = {}
@@ -59,14 +59,14 @@ def extract_social_links(html):
     return social
 ```
 
-## Step 2: GitHub 追踪
+## Step 2: GitHub Tracking
 
-### 用户信息 API
+### User Info API
 ```python
 import requests
 
 def get_github_profile(username):
-    """获取 GitHub 用户公开信息"""
+    """Retrieve public GitHub user information"""
     r = requests.get(f"https://api.github.com/users/{username}")
     if r.status_code != 200:
         return None
@@ -87,7 +87,7 @@ def get_github_profile(username):
     }
 
 def get_github_repos(username):
-    """获取用户公开仓库（推断技术栈）"""
+    """Get user's public repos (infer tech stack)"""
     r = requests.get(f"https://api.github.com/users/{username}/repos?per_page=100")
     if r.status_code != 200:
         return []
@@ -106,10 +106,10 @@ def get_github_repos(username):
     }
 ```
 
-### 从 GitHub 提交记录提取邮箱
+### Extract Email from GitHub Commit History
 ```python
 def get_github_commit_email(username, repo):
-    """从 GitHub 提交记录提取作者邮箱"""
+    """Extract author email from GitHub commit history"""
     r = requests.get(f"https://api.github.com/repos/{username}/{repo}/commits?per_page=10")
     if r.status_code != 200:
         return []
@@ -123,63 +123,63 @@ def get_github_commit_email(username, repo):
     return list(emails)
 ```
 
-## Step 3: 跨平台关联
+## Step 3: Cross-Platform Correlation
 
-### 用用户名搜索其他平台
+### Search Other Platforms by Username
 ```python
-# 常见平台检测
+# Common platform checks
 PLATFORMS = {
     'GitHub': 'https://github.com/{username}',
-    'B站': 'https://space.bilibili.com/search?keyword={username}',
-    '知乎': 'https://www.zhihu.com/search?type=content&q={username}',
+    'Bilibili': 'https://space.bilibili.com/search?keyword={username}',
+    'Zhihu': 'https://www.zhihu.com/search?type=content&q={username}',
     'CSDN': 'https://blog.csdn.net/{username}',
-    '掘金': 'https://juejin.cn/user/{username}',
+    'Juejin': 'https://juejin.cn/user/{username}',
     'Twitter': 'https://twitter.com/{username}',
     'LinkedIn': 'https://www.linkedin.com/in/{username}',
 }
 
 async def cross_platform_search(username, fetch_tool):
-    """用用户名在多个平台搜索"""
+    """Search multiple platforms by username"""
     results = {}
     for platform, url_template in PLATFORMS.items():
         url = url_template.format(username=username)
         try:
             resp = await fetch_tool(url=url)
             if resp.get('status') == 200:
-                results[platform] = f"✅ 找到 ({url})"
+                results[platform] = f"✅ Found ({url})"
             else:
-                results[platform] = f"❌ 未找到"
+                results[platform] = f"❌ Not found"
         except:
-            results[platform] = f"⚠️ 检测失败"
+            results[platform] = f"⚠️ Detection failed"
     return results
 ```
 
-## Step 4: 信息汇总模板
+## Step 4: Information Summary Template
 
 ```markdown
-## 人物画像：{昵称}
+## Personal Profile: {Nickname}
 
-### 基础信息
-- **昵称**：xxx
-- **真实姓名**：xxx（如有）
-- **邮箱**：xxx
-- **位置**：xxx
-- **职业/公司**：xxx
+### Basic Information
+- **Nickname**: xxx
+- **Real Name**: xxx (if available)
+- **Email**: xxx
+- **Location**: xxx
+- **Occupation/Company**: xxx
 
-### 技术画像
-- **主力语言**：Python / JavaScript / ...
-- **技术栈偏好**：...
-- **开源贡献**：N 个仓库，M 颗星
-- **感兴趣领域**：...
+### Technical Profile
+- **Primary Languages**: Python / JavaScript / ...
+- **Tech Stack Preferences**: ...
+- **Open Source Contributions**: N repos, M stars
+- **Areas of Interest**: ...
 
-### 社交媒体
+### Social Media
 - GitHub: xxx
-- B站: xxx
-- 知乎: xxx
+- Bilibili: xxx
+- Zhihu: xxx
 - ...
 
-### 关联信息
-- 跨平台相同 ID：xxx
-- 已知项目：xxx
-- 历史泄露：xxx
+### Associated Information
+- Same ID across platforms: xxx
+- Known projects: xxx
+- Historical leaks: xxx
 ```

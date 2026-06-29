@@ -24,15 +24,15 @@ async def test_consecutive_same_failures_generate_reflexion_prompt(tmp_path, mon
 
     async def _fake_call_llm_auto(agent_obj, system_prompt, round_context, **kwargs):
         captured_contexts.append(round_context)
-        return "尝试 sqli payload，ConnectionError 请求失败。"
+        return "Tried sqli payload, ConnectionError request failed."
 
     monkeypatch.setattr(loop_controller, "call_llm_auto", _fake_call_llm_auto)
 
-    await agent.auto_pentest("扫描 example.com 的 SQL注入漏洞", max_rounds=4)
+    await agent.auto_pentest("Scan example.com for SQL injection vulnerabilities", max_rounds=4)
 
-    assert "🔴 反思接管" in captured_contexts[3]
-    assert "停止在当前攻击路径上重复换 payload。" in captured_contexts[3]
-    assert "路径切换强制指令" not in captured_contexts[3]
+    assert "🔴 Reflection takeover" in captured_contexts[3]
+    assert "Stop repeatedly swapping payloads on the current attack path." in captured_contexts[3]
+    assert "Path-switch directive" not in captured_contexts[3]
     assert agent.runtime.same_path_fail_count >= 2
 
 
@@ -43,8 +43,8 @@ def test_reflexion_disabled_keeps_legacy_same_path_warning(tmp_path):
 
     context = agent._build_round_context(5, 5)
 
-    assert "路径切换强制指令" in context
-    assert "🔴 反思接管" not in context
+    assert "Path-switch directive" in context
+    assert "🔴 Reflection takeover" not in context
     assert agent.runtime.same_path_fail_count == 0
     assert agent.runtime.path_switch_forced is True
 

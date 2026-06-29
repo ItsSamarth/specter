@@ -250,7 +250,12 @@ def hydrate_session_from_target_state(
 
     raw["resume_meta"] = resume_meta
     raw["resume_summary"] = _build_resume_summary(raw, resume_meta)
-    return SessionState(**raw)
+    try:
+        return SessionState(**raw)
+    except Exception:
+        # State file is incompatible (e.g. schema mismatch or legacy enum values);
+        # return None so the caller starts a fresh session instead of crashing.
+        return None
 
 
 def apply_target_state_to_agent(

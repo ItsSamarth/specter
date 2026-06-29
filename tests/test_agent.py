@@ -752,7 +752,7 @@ class TestAgentCore:
         agent = self._make_agent()
         context = agent._get_active_skill_context(user_input=None)
         assert context is not None
-        assert "渗透" in context
+        assert "pentest" in context.lower()
 
     def test_skill_context_with_input(self):
         """With user_input, should dispatch to the right Skill."""

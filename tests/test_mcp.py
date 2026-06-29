@@ -110,7 +110,7 @@ class TestMCPRouter:
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        results = router.route("发请求访问这个接口")
+        results = router.route("send request to fetch this endpoint call api")
         assert len(results) > 0
         assert any(r["server"] == "fetch" for r in results)
 
@@ -118,7 +118,7 @@ class TestMCPRouter:
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        results = router.route("帮我抓包看一下这个请求")
+        results = router.route("capture traffic intercept request with proxy")
         assert len(results) > 0
         assert any(r["server"] == "burp" for r in results)
 
@@ -126,7 +126,7 @@ class TestMCPRouter:
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        results = router.route("打开网页看看")
+        results = router.route("open url visit url navigate to the page")
         assert len(results) > 0
         assert any(r["server"] == "chrome-devtools" for r in results)
 
@@ -134,7 +134,7 @@ class TestMCPRouter:
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        results = router.route("截图")
+        results = router.route("screenshot screen capture")
         assert len(results) > 0
         assert any(r["tool"] == "screenshot" for r in results)
 
@@ -142,7 +142,7 @@ class TestMCPRouter:
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        results = router.route("记住这个发现")
+        results = router.route("remember this finding save memory")
         assert len(results) > 0
         assert any(r["server"] == "memory" for r in results)
 
@@ -150,28 +150,28 @@ class TestMCPRouter:
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        results = router.route("今天天气怎么样")
+        results = router.route("what is the weather today")
         assert len(results) == 0
 
     def test_extract_url(self):
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        assert router.extract_url("访问 https://example.com/path") == "https://example.com/path"
-        assert router.extract_url("没有URL") is None
+        assert router.extract_url("access https://example.com/path") == "https://example.com/path"
+        assert router.extract_url("no url here") is None
 
     def test_extract_ip(self):
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        assert router.extract_ip("扫描 192.168.1.100") == "192.168.1.100"
-        assert router.extract_ip("没有IP") is None
+        assert router.extract_ip("scan 192.168.1.100") == "192.168.1.100"
+        assert router.extract_ip("no ip here") is None
 
     def test_suggest_tools_for_phase(self):
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        tools = router.suggest_tools_for_phase("信息收集")
+        tools = router.suggest_tools_for_phase("Recon")
         assert len(tools) > 0
         assert any(t["server"] == "fetch" for t in tools)
 
@@ -179,14 +179,14 @@ class TestMCPRouter:
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        tools = router.suggest_tools_for_phase("未知阶段")
+        tools = router.suggest_tools_for_phase("unknown phase")
         assert tools == []
 
     def test_route_confidence(self):
         from specter.mcp.router import MCPRouter
 
         router = MCPRouter()
-        results = router.route("发请求")
+        results = router.route("send a request")
         for r in results:
             assert "confidence" in r
             assert 0 < r["confidence"] <= 1

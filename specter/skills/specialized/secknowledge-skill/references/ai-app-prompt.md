@@ -1,67 +1,45 @@
-# AI应用安全 - 应用阶段 - Prompt 注入与变种
+# AI Application Security - Application Phase - Prompt Injection and Variants
 
-> 来源: AISS绿盟大模型安全智链社区 | 拆自 ai-app-app.md
-> 风险类别: Prompt 注入（GAARM.0039 直接注入 / 0040.x 间接/XSS/Memory/蠕虫 / 0043.x 关键字与同义词混淆 / 0044 对抗编码 / 0045 反向诱导 / 0061 多模态注入）
+> Source: AISS Green Alliance Large Model Security Smart Chain Community | Extracted from ai-app-app.md
+> Risk category: Prompt Injection (GAARM.0039 Direct / 0040.x Indirect/XSS/Memory/Worm / 0043.x Keyword & Synonym Obfuscation / 0044 Adversarial Encoding / 0045 Reverse Induction / 0061 Multimodal Injection)
 
 ---
 
-### Prompt注入
+### Prompt Injection
 
-> 风险编号: GAARM.0039
-> 生命周期: 应用阶段
+> Risk number: GAARM.0039
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-Prompt注入是攻击者利用特殊构造的输入来覆盖或操纵LLMs的原始指令过程。由于自然语言本身具有模糊性，指令和数据的界限往往没有清晰的界限，就导致攻击者可以利用外部的恶意输入来污染模型的输出。这种攻击通常发生在将不可信的输入作为提示的一部分。LLMs可以识别和处理自然语言，而自然语言本身具有模糊性，指令和数据往往没有清晰的界限，攻击者可以在控制的数据字段中包含指令，而系统在底层无法区分数据和指令。
+Prompt injection is the process where attackers use specially crafted inputs to override or manipulate the original instructions of LLMs. Because natural language is inherently ambiguous, the boundary between instructions and data is often unclear, allowing attackers to use malicious external input to contaminate model output. This attack typically occurs when untrusted input is used as part of a prompt. LLMs can recognize and process natural language, and natural language is inherently ambiguous — instructions and data often have no clear boundary — so attackers can include instructions in data fields they control, while the underlying system cannot distinguish between data and instructions.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Using malicious input to manipulate a GPT-3 prompt, commanding the model to ignore its previous instructions |
+| Case 2 | Using multiple methods to conduct Prompt injection attacks |
 
+**Attack Risks**
 
+Successful Prompt injection may cause meta-prompt leakage, model jailbreaking, model function abuse, and other harms.
 
+Malicious content generation: Attackers can use Prompt injection to generate inappropriate content, including threats, defamation, or other malicious information.
+Data leakage: If LLMs are used to output sensitive information, Prompt injection attacks may cause data leakage.
+System security: In some cases, Prompt injection can be used to generate and execute malicious code.
+Model abuse: Through goal hijacking and other attack methods, attackers make LLMs deviate from their pre-configured system settings and execute other custom instructions, increasing the risk of model abuse.
 
-案例一
-利用恶意输入操纵GPT-3提示，命令模型忽略其先前的指令
+**Mitigations**
 
+| Mitigation | Description |
+|------------|-------------|
+| Prompt content reinforcement | Use solutions similar to OpenAI Chat Markup Language (ChatML) to reinforce Prompt structure and content, attempting to isolate genuine user prompts from other content |
+| Model security alignment | Provide diverse training data covering various attack scenarios; add safety fencing mechanisms during the model training phase to enhance the model's generalization and robustness |
+| Input/output validation | Deploy external security guards on both the model input and output sides, using rules, classification algorithms, security models, etc., to inspect and filter input and output content |
+| Monitoring and logging | Monitor and log LLM interaction records for subsequent detection and analysis of potential Prompt injection attacks |
 
-案例二
-使用多种方法进行Prompt注入攻击
-
-**攻击风险**
-
-Prompt注入成功可能导致元Prompt泄露、模型越狱、模型功能滥用等危害。
-
-恶意内容生成：攻击者可以利用Prompt注入生成不当内容，包括威胁、诽谤或其他恶意信息。
-数据泄露：如果LLMs被用于输出敏感信息，Prompt注入攻击可能导致数据泄露。
-系统安全性：在某些情况下，Prompt注入可以被用来生成和执行恶意代码。
-模型滥用：攻击者通过目标劫持等攻击手段，使得LLMs偏离预先的系统设定，执行其他的自定义指令，增加模型滥用的风险。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-Prompt内容强化
-采用类似于 OpenAI 聊天标记语言 （ChatML） 等解决方案，对Prompt的结构和内容实现强化，试图将真正的用户提示与其他内容隔离开来
-
-
-模型安全对齐
-提供多样化的训练数据，涵盖各种攻击场景，通过在模型训练阶段增加安全围栏机制，以增强模型的泛化能力和鲁棒性
-
-
-输入/输出验证
-通过在模型输入与输出侧架设外部的安全守卫，基于规则、分类算法、安全大模型等方式，对输入与输出内容进行检测与过滤操作
-
-
-监控与日志记录
-监控并记录LLMs交互记录，以便后续检测和分析潜在的Prompt注入攻击
-
-**参考**
+**References**
 
 https://aclanthology.org/2024.scalellm-1.2/
 https://atlas.mitre.org/techniques/AML.T0051
@@ -69,136 +47,77 @@ https://josephthacker.com/ai/2023/05/19/prompt-injection-poc.html
 https://simonwillison.net/2022/Sep/12/prompt-injection/
 
 ---
-### XSS会话内容劫持
+### XSS Session Content Hijacking
 
-> 风险编号: GAARM.0040.001
-> 生命周期: 应用阶段
+> Risk number: GAARM.0040.001
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-XSS会话内容劫持作为一种间接提示词注入的攻击手段，利用了大型语言模型（LLMs）获取外部信息的过程。当用户与LLM通过LLM提供的界面进行交互，例如web界面、api接口、应用程序等，攻击者通过间接注入恶意的提示词指令，利用LLMs应用前端解析Markdown标签和HTML img标签等特性，将当前聊天会话内容进行总结，并将敏感密钥、数据等信息嵌入到img标签的src属性中，从而实现会话内容的泄露。
+XSS session content hijacking is an indirect prompt injection attack technique that exploits the process by which LLMs obtain external information. When users interact with an LLM through a UI (web interface, API, application, etc.), attackers use indirect injection of malicious prompt instructions and exploit LLM application frontend parsing of Markdown and HTML img tags to summarize the current chat session content and embed sensitive keys and data in the src attribute of img tags, thereby leaking session content.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Attacker exploits Google Bard's update feature to construct a special Markdown image tag, causing Bard to render an image pointing to the attacker's server, achieving data theft |
+| Case 2 | Azure AI Playground model allows Markdown image injection to append prompts to the URL's src attribute for rendering, causing data leakage and other risks |
+| Case 3 | Attacker exploits ChatGPT plugin's direct access to YouTube subtitles via indirect Prompt injection to control subtitle content and manipulate AI behavior |
+| Case 4 | Attacker exploits ChatGPT's Markdown image rendering to steal chat history; attacker controls AI behavior, requests a summary of chat history appended to a URL to steal data |
+| Case 5 | Attacker automatically steals data from chat sessions via Markdown image injection |
+| Case 6 | Attacker can instruct ChatGPT to use a plugin to log the conversation, generate a URL pointing to the log, and leak the link via Markdown image injection to access the entire conversation history |
+| Case 7 | Since LLM agents (client applications such as Bing Chat or ChatGPT) are vulnerable to Prompt injection, attackers can exploit this to automatically exfiltrate sensitive data by appending it to image URLs |
 
+**Attack Risks**
 
+Data leakage: Attackers can obtain sensitive data from the current session, including session tokens, personal information, chat history, etc.
+Session hijacking: Attackers may take over user sessions using stolen session tokens.
 
+**Mitigations**
 
-案例一
-攻击者利用Google Bard的更新功能，构造特殊的Markdown图像标签，使得Bard渲染出一个指向攻击者服务器的图像，实现对数据的窃取
+| Mitigation | Description |
+|------------|-------------|
+| Input/output validation | Strictly validate and sanitize all input and output data to remove or correct any suspicious injections and generated content |
+| Content Security Policy (CSP) | Implement strict CSP content security policies to block execution of malicious scripts and data exfiltration |
+| Principle of least privilege | Ensure proper sandboxing and limit LLM capabilities, restricting plugins, Agent mechanisms, etc. from obtaining data from untrusted sources |
+| Human intervention and approval | Give users more control to manage plugin usage and data flows |
 
-
-案例二
-利用Azure AI Playground模型允许通过图像Markdown注入的方式将提示词附加到src属性的URL中渲染，导致数据泄露等风险
-
-
-案例三
-攻击者利用ChatGPT插件直接访问Youtube字幕的功能，通过间接Prompt注入控制字幕内容来操纵AI的行为
-
-
-案例四
-攻击者可以利用ChatGPT的Markdown图像渲染功能窃取聊天记录，攻击者控制AI行为，请求总结聊天历史并附加到URL以窃取数据
-
-
-案例五
-攻击者通过Markdown图像注入的方式自动从聊天会话中窃取数据
-
-
-案例六
-攻击者可指示ChatGPT使用插件记录对话，生成指向记录的URL，并通过Markdown图像注入泄露链接，以获取整个对话历史
-
-
-案例七
-由于LLM代理（客户端应用程序，如Bing Chat或ChatGPT）容易受到Prompt注入攻击，攻击者可利用此漏洞通过在图像URL中附加敏感数据来进行自动数据外泄
-
-**攻击风险**
-
-数据泄露：攻击者可以获取到当前会话中，用户的敏感数据信息，包括会话令牌、个人信息、聊天记录等。
-会话劫持：攻击者可能通过获取的会话令牌接管用户的会话。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-输入/输出验证
-对所有输入以及输出数据进行严格的验证和清洗，以移除或修正任何可疑的注入以及生成内容
-
-
-内容安全策略(CSP)
-实施严格的CSP内容安全策略，阻止恶意脚本的执行以及数据外带行为
-
-
-最小权限原则
-确保正确的沙盒化并限制LLMs的能力，限制插件、Agent等机制从不可信来源获取数据信息
-
-
-人工干预审批
-提供给用户更多的控制权，让他们能够管理插件的使用和数据的流向
-
-**参考**
+**References**
 
 https://systemweakness.com/new-prompt-injection-attack-on-chatgpt-web-version-ef717492c5c2
 
 ---
-### 间接Prompt注入
+### Indirect Prompt Injection
 
-> 风险编号: GAARM.0040
-> 生命周期: 应用阶段
+> Risk number: GAARM.0040
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-LLMs处理自然语言的过程中，存在被恶意注入提示（Prompt）的漏洞。攻击者会把Prompt藏在LLM系统将会处理的各种数据中，如文本、多媒体内容、数据库或网站提取的信息等，进而通过Prompt操纵LLM产生有害的回应，如恶意代码执行、敏感信息泄露等。例如将恶意代码写入上传给LLM的文件中，当LLM处理文件中的数据时会运行恶意代码，从而产生危害。
+When LLMs process natural language, there is a vulnerability to malicious Prompt injection. Attackers hide Prompts in various types of data that the LLM system will process, such as text, multimedia content, databases, or information extracted from websites, then use Prompts to manipulate the LLM to produce harmful responses, such as malicious code execution or sensitive information leakage. For example, writing malicious code into a file uploaded to the LLM; when the LLM processes the file data, it runs the malicious code, causing harm.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Attacker plants injection code on a website the user visits, causing Bing Chat to search for and exfiltrate personal information without the user's knowledge |
+| Case 2 | Attacker controls data retrieved by LLM plugins, using Markdown image rendering to send chat history as query parameters to the attacker's server |
+| Case 3 | Demonstrates an attack on M365 Copilot: by sending a malicious email — even without the user opening it — remotely control Copilot, causing an attack from a third party |
 
+**Attack Risks**
 
+Malicious code execution: Through injected malicious code or data, attackers may try to establish a foothold in the system to further control or damage it.
+Data leakage: Attackers may use indirect injection to mislead users into performing unintended operations or leaking sensitive information.
 
+**Mitigations**
 
-案例一
-攻击者通过在用户访问的网站上植入注入代码，使得Bing Chat在用户不知情的情况下，寻找并外泄个人信息
+| Mitigation | Description |
+|------------|-------------|
+| Input validation | Strictly validate and sanitize all input data to remove or correct any suspicious injection content |
+| Principle of least privilege | Ensure proper sandboxing and limit LLM capabilities, restricting plugins, Agent mechanisms, etc. from obtaining data from untrusted sources |
+| Human intervention and approval | Give users more control to manage plugin usage and data flows |
 
-
-案例二
-攻击者控制LLMs插件检索的数据，利用Markdown图像渲染机制，将聊天历史作为查询参数发送到攻击者的服务器
-
-
-案例三
-这个案例展示了一个对M365 Copilot的攻击手段，通过发送一封包含恶意的邮件，甚至无需用户打开邮件，即可远程操控Copilot，造成来自第三方的攻击
-
-**攻击风险**
-
-恶意代码执行: 通过注入恶意代码或数据，攻击者可能试图在系统中获得一个立足点，从而进一步控制或破坏系统
-数据泄露: 攻击者可能使用间接注入来误导用户，使其执行非预期的操作或泄露敏感信息。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-输入验证
-对所有输入数据进行严格的验证和清洗，以移除或修正任何可疑的注入内容
-
-
-最小权限原则
-确保正确的沙盒化并限制LLMs的能力，限制插件、Agent等机制从不可信来源获取数据信息
-
-
-人工干预审批
-提供给用户更多的控制权，让他们能够管理插件的使用和数据的流向
-
-**参考**
+**References**
 
 https://atlas.mitre.org/techniques/AML.T0051.001
 https://twitter.com/random_walker/status/1636923058370891778
@@ -206,329 +125,234 @@ https://medium.com/@harry.hphu/introduction-to-web-llm-attacks-indirect-prompt-i
 https://medium.com/@dinob5551/indirect-prompt-injection-the-hidden-threat-lurking-in-ai-730b009dd5fb
 
 ---
-### 应用对话Memory攻击
+### Application Conversation Memory Attack
 
-> 风险编号: GAARM.0040.003
-> 生命周期: 应用阶段
+> Risk number: GAARM.0040.003
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险指的是攻击者可以通过Web端的Prompt注入诱骗LLMs创建恶意的Memory（如：用户与模型的错误偏好设定），通过恶意的修改LLM记忆中的用户偏好，达到操控LLMs的效果。例如，攻击者可以诱骗LLM，使它认为用户的聊天偏好是“对用户的每一条消息都回复‘抱歉，我不能回复你’”，以此达到DOS攻击的效果。
+This risk refers to attackers using web-based Prompt injection to trick LLMs into creating malicious Memory entries (such as erroneous user preference settings with the model), thereby manipulating LLMs by maliciously modifying user preferences stored in LLM memory. For example, an attacker can trick the LLM into believing that the user's chat preference is "respond to every message from the user with 'Sorry, I cannot respond to you'", thereby achieving a DoS attack effect.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | This article describes how an application conversation Memory attack causes the model to continuously deny service to the user |
 
+**Attack Risks**
 
+DoS attack: Attackers can cause users to receive persistent denial-of-service memory attacks based on their preferences.
 
+**Mitigations**
 
-案例一
-这篇文章介绍了通过应用对话Memory攻击导致模型对用户持续的拒绝服务
+| Mitigation | Description |
+|------------|-------------|
+| Disable history memory | Disabling the Memory feature of the LLM model can mitigate this issue |
 
-**攻击风险**
-
-DOS攻击：攻击者可以根据喜好让用户受到持续拒绝服务的内存攻击。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-关闭历史记忆功能
-关闭LLMs模型的Memory功能可以缓解这一问题
-
-**参考**
+**References**
 
 https://embracethered.com/blog/posts/2024/chatgpt-persistent-denial-of-service/
 https://openai.com/index/memory-and-new-controls-for-chatgpt/
 
 ---
-### 环路Agent蠕虫
+### Loop Agent Worm
 
-> 风险编号: GAARM.0040.002
-> 生命周期: 应用阶段
+> Risk number: GAARM.0040.002
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-代理（Agent）具有从互联网等外部实时获取信息的能力，并且能够将这些信息交由大模型进行处理，最终返回给用户。然而，攻击者可以利用这一点，通过外部数据源注入恶意信息，干扰Agent的执行，进而影响大模型的输出。这些恶意的提示词会间接影响多个大型模型（LLMs）的应用，形成一个恶性循环，使得恶意信息迅速扩散。通过Agent的输入输出循环，这种环路Agent蠕虫可以造成一种自我复制和传播的恶意行为，最终可能导致隐私泄露，还可能引起数据滥用等安全风险。
+Agents have the ability to retrieve information in real time from external sources such as the internet, and can pass that information to a large model for processing before returning it to the user. However, attackers can exploit this by injecting malicious information through external data sources, interfering with Agent execution, thereby affecting LLM output. These malicious prompts indirectly affect multiple LLM applications, forming a vicious cycle that causes malicious information to spread rapidly. Through the Agent's input-output loop, this loop Agent worm creates a self-replicating and self-propagating malicious behavior, ultimately potentially causing privacy leakage and data abuse security risks.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Researchers created an AI worm called Morris II, capable of attacking a generative AI email assistant, stealing data from emails and sending spam, while bypassing some security protections in ChatGPT and Gemini |
 
+**Attack Risks**
 
+Data leakage: AI worms may steal sensitive personal information such as names, phone numbers, credit card numbers, ID numbers, etc.
+Malware deployment: Worms can deploy malware on infected systems, causing further security issues.
+Security protection bypass: AI worms can bypass some existing security protections, such as ChatGPT and Gemini's security mechanisms.
+New cyber attacks: AI worms represent a type of cyber attack not previously widely recognized, posing a challenge to existing security protections.
 
+**Mitigations**
 
-案例一
-研究人员创建了一个名为Morris II的AI蠕虫，它能够攻击一个生成性AI电子邮件助手，从电子邮件中窃取数据并发送垃圾邮件，同时破坏了ChatGPT和Gemini的一些安全保护
+| Mitigation | Description |
+|------------|-------------|
+| Input/output validation | Apply strict validation and verification to data entering the Agent for dispatch and processing |
+| Design secure LLM Agents | Apply traditional security measures such as ensuring secure application design, monitoring potential security vulnerabilities |
+| Human intervention and approval | Keep humans in the loop to ensure LLM Agents need human approval before performing actions, preventing AI systems from autonomously sending emails or performing other potentially risky behaviors |
 
-**攻击风险**
-
-数据泄露：AI蠕虫可能会窃取敏感的个人信息，如姓名、电话号码、信用卡号、身份证号码等。
-恶意软件部署：蠕虫可以在受感染的系统中部署恶意软件，导致进一步的安全问题。
-安全防护绕过：AI蠕虫能够绕过现有的一些安全防护措施，如ChatGPT和Gemini的安全机制。
-新型网络攻击：AI蠕虫代表了一种之前未被广泛认知的网络攻击方式，对现有的安全防护措施构成挑战。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-输入/输出验证
-针对进入到Agent中调度处理的数据进行严格的验证校验措施
-
-
-设计安全的LLMs Agent
-采取传统的安全措施，如确保Agnet应用程序设计安全，监控可能的安全漏洞
-
-
-人工干预审批
-保持人类在循环中，确保LLMs Agent在执行操作前需要人工批准，避免AI系统自主地发送电子邮件或其他可能的风险行为
-
-**参考**
+**References**
 
 https://mp.weixin.qq.com/s/2bm7nuXkORLZ20mfpOmwrA
 
 ---
-### 反向诱导&抑制攻击
+### Reverse Induction & Suppression Attack
 
-> 风险编号: GAARM.0045
-> 生命周期: 应用阶段
+> Risk number: GAARM.0045
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险通过在提示词中加入特定的指令，使得LLMs在生成回答时避免使用某些特定的拒绝性响应，从而增加攻击者期望的不安全或不当内容的可能性。这种攻击利用自回归特性实现对模型的诱导，由于模型内容的生成是基于之前的输出来预测下一个单词，通过特别要求使LLMs在生成回答时不使用某些特定的词汇或短语，如“抱歉”、“不能”、“无法”等，导致模型生成不当或违反安全策略的内容。
+This risk involves adding specific instructions to prompts that cause LLMs to avoid using certain specific refusal responses when generating answers, increasing the likelihood of unsafe or inappropriate content the attacker desires. This attack exploits the autoregressive nature of models to induce model behavior: since content generation is based on predicting the next word from previous output, by specifically requesting that LLMs avoid using certain words or phrases — such as "sorry", "cannot", "unable" — in their responses, the model is caused to generate inappropriate content or content violating safety policies.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Using prefix injection + reverse suppression attacks to bypass ChatGPT 3.5's security restrictions, causing output of illegal/criminal risk content |
 
+**Attack Risks**
 
+Generating inappropriate content: LLMs may generate content containing illegal guidance, violence, pornography, or politically sensitive risk content.
+Bypassing safety mechanisms: Attackers can bypass LLM safety mechanisms, causing the model to output the risky content the attacker desires.
 
+**Mitigations**
 
-案例一
-利用前缀注入 + 反向抑制攻击实现对ChatGPT3.5的安全限制绕过，实现违法犯罪风险内容的输出
-
-**攻击风险**
-
-生成不当内容：LLMs可能生成包含违法指导、暴力、色情、政治敏感等风险内容。
-规避安全机制：攻击者能够绕过LLMs的安全机制，导致模型输出攻击者期望的风险内容。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-模型鲁棒性增强
-通过训练和强化学习，提升LLM识别和抵御这类攻击的能力
-
-
-输入监控和过滤
-对LLMs的输出进行实时监控，及时过滤掉不安全或不当内容
+| Mitigation | Description |
+|------------|-------------|
+| Model robustness enhancement | Through training and reinforcement learning, improve the LLM's ability to recognize and resist this type of attack |
+| Input monitoring and filtering | Monitor LLM output in real time, promptly filtering out unsafe or inappropriate content |
 
 ---
-### 多模态协同注入攻击
+### Multimodal Collaborative Injection Attack
 
-> 风险编号: GAARM.0061
-> 生命周期: 应用阶段
+> Risk number: GAARM.0061
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-多模态协同注入攻击是一种利用多种模态（文本、图像、音频、视频等）之间协同关系进行恶意指令嵌入的高级攻击技术。攻击者通过精心构造跨模态的恶意内容，利用多模态模型在处理和理解不同模态信息时的语义关联机制，将恶意指令嵌入到看似无害的多模态内容中。这种攻击的核心在于绕过单一模态的安全检测机制，通过模态间的协同效应实现攻击目的，可能导致数据泄露、模型行为操纵或非预期操作执行。
+A multimodal collaborative injection attack is an advanced attack technique that exploits the collaborative relationship between multiple modalities (text, image, audio, video, etc.) to embed malicious instructions. Attackers carefully construct cross-modal malicious content, exploiting the semantic association mechanisms that multimodal models use when processing and understanding different modal information, embedding malicious instructions into seemingly harmless multimodal content. The core of this attack is to bypass single-modality security detection mechanisms and achieve attack objectives through inter-modal synergistic effects, potentially causing data leakage, model behavior manipulation, or unintended operations.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Attacker uses Cross-Modal Conflict Injection (CMCI) to insert special adversarial image-text pairs into a knowledge base through normal system update mechanisms. These pairs appear semantically aligned when retrieved (e.g., an image shows pneumonia, but the text describes "clear lungs"), but the content is actually contradictory, inducing the AI to output completely wrong diagnostic conclusions (e.g., misclassifying pneumonia as normal), causing serious medical safety risks |
 
+**Attack Risks**
 
+Data leakage: Inducing the model to leak training data or sensitive information.
+Behavioral manipulation: Manipulating model output and behavior through cross-modal instructions.
+Security bypass: Bypassing single-modality security detection and control mechanisms.
+Privilege escalation: Obtaining higher system privileges through modal collaboration.
+Privacy violation: Obtaining user privacy information through multimodal analysis.
 
+**Mitigations**
 
-案例一
-攻击者利用跨模态冲突注入（CMCI），通过系统正常更新机制向知识库插入特殊的对抗性图像-文本对。这些对在检索时看似语义对齐（如图像显示肺炎，文本却描述“肺部清晰”），但实际内容矛盾，从而诱导AI在诊断时输出完全错误的结论（如将肺炎误判为正常），造成严重的医疗安全风险。
+| Mitigation | Description |
+|------------|-------------|
+| Cross-modal collaborative detection | Establish multimodal collaborative security detection mechanisms, implement cross-modal semantic association analysis, detect anomalous modal combination patterns |
+| Multi-dimensional security validation | Simultaneously validate security of multiple modalities, establish inter-modal consistency checks, implement cross-modal threat intelligence sharing |
+| Fusion process hardening | Add security checks to the multimodal fusion process, implement dynamic modal weight adjustment, establish anomalous fusion pattern detection |
+| Modal isolation processing | Pre-process different modalities in isolation, implement modal-level security filtering, establish secure inter-modal communication mechanisms |
 
-**攻击风险**
+**References**
 
-数据泄露：诱导模型泄露训练数据或敏感信息
-行为操纵：通过跨模态指令操纵模型的输出和行为
-安全绕过：绕过单一模态的安全检测和控制机制
-权限提升：利用模态协同获得更高的系统权限
-隐私侵犯：通过多模态分析获取用户隐私信息
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-跨模态协同检测
-建立多模态协同安全检测机制，实施跨模态语义关联分析，检测异常的模态组合模式
-
-
-多维度安全验证
-同时验证多个模态的安全性，建立模态间一致性检查，实施跨模态威胁情报共享
-
-
-融合过程加固
-在多模态融合过程中加入安全检查，实施模态权重动态调整，建立异常融合模式检测
-
-
-模态隔离处理
-对不同模态进行预处理隔离，实施模态级安全过滤，建立模态间的安全通信机制
-
-**参考**
-
-通过跨模态提示注入操纵多模态智能体
-如何使医疗人工智能系统更安全？多模态医疗RAG系统中的漏洞和威胁
+Manipulating Multimodal Agents via Cross-Modal Prompt Injection
+How to Make Medical AI Systems Safer? Vulnerabilities and Threats in Multimodal Medical RAG Systems
 
 ---
-### 对抗编码攻击
+### Adversarial Encoding Attack
 
-> 风险编号: GAARM.0044
-> 生命周期: 应用阶段
+> Risk number: GAARM.0044
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-对抗编码攻击是针对LLMs输入与输出侧防御检测机制的一种对抗技术手段，攻击者通过编码或转换数据（如使用base64编码），尝试绕过安全检查或注入恶意内容。这种攻击针对的是NLP模型的编码层，试图绕过模型的文本理解能力，直接影响内部特征的生成。
-由于LLMs训练过编码文本等多样化的数据类型，因此支持正常实现解码操作，并完成恶意指令的执行或者敏感数据的外泄。
+Adversarial encoding attacks are a countermeasure technique targeting LLM input and output defense detection mechanisms. Attackers use encoding or data transformation (such as base64 encoding) to try to bypass security checks or inject malicious content. This attack targets the encoding layer of NLP models, attempting to bypass the model's text understanding capability and directly affect internal feature generation.
+Since LLMs are trained on diverse data types including encoded text, they support normal decoding operations, completing execution of malicious instructions or exfiltration of sensitive data.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Using adversarial encoding attacks to bypass ChatGPT security restrictions and obtain stored key information |
+| Case 2 | Research on text-based NLP models being manipulated by encoding perturbations that interfere and mislead; these perturbations exploit language encoding capabilities to change model output and increase inference runtime — e.g., distinct characters appearing as the same or visually similar glyphs are used to perturb model input |
 
+**Attack Risks**
 
+Bypassing security mechanisms: Attackers may exploit model encoding/decoding capabilities to bypass content security checks.
+Data leakage: Attackers can use Base64 encoding to hide malicious instructions or data, causing sensitive information leakage.
+Unauthorized code execution: Malicious code can be injected into LLMs in Base64-encoded form, causing unauthorized code execution and potentially compromising system integrity and security.
+Malicious operations: Attackers can use Base64 encoding to manipulate LLMs to perform various malicious operations, such as data tampering and session hijacking, endangering system and user security.
 
+**Mitigations**
 
-案例一
-利用对抗编码攻击绕过ChatGPT安全限制，获取存储的密钥信息
+| Mitigation | Description |
+|------------|-------------|
+| Input/output validation | Validate input and output data to prevent malicious or unintended Base64-encoded data from entering LLMs or being directly printed |
+| Model security alignment | Train the model on language nuances and encoding techniques to recognize characteristics of these attacks |
 
-
-案例二
-该文章研究了基于文本的 NLP 模型被操纵编码的扰动进行了干扰与误导，这些扰动利用语言编码功能可以改变模型输出并增加推理运行时间。例如呈现为相同或视觉上相似的字形的独特字符用于扰乱模型的输入
-
-**攻击风险**
-
-绕过安全机制：攻击者可能利用模型编解码能力来绕过内容安全检查。
-数据泄露：攻击者可以利用Base64编码操作来隐藏恶意指令或数据，导致敏感信息泄露。
-未经授权的代码执行：恶意代码可以通过Base64编码的形式注入到LLMs中，从而导致未经授权的代码执行，可能损害系统的完整性和安全性。
-恶意操作：攻击者可以利用Base64编码操纵LLMs执行各种恶意操作，如篡改数据、劫持会话等，从而危害系统和用户安全。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-输入/输出验证
-对输入和输出数据进行验证，以防止恶意或意外的Base64等编码数据输入到LLMs中或者直接被打印出来
-
-
-模型安全对齐
-将大模型进行语言细微差别和编码技术训练用于识别这些攻击的特征
-
-**参考**
+**References**
 
 https://promptengineering.org/mind-over-malware-battling-the-growing-arsenal-of-attacks-on-large-language-models/
 https://www.toolify.ai/ai-news/the-future-of-hacking-5-terrifying-llm-security-threats-544868
 
 ---
-### 关键字混淆
+### Keyword Obfuscation
 
-> 风险编号: GAARM.0043
-> 生命周期: 应用阶段
+> Risk number: GAARM.0043
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险是指针对Prompt中的关键词汇进行特殊的处理操作（同音词、同义词、单词拆分或者其他形式的文本操作），使其在保持相似意义的同时，经过token化不再带有风险含义，从而规避模型安全机制对敏感词汇的限制。
+This risk involves applying special processing operations to keywords in Prompts (homophones, synonyms, word splitting, or other text manipulation forms), maintaining similar meaning while ensuring that after tokenization the content no longer carries risky meaning, thereby circumventing model safety mechanisms' restrictions on sensitive words.
 
-**攻击案例**
+**Attack Cases**
 
-在英语LLM中，常用的关键字混淆方法包括：字母混淆（bomb -> b0mb），近义词替换（bomb -> explosive），单词拆分（bomb -> b-o-m-b）。
-对于中文LLM，因为分词方法的差异，关键字混淆方法也有显著的区别，常见的中文关键字混淆方法包括拼音替换（炸弹 -> zha弹），近义词替换（炸弹 -> 爆炸物），近形字替换（炸弹 -> 炸掸）等。
+Common keyword obfuscation methods in English LLMs include: letter obfuscation (bomb -> b0mb), synonym substitution (bomb -> explosive), word splitting (bomb -> b-o-m-b).
+For Chinese LLMs, due to differences in tokenization methods, keyword obfuscation methods also differ significantly. Common Chinese keyword obfuscation methods include: pinyin substitution (炸弹 -> zha弹), synonym substitution (炸弹 -> 爆炸物), similar-character substitution (炸弹 -> 炸掸), etc.
 
-**攻击风险**
+**Attack Risks**
 
-生成不当内容：攻击者可能利用关键字混淆技术来绕过自动内容审查系统，发布或传播恶意内容，如暴力、恐怖主义或色情信息。
-规避安全机制：攻击者恶意引导模型产生不正确的输出，以误导系统做出不良决策或执行危险操作。
+Generating inappropriate content: Attackers may exploit keyword obfuscation to bypass automated content review systems, publishing or spreading malicious content such as violence, terrorism, or pornography.
+Bypassing safety mechanisms: Attackers maliciously guide the model to produce incorrect output, misleading systems into making poor decisions or performing dangerous operations.
 
-**缓解措施**
+**Mitigations**
 
-缓解方式
-描述
+| Mitigation | Description |
+|------------|-------------|
+| Model security alignment | Through training and reinforcement learning, improve LLM's ability to recognize and resist this type of attack |
+| Input/output validation | On the input side, continuously update and improve vocabulary filtering systems to identify and block obfuscated sensitive words; on the output side, monitor LLM-generated content and use content security analysis techniques to identify potential issues |
 
-
-
-
-模型安全对齐
-通过训练和强化学习，提升LLM识别和抵御这类攻击的能力
-
-
-输入/输出验证
-输入侧不断更新和改进词汇过滤系统，以识别和阻止混淆后的敏感词汇；输出侧监控LLMs生成内容，通过内容安全分析技术识别潜在的
-
-**参考**
+**References**
 
 https://mp.weixin.qq.com/s/eFDQWYYCOe_SSiourhTxig
 
 ---
-### 同义词替换攻击
+### Synonym Substitution Attack
 
-> 风险编号: GAARM.0043.001
-> 生命周期: 应用阶段
+> Risk number: GAARM.0043.001
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-同义词替换攻击，通过使用与敏感词汇或短语有相同或相似含义的同义词来绕过模型的安全防护措施，从而获取或泄露模型的内部指令或敏感信息的攻击手段。随着LLMs体积越发庞大，对于每个存在攻击示例的微调变得越发困难，模型容易遭受同义词替换的攻击。例如，在一个编程助手中，攻击者可以用"remove"替换"delete"，用"harm"替换"destroy"等，试图绕过关键词检查。
+A synonym substitution attack bypasses model safety protections by using synonyms with the same or similar meaning as sensitive words or phrases, thereby obtaining or leaking the model's internal instructions or sensitive information. As LLMs grow increasingly large, fine-tuning on each adversarial example becomes more difficult, making models more susceptible to synonym substitution attacks. For example, in a programming assistant, an attacker might substitute "delete" with "remove", "destroy" with "harm", etc., to try to bypass keyword checks.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Attacker successfully bypasses the model's filters using synonym substitution, achieving leakage of system Prompt settings |
 
+**Attack Risks**
 
+Sensitive information leakage: Attackers may obtain the model's internal instructions, including but not limited to system prompts, passwords, and other sensitive information.
+Safety mechanism bypass: Attackers can use synonym substitution to bypass the model's safety protections, causing the model to produce undesired output or perform unauthorized operations.
 
+**Mitigations**
 
-案例一
-攻击者通过同义词替换成功绕过模型的过滤，实现系统Prompt设定的泄露
+| Mitigation | Description |
+|------------|-------------|
+| Model security alignment | Provide diverse training data covering various attack scenarios to enhance the model's generalization and robustness |
+| Input/output validation | On the input side, continuously update and improve vocabulary filtering systems to identify and block obfuscated sensitive words; on the output side, monitor LLM-generated content and use content security analysis techniques to identify potential issues |
 
-**攻击风险**
-
-敏感信息泄露：攻击者可能获取模型的内部指令，包括但不限于系统提示，密码等敏感信息。
-安全机制绕过：攻击者可以利用同义词替换攻击绕过模型的安全防护，导致模型生成不期望的输出或执行未授权的操作。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-模型安全对齐
-提供多样化的训练数据，涵盖各种攻击场景，以增强模型的泛化能力和鲁棒性
-
-
-输入/输出验证
-输入侧不断更新和改进词汇过滤系统，以识别和阻止混淆后的敏感词汇；输出侧监控LLMs生成内容，通过内容安全分析技术识别潜在的
-
-**参考**
+**References**
 
 https://arxiv.org/html/2402.16914v1
 

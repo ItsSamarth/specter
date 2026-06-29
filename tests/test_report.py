@@ -86,10 +86,10 @@ class TestReportGenerator:
         output = str(tmp_path / "report_constraints.md")
         generate_report(session, output)
         content = Path(output).read_text(encoding="utf-8")
-        assert "任务约束" in content
-        assert "仅端口 443" in content
-        assert "仅主机 example.com" in content
-        assert "仅路径 /admin" in content
+        assert "Task Constraints" in content
+        assert "only ports 443" in content
+        assert "only hosts example.com" in content
+        assert "only paths /admin" in content
 
     def test_report_contains_constraint_violation_audit(self, tmp_path):
         from specter.report.generator import generate_report
@@ -102,7 +102,7 @@ class TestReportGenerator:
         output = str(tmp_path / "report_violations.md")
         generate_report(session, output)
         content = Path(output).read_text(encoding="utf-8")
-        assert "约束违规审计" in content
+        assert "Constraint-Violation Audit" in content
         assert "tool 'fetch'" in content
 
     def test_report_contains_findings(self, tmp_path):
@@ -116,8 +116,8 @@ class TestReportGenerator:
         assert "Cross-Site Scripting" in content
         assert "Information Disclosure" in content
         assert "PoC" in content
-        assert "证据等级" in content
-        assert "生命周期" in content
+        assert "Evidence level" in content
+        assert "Lifecycle" in content
 
     def test_report_includes_location_and_repro_details(self, tmp_path):
         from specter.agent.context import SessionState, VulnerabilityFinding
@@ -128,16 +128,16 @@ class TestReportGenerator:
             title="Verified RCE",
             severity="Critical",
             vuln_type="RCE",
-            description="通过工具验证确认：admin 接口存在命令执行",
-            evidence="https://example.com/admin/exec | /admin/exec | 通过工具验证确认：命令执行成功",
+            description="Command execution confirmed via tool: admin endpoint",
+            evidence="https://example.com/admin/exec | /admin/exec | command execution confirmed",
         )
-        finding.mark_verified(note="whoami 返回 www-data")
+        finding.mark_verified(note="whoami returned www-data")
         session.add_finding(finding)
 
         output = str(tmp_path / "report_rce.md")
         generate_report(session, output)
         content = Path(output).read_text(encoding="utf-8")
-        assert "已验证漏洞定位与复现信息" in content
+        assert "Verified Vulnerability Location" in content
         assert "https://example.com/admin/exec" in content
         assert "PoC" in content
 
@@ -160,8 +160,8 @@ class TestReportGenerator:
         output = str(tmp_path / "report_review.md")
         generate_report(session, output)
         content = Path(output).read_text(encoding="utf-8")
-        assert "需人工复核" in content
-        assert "候选项" in content or "待验证项" in content
+        assert "manual review" in content.lower()
+        assert "candidate" in content.lower() or "pending" in content.lower()
 
     def test_report_contains_severity_counts(self, tmp_path):
         from specter.report.generator import generate_report
@@ -191,13 +191,13 @@ class TestReportGenerator:
         session = self._make_session()
         monkeypatch.setattr(
             "specter.report.generator._generate_attack_summary_from_session",
-            lambda session: "这是通过 Specter 对接的 LLM 生成的攻击路径摘要。",
+            lambda session: "This is the LLM-generated attack path summary via Specter.",
         )
 
         output = str(tmp_path / "report_llm_summary.md")
         generate_report(session, output)
         content = Path(output).read_text(encoding="utf-8")
-        assert "这是通过 Specter 对接的 LLM 生成的攻击路径摘要。" in content
+        assert "This is the LLM-generated attack path summary via Specter." in content
 
     def test_report_summary_uses_gpt5_token_parameter(self):
         from specter.config.schema import SpecterConfig
@@ -241,8 +241,8 @@ class TestReportGenerator:
         content = Path(output).read_text(encoding="utf-8")
         # Report with no verified findings should mention 0 verified or show summary
         assert "10.0.0.1" in content
-        assert "候选项" in content
-        assert "已验证漏洞" in content
+        assert "Candidates" in content
+        assert "Verified vulnerabilities" in content
 
     def test_report_creates_pocs_dir(self, tmp_path):
         from specter.report.generator import generate_report
@@ -282,24 +282,24 @@ class TestReportGenerator:
         target_state = {
             "target": "https://example.com",
             "started_at": "2026-05-08T12:00:00",
-            "phase": "漏洞发现",
+            "phase": "Vulnerability Discovery",
             "findings": [],
             "recon_data": {
                 "subdomains": ["vpn.example.com"],
                 "paths": ["/admin"],
             },
-            "executed_steps": ["Round 1: 访问 /admin 失败"],
+            "executed_steps": ["Round 1: access /admin failed"],
             "notes": [],
             "resume_meta": {
                 "resume_strategy": "continue_scan",
-                "resume_strategy_reason": "已有高价值侦察资产，继续候选验证",
+                "resume_strategy_reason": "existing high-value recon assets, continue candidate verification",
                 "priority_targets": ["/admin"],
                 "priority_recon_assets": ["paths:/admin", "subdomains:vpn.example.com"],
                 "blocked_targets": ["old.example.com"],
                 "failed_targets": ["old.example.com (3)"],
-                "recent_failed_steps": ["Round 1: 访问 /admin 失败"],
+                "recent_failed_steps": ["Round 1: access /admin failed"],
             },
-            "resume_summary": "恢复后优先测试 /admin 与 vpn.example.com",
+            "resume_summary": "After resuming, prioritize testing /admin and vpn.example.com",
             "recon_meta": {
                 "paths": {
                     "/admin": {"confidence": 0.92},
@@ -315,7 +315,7 @@ class TestReportGenerator:
 
         output = generate_report_from_target_state(target_state)
         content = Path(output).read_text(encoding="utf-8")
-        assert "目标历史治理上下文" in content
+        assert "Target Historical Governance Context" in content
         assert "continue_scan" in content
         assert "paths:/admin" in content
         assert "old.example.com" in content
@@ -329,10 +329,10 @@ class TestReportGenerator:
             title="Verified Command Exec",
             severity="Critical",
             vuln_type="RCE",
-            description="通过工具验证确认：admin 接口存在命令执行",
-            evidence="https://example.com/admin/exec | /admin/exec | 通过工具验证确认：命令执行成功",
+            description="Command execution confirmed via tool: admin endpoint",
+            evidence="https://example.com/admin/exec | /admin/exec | command execution confirmed",
         )
-        finding.mark_verified(note="whoami 返回 www-data")
+        finding.mark_verified(note="whoami returned www-data")
         session.add_finding(finding)
 
         output = generate_persistent_cycle_report(
@@ -345,7 +345,7 @@ class TestReportGenerator:
             output_path=str(tmp_path / "cycle.md"),
         )
         content = Path(output).read_text(encoding="utf-8")
-        assert "已验证漏洞定位与复现信息" in content
+        assert "Verified Vulnerability Location" in content
         assert "https://example.com/admin/exec" in content
         assert "PoC" in content
 
@@ -355,7 +355,7 @@ class TestReportGenerator:
         session = self._make_session()
         monkeypatch.setattr(
             "specter.report.generator._generate_attack_summary_from_session",
-            lambda session: "来自 LLM 的持续渗透周期摘要",
+            lambda session: "LLM-generated persistent pentest cycle summary",
         )
 
         output = generate_persistent_cycle_report(
@@ -368,7 +368,7 @@ class TestReportGenerator:
             output_path=str(tmp_path / "cycle_llm.md"),
         )
         content = Path(output).read_text(encoding="utf-8")
-        assert "来自 LLM 的持续渗透周期摘要" in content
+        assert "LLM-generated persistent pentest cycle summary" in content
 
 
 # ── poc_builder.py ───────────────────────────────────────────────────
@@ -426,7 +426,7 @@ class TestPoCBuilder:
         assert "sql_injection" in content
         assert "requests.get(target, params=params" in content
         assert "http://192.168.1.100/login?id=1" in content
-        assert "[CONFIRMED] SQL注入漏洞" in content
+        assert "[CONFIRMED]" in content
 
     def test_poc_is_valid_python(self, tmp_path):
         """Generated PoC should be syntactically valid Python."""
@@ -507,7 +507,7 @@ class TestPoCBuilder:
                 title="File Inclusion",
                 severity="High",
                 vuln_type="LFI",
-                evidence="可访问地址 https://victim.local/download?file=../../etc/passwd 并返回 root:x:0:0",
+                evidence="Accessed https://victim.local/download?file=../../etc/passwd and received root:x:0:0",
             )
         )
 
@@ -523,7 +523,7 @@ class TestPoCBuilder:
         session = SessionState(target="https://example.com")
         session.add_finding(
             VulnerabilityFinding(
-                title="[已确认] **ThinkPHP:RCE?** / 唯一标识符",
+                title="[confirmed] **ThinkPHP:RCE?** / unique-identifier",
                 severity="Critical",
                 vuln_type="RCE",
             )
@@ -585,4 +585,4 @@ class TestPoCBuilder:
         output = str(tmp_path / "report_manual.md")
         generate_report(session, output)
         content = Path(output).read_text(encoding="utf-8")
-        assert "需人工复核" in content
+        assert "manual review" in content.lower()

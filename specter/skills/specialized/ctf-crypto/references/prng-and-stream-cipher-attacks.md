@@ -1,6 +1,6 @@
 # PRNG and Stream Cipher Attacks
 
-## MT19937 ( Mersenne Twister ) Attack
+## MT19937 (Mersenne Twister) Attack
 
 ```python
 # MT19937 state recovery (given 624 outputs)
@@ -85,28 +85,28 @@ def xor_decrypt(key, ciphertext):
     return bytes(a ^ b for a, b in zip(key, ciphertext))
 ```
 
-## RC4 攻击
+## RC4 Attack
 
 ```python
 """
-RC4 已知弱点：
-1. RC4 Drop (丢弃前 N 字节后，密钥流接近随机)
-2. 某些密钥初始化有偏差
+RC4 known weaknesses:
+1. RC4 Drop (after discarding the first N bytes, the keystream approaches random)
+2. Some key initializations have biases
 """
 
 def rc4_drop(ciphertext, drop=3072):
-    """RC4 Drop N 字节后解密"""
+    """Decrypt after dropping the first N bytes of RC4 keystream"""
 ```
 
-## Python random 模块预测
+## Python random Module Prediction
 
 ```python
 import random
 
-# 如果能访问 Python random 状态，可以预测未来随机数
-# 已知 624 * 4 = 2496 字节的状态
+# If the Python random state is accessible, future random numbers can be predicted
+# State consists of 624 * 4 = 2496 bytes
 state = random.getstate()
-# 推进随机数
+# Advance the random state
 random.setstate(state)
 next_val = random.randint(0, 2**31)
 ```

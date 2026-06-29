@@ -32,6 +32,7 @@ _VULN_TYPE_ALIASES: dict[str, str] = {
     # SQL injection
     "sqli": "sql_injection",
     "sql injection": "sql_injection",
+    "sql注入": "sql_injection",
     "blind sqli": "sql_injection",
     "blind injection": "sql_injection",
     "injection vulnerability": "sql_injection",
@@ -44,17 +45,20 @@ _VULN_TYPE_ALIASES: dict[str, str] = {
     "stored xss": "cross_site_scripting",
     "cross site scripting": "cross_site_scripting",
     "cross_site_scripting": "cross_site_scripting",
+    "跨站脚本": "cross_site_scripting",
     # SSRF
     "ssrf": "server_side_request_forgery",
     "server-side request forgery": "server_side_request_forgery",
     "server side request forgery": "server_side_request_forgery",
     "server_side_request_forgery": "server_side_request_forgery",
+    "服务端请求伪造": "server_side_request_forgery",
     # RCE
     "rce": "remote_code_execution",
     "command execution": "remote_code_execution",
     "remote code execution": "remote_code_execution",
     "command injection": "remote_code_execution",
     "remote_code_execution": "remote_code_execution",
+    "命令执行": "remote_code_execution",
     # LFI / file inclusion
     "lfi": "local_file_inclusion",
     "file inclusion": "local_file_inclusion",
@@ -63,6 +67,7 @@ _VULN_TYPE_ALIASES: dict[str, str] = {
     "file inclusion/traversal": "local_file_inclusion",
     "local file inclusion": "local_file_inclusion",
     "local_file_inclusion": "local_file_inclusion",
+    "文件包含": "local_file_inclusion",
     # IDOR / broken access
     "idor": "insecure_direct_object_reference",
     "broken access control": "insecure_direct_object_reference",
@@ -70,6 +75,7 @@ _VULN_TYPE_ALIASES: dict[str, str] = {
     "vertical privilege escalation": "insecure_direct_object_reference",
     "insecure direct object reference": "insecure_direct_object_reference",
     "insecure_direct_object_reference": "insecure_direct_object_reference",
+    "越权": "insecure_direct_object_reference",
     # CSRF
     "csrf": "cross_site_request_forgery",
     "cross-site request forgery": "cross_site_request_forgery",
@@ -123,7 +129,7 @@ _URL_RE = re.compile(r'https?://[^\s<>"\')\]]+', re.IGNORECASE)
 _TOKEN_RE = re.compile(r"[a-z0-9]+", re.IGNORECASE)
 # Punctuation boundary tags (e.g. [auto], [confirmed]) should be stripped before
 # tokenizing so they do not pollute the word set.
-_NOISE_TAGS = ("[auto]", "[confirmed]", "[unverified]")
+_NOISE_TAGS = ("[auto]", "[confirmed]", "[unverified]", "[自动]", "[已确认]", "[未验证]")
 
 
 def _normalize_url_path(url: str) -> str:

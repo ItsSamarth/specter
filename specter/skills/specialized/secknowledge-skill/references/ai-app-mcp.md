@@ -1,128 +1,84 @@
-# AI应用安全 - 应用阶段 - MCP 协议攻击
+# AI Application Security - Application Phase - MCP Protocol Attacks
 
-> 来源: AISS绿盟大模型安全智链社区 | 拆自 ai-app-app.md
-> 风险类别: MCP（GAARM.0046.x 地毯式骗局 / 工具投毒 / 指令覆盖 / 隐藏指令）
+> Source: AISS Green Alliance Large Model Security Smart Chain Community | Extracted from ai-app-app.md
+> Risk category: MCP (GAARM.0046.x Rug Pull / Tool Poisoning / Instruction Override / Hidden Instructions)
 
 ---
 
-### MCP地毯式骗局
+### MCP Rug Pull
 
-> 风险编号: GAARM.0046.001
-> 生命周期: 应用阶段
+> Risk number: GAARM.0046.001
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-MCP地毯式骗局攻击是指由于MCP架构允许服务器在客户端授权后动态修改工具描述，攻击者可利用这一机制在用户信任的基础上植入恶意指令（如篡改功能逻辑或劫持操作）。即使安装时经过安全审核，后续的隐蔽篡改仍可能在导致工具描述被植入恶意利用指令（如数据泄露或未授权操作）。
+An MCP rug pull attack exploits the fact that the MCP architecture allows servers to dynamically modify tool descriptions after client authorization. Attackers leverage this to plant malicious instructions (such as tampered function logic or hijacked operations) on the basis of user trust. Even if a tool passes a security review at installation time, subsequent stealthy tampering can still result in tool descriptions being injected with malicious exploitation instructions (such as data leakage or unauthorized operations).
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Malicious MCP tool function descriptions embed covert prompts like "read user private keys"; after the user approves the tool, the model inadvertently executes these prompts during invocation, leaking local files |
 
+**Attack Risks**
 
+Tool over-authorization: When the model calls a tool, poisoned description content causes execution of unintended instructions.
+Sensitive data leakage: Attackers induce the model to access and output sensitive files such as ~/.ssh/id_rsa.
+Model function hijacking: Attackers can manipulate model behavior via Prompt, e.g., spreading disinformation or generating illegal content.
+Bypassing review mechanisms: Tool fields pass validation at registration time, but the model is hijacked by description content during actual execution.
 
+**Mitigations**
 
-案例一
-恶意 MCP 工具函数描述中嵌入“读取用户私钥”等隐蔽提示，用户批准工具后，模型调用时误执行这些提示，泄露本地文件
+| Mitigation | Description |
+|------------|-------------|
+| White-box assessment | Perform white-box audits of MCP server code to detect malicious tool descriptions and code behaviors promptly |
+| Audit and monitoring | Monitor model behavior in real time, log tool call records, and detect anomalous operations promptly |
+| Model security training | Adversarially train the model to improve its defense against poisoning attacks |
+| API access control | Restrict tool access to sensitive data to reduce leakage and abuse risk |
+| Execution context isolation | Restrict model access to tool description fields, or use structured call protocols (e.g., OpenAI ChatML tool call syntax) to avoid description contamination |
 
-**攻击风险**
-
-工具越权行为：模型调用工具时，因描述内容被投毒，导致执行非预期指令。
-敏感数据泄露：攻击者诱导模型访问并输出如 ~/.ssh/id_rsa 等敏感文件。
-模型功能劫持：攻击者可利用 Prompt 操纵模型行为，如传播虚假信息、生成非法内容。
-绕过审核机制：工具注册时字段验证通过，但真实执行时模型被描述内容劫持。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-白盒评估机制
-对MCP Server的代码进行白盒审计，及时发现恶意的工具描述以及代码行为
-
-
-审计与监控
-实时监控模型行为，记录工具调用日志，及时检测异常操作
-
-
-模型安全训练
-对模型进行对抗性训练，增强对投毒攻击的防御能力
-
-
-API访问控制
-限制工具对敏感数据的访问，降低泄露和滥用风险
-
-
-执行上下文隔离
-限制模型访问工具描述字段，或使用结构化调用协议（如 OpenAI ChatML 工具调用语法）避免描述污染
-
-**参考**
+**References**
 
 https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks
 https://atlas.mitre.org/techniques/AML.T0051
 https://github.com/invariantlabs-ai/mcp-injection-experiments
 
 ---
-### MCP工具投毒攻击
+### MCP Tool Poisoning Attack
 
-> 风险编号: GAARM.0046
-> 生命周期: 应用阶段
+> Risk number: GAARM.0046
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-MCP是一个开放协议，用于标准化应用程序向大语言模型提供上下文的方式，MCP工具投毒攻击是一种针对该协议的攻击方式。攻击者通过恶意MCP Server的工具描述中注入攻击性提示词，实现对工具行为的恶意操纵。其核心特征是在工具描述中嵌入恶意指令，利用模型解析完整工具描述的过程，通过隐藏指令（如特殊标签或编码）诱导模型执行非授权操作，例如生成恶意内容、泄露敏感信息或绕过其他安全限制。
+MCP is an open protocol that standardizes how applications provide context to large language models. An MCP tool poisoning attack is an attack method targeting this protocol. Attackers inject offensive prompts into the tool descriptions of a malicious MCP server to maliciously manipulate tool behavior. The core characteristic is embedding malicious instructions in tool descriptions, exploiting the model's process of parsing complete tool descriptions to induce the model — through hidden instructions (such as special tags or encoding) — to perform unauthorized operations, such as generating malicious content, leaking sensitive information, or bypassing other security restrictions.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Attacker manipulates tool descriptions to carry out a malicious attack, causing sensitive model information to be leaked to a malicious MCP server |
+| Case 2 | Exploits MCP Tool description for poisoning to achieve indirect prompt injection, controlling other tools' parameters to exfiltrate information |
 
+**Attack Risks**
 
+MCP tool poisoning attacks can cause serious systemic risks, affecting model security, reliability, and user trust. Key risks:
 
+Trust erosion: May cause users' trust in the model and its development tools to decline, affecting its application in sensitive scenarios.
+Goal hijacking: Can use poisoning to make the model deviate from its original design purpose, executing custom malicious instructions, increasing abuse risk.
+System security threats: May lead to malicious code being planted in MCP tools, causing further system intrusion or functional damage.
+Data privacy leakage: Can exploit poisoning to extract model training data or sensitive information entered by users.
 
-案例一
-攻击者通过操纵工具描述实现恶意攻击，导致敏感模型信息泄露到恶意的MCP Server
+**Mitigations**
 
+| Mitigation | Description |
+|------------|-------------|
+| White-box assessment | Perform white-box audits of MCP server code to detect malicious tool descriptions and code behaviors promptly |
+| Audit and monitoring | Monitor model behavior in real time, log tool call records, and detect anomalous operations promptly |
+| Model security training | Adversarially train the model to improve its defense against poisoning attacks |
+| API access control | Restrict tool access to sensitive data to reduce leakage and abuse risk |
 
-案例二
-利用MCP Tool的描述进行投毒，实现简介提示词注入，控制其他工具的参数实现信息外带等攻击目的
-
-**攻击风险**
-
-MCP工具投毒攻击可能导致严重的系统性风险，影响模型的安全性、可靠性和用户信任。以下是主要风险：
-
-信任破坏：可能导致用户对模型及其开发工具的信任下降，影响其在敏感场景中的应用。
-目标劫持：可通过投毒使模型偏离其原始设计目的，执行自定义的恶意指令，增加滥用风险。
-系统安全性威胁：可能导致在MCP工具中植入恶意代码，导致系统被进一步入侵或功能被破坏。
-数据隐私泄露： 可利用投毒提取模型训练数据或用户输入的敏感信息。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-白盒评估机制
-对MCP Server的代码进行白盒审计，及时发现恶意的工具描述以及代码行为
-
-
-审计与监控
-实时监控模型行为，记录工具调用日志，及时检测异常操作
-
-
-模型安全训练
-对模型进行对抗性训练，增强对投毒攻击的防御能力
-
-
-API访问控制
-限制工具对敏感数据的访问，降低泄露和滥用风险
-
-**参考**
+**References**
 
 https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks
 https://mp.weixin.qq.com/s/EJLb1IwqbPF3VSDkJu099g
@@ -130,130 +86,77 @@ https://x.com/hongming731/status/1922261630664245326
 https://news.qq.com/rain/a/20250429A07QY000
 
 ---
-### MCP指令覆盖攻击
+### MCP Instruction Override Attack
 
-> 风险编号: GAARM.0046.002
-> 生命周期: 应用阶段
+> Risk number: GAARM.0046.002
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-MCP指令覆盖风险是一种针对MCP Server工具调用的恶意注入攻击，攻击者通过恶意MCP Server的工具描述，向其中植入恶意指令，从而劫持其他可信工具的正常行为。例如，攻击者可能修改邮件发送工具调用行为，使其在调用时暗中篡改收件人邮箱，导致敏感数据外泄或恶意操作。
+MCP instruction override is a malicious injection attack targeting MCP server tool calls. Attackers plant malicious instructions into tool descriptions of a malicious MCP server, hijacking the normal behavior of other trusted tools. For example, an attacker might modify the behavior of an email-sending tool so that when called it covertly changes the recipient's email address, causing sensitive data exfiltration or malicious operations.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Craft tool descriptions containing hidden instructions that manipulate how the model interacts with other tools; the LLM reads and follows these instructions without the user's knowledge |
+| Case 2 | Contains a trusted server and a malicious server. The trusted server provides an email-sending tool, while the malicious server provides a fake digit-addition tool whose description contains an MCP instruction override attack, requiring the email tool's recipient to be @pwnd.com |
+| Case 3 | Uses a malicious MCP server description to control the WhatsApp send_message tool's recipient to +13241234123 |
 
+**Attack Risks**
 
+Data leakage risk: Instruction override attacks can instruct trusted tools to extract sensitive information from conversations, documents, or connected systems and send it to attacker-controlled machines.
+Trusted tool abuse: Attackers can manipulate the model's network requests, code execution, and other trusted tools to access untrusted sites or execute malicious code.
 
+**Mitigations**
 
-案例一
-制作包含隐藏指令的工具描述，这些指令会操纵模型与其他工具的交互方式，LLM会在用户不知情的情况下读取并遵循这些指令
+| Mitigation | Description |
+|------------|-------------|
+| White-box assessment | Perform white-box audits of MCP server code to detect malicious tool descriptions and code behaviors promptly |
+| Audit and monitoring | Monitor model behavior in real time, log tool call records, and detect anomalous operations promptly |
+| Model security training | Adversarially train the model to improve its defense against poisoning attacks |
+| API access control | Restrict tool access to sensitive data to reduce leakage and abuse risk |
 
-
-案例二
-该案例中包含一个受信任的服务器和一个恶意的服务器。受信任的服务器提供发送电子邮件的工具，而恶意的服务器提供伪造的数字加法工具，该工具的描述中包含MCP指令覆盖攻击，要求发件工具的收件人必须为@pwnd.com
-
-
-案例三
-该案例利用恶意的MCP Server描述，控制whatapps send_message工具的收件人信息为+13241234123
-
-**攻击风险**
-
-数据泄露风险: 指令覆盖攻击可以指示可信工具从对话、文档或连接系统中提取敏感信息，并将其发送到攻击者控制的机器
-可信工具滥用: 攻击者可以操纵模型的网络请求、代码运行等可信工具，使其访问不可信的站点或执行恶意的代码等
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-白盒评估机制
-对MCP Server的代码进行白盒审计，及时发现恶意的工具描述以及代码行为
-
-
-审计与监控
-实时监控模型行为，记录工具调用日志，及时检测异常操作
-
-
-模型安全训练
-对模型进行对抗性训练，增强对投毒攻击的防御能力
-
-
-API访问控制
-限制工具对敏感数据的访问，降低泄露和滥用风险
-
-**参考**
+**References**
 
 https://blog.trailofbits.com/2025/04/21/jumping-the-line-how-mcp-servers-can-attack-you-before-you-ever-use-them/
 https://blog.trailofbits.com/2025/04/29/deceiving-users-with-ansi-terminal-codes-in-mcp/
 
 ---
-### MCP隐藏指令攻击
+### MCP Hidden Instruction Attack
 
-> 风险编号: GAARM.0046.003
-> 生命周期: 应用阶段
+> Risk number: GAARM.0046.003
+> Lifecycle: Application phase
 
-**攻击概述**
+**Attack Overview**
 
-MCP隐藏指令攻击是指攻击者通过在 MCP 工具描述中嵌入 ANSI 终端转义码（如颜色设置、光标控制等） 或不可见 Unicode 字符  ，可以使恶意指令对用户不可见，但仍被 LLM  执行。这种攻击方式利用了 MCP 的“行跳跃”漏洞，使得攻击在不被察觉的情况下影响开发者的操作 ，导致数据泄露、供应链攻击等安全问题。
+An MCP hidden instruction attack involves attackers embedding ANSI terminal escape codes (such as color settings, cursor control) or invisible Unicode characters into MCP tool descriptions, making malicious instructions invisible to users but still executed by the LLM. This attack exploits the MCP "line-jumping" vulnerability, allowing attacks to affect developer operations undetected, leading to security issues such as data leakage and supply chain attacks.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Attacker embeds ANSI escape codes in tool descriptions, making text invisible in the terminal, but the LLM still reads and executes the instructions, causing the model to recommend downloading Python packages from a malicious server — potentially triggering a supply chain attack |
+| Case 2 | By adding invisible Unicode characters to user input, attackers inject malicious instructions into the LLM |
+| Case 3 | By injecting hidden code into a web page, when the MCP tool returns the web page information to the LLM, invisible malicious instructions are injected, achieving data leakage or other attacks |
 
+**Attack Risks**
 
+Supply chain attack: Through hidden instructions, attackers can plant malicious code during the development process, affecting the entire software supply chain.
+Data leakage: Sensitive information (such as IP addresses, download sources) may be silently exfiltrated.
+System security: In some cases, hidden instructions can be used to generate and execute malicious code.
 
+**Mitigations**
 
-案例一
-攻击者通过在工具描述中嵌入 ANSI 转义码，使得文本在终端中不可见，但 LLM 仍然读取并执行了其中的指令，导致模型建议从恶意服务器下载 Python 包，从而可能引发供应链攻击。
+| Mitigation | Description |
+|------------|-------------|
+| Input/output filtering | Strictly filter and sanitize user inputs and tool outputs, removing potentially malicious characters and instructions |
+| Avoid passing raw tool output to the terminal | Consistently sanitize potentially dangerous output by disabling escape sequences before rendering. The simplest method is to replace any byte with hex value 1b with a placeholder, since all escape sequences recognized by modern terminals begin with this byte |
+| Tool description review | Review MCP tool descriptions to ensure they contain no malicious instructions |
+| Restrict MCP server permissions | In sensitive environments, allow only trusted MCP servers to interact, reducing potential attack surface |
+| Monitor and audit MCP activity | Regularly review logs and interactions to detect anomalous or suspicious behavior |
 
-
-案例二
-通过在用户输入中加入不可见的 Unicode 字符，攻击者可以在 LLM 中注入恶意指令。
-
-
-案例三
-通过在网页中注入隐藏代码，MCP工具返回网页信息给 LLM， 导致注入不可见的恶意指令，实现数据泄露或其他攻击。
-
-**攻击风险**
-
-供应链攻击：通过隐藏的指令，攻击者可以在开发过程中植入恶意代码，影响整个软件供应链。
-数据泄露： 敏感信息（如 IP 地址、下载源等）可能被悄无声息地泄露。  
-系统安全性：在某些情况下，隐藏指令可以被用来生成和执行恶意代码。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-输入输出过滤
-对用户输入和工具输出进行严格的过滤和清洗特殊字符，移除潜在的恶意字符和指令。
-
-
-避免将原始工具输出传递到终端
-应通过在渲染之前禁用转义序列来对潜在危险的输出进行一致的清理。最简单的方法是将任何十六进制值的字节替换1b为占位符，因为现代终端识别的所有转义序列都以该字节开头。
-
-
-工具描述审查
-对 MCP 工具的描述进行审查，确保其中不包含恶意指令
-
-
-限制 MCP 服务器权限
-在敏感环境中，仅允许信任的 MCP 服务器进行交互，减少潜在的攻击面。
-
-
-监控和审计 MCP 活动
-定期审查日志和交互以检测异常或可疑行为
-
-**参考**
+**References**
 
 https://blog.trailofbits.com/2025/04/29/deceiving-users-with-ansi-terminal-codes-in-mcp/
 https://www.solo.io/blog/deep-dive-mcp-and-a2a-attack-vectors-for-ai-agents

@@ -19,7 +19,7 @@
 | ECDSA nonce reuse | Deterministic attack | Same k used for two signatures |
 | Very small order | Brute force / Baby-step Giant-step | n < 2^40 |
 
-## Pohlig-Hellman 攻击
+## Pohlig-Hellman Attack
 
 ```python
 # Sage implementation
@@ -71,7 +71,7 @@ def smart_attack(P, Q, p, a, b):
 # Construction: choose a' such that y² = x³ + a'*x + b has a smooth order
 ```
 
-## ECDSA Nonce 重用攻击
+## ECDSA Nonce Reuse Attack
 
 ```python
 """

@@ -1,152 +1,104 @@
-# AI应用安全 - 部署阶段
+# AI Application Security - Deployment Phase
 
-> 来源: AISS绿盟大模型安全智链社区 | 拆自 ai-app-security.md
-> 阶段: 部署阶段（GAARM.0037-0038, 0049 API管理/源代码投毒/窃取）
+> Source: AISS Green Alliance Large Model Security Smart Chain Community | Extracted from ai-app-security.md
+> Phase: Deployment phase (GAARM.0037-0038, 0049 API management / source code poisoning / theft)
 
-## 部署阶段
+## Deployment Phase
 
-### LLMs应用API管理不当
+### LLMs Application API Mismanagement
 
-> 风险编号: GAARM.0049
-> 生命周期: 部署阶段
+> Risk number: GAARM.0049
+> Lifecycle: Deployment phase
 
-**攻击概述**
+**Attack Overview**
 
-LLMs应用API管理不当是指LLMs集成框架环境中存在敏感操作的Tools、Agents、Chains等内外部的API组件，未与LLMs环境做好正确的环境管理与配置。由于大语言模型通常需要与多种API进行交互以执行任务，如果这些API未得到适当的管理，比如未设置正确的访问权限或未实施足够的安全控制，则攻击者可以利用这些漏洞来获取敏感信息或执行恶意行为，实现未授权访问、代码执行利用等攻击。
+LLMs application API mismanagement refers to the situation where sensitive API components such as Tools, Agents, and Chains within the LLM integration framework environment are not properly managed and configured in relation to the LLM environment. Because large language models typically need to interact with multiple APIs to execute tasks, if those APIs are not properly managed — e.g., incorrect access permissions or insufficient security controls — attackers can exploit these vulnerabilities to obtain sensitive information or execute malicious behavior, achieving unauthorized access, code execution exploitation, and other attacks.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Two main exploitation techniques targeting LLMs APIs are described below |
 
+**Attack Risks**
 
+Data leakage: Attackers may obtain sensitive data, including personally identifiable information, trade secrets, etc.
+Service disruption: Malicious code execution or unauthorized access may cause service interruptions or performance degradation.
+Legal and compliance risk: Security vulnerabilities may trigger lawsuits and compliance issues.
 
+**Mitigations**
 
-案例一
-针对LLMs api的利用主要给出以下两个
-
-**攻击风险**
-
-数据泄露：攻击者可能获取敏感数据，包括个人身份信息、商业秘密等。
-服务中断：恶意代码执行或未授权访问可能导致服务中断或性能下降。
-法律和合规风险：安全漏洞可能引起法律诉讼和合规问题。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-最小权限原则
-遵循最小权限原则，只为LLMs提供完成其任务所必需的最小访问权限，避免过度代理授权
-
-
-输入/输出验证
-对所有通过API发送的输入进行彻底验证，以防止注入攻击
-
-
-监控和日志记录
-监控AI时代下的新型API活动并记录日志，以便能够快速检测和响应可疑行为
+| Mitigation | Description |
+|------------|-------------|
+| Principle of least privilege | Follow the principle of least privilege; provide LLMs only with the minimum access required to complete their tasks, avoiding over-delegation of authority |
+| Input/output validation | Thoroughly validate all input sent through APIs to prevent injection attacks |
+| Monitoring and logging | Monitor and log new-paradigm API activity in the AI era to quickly detect and respond to suspicious behavior |
 
 ---
-### LLMs应用源代码投毒
+### LLMs Application Source Code Poisoning
 
-> 风险编号: GAARM.0038
-> 生命周期: 训练阶段
+> Risk number: GAARM.0038
+> Lifecycle: Training phase
 
-**攻击概述**
+**Attack Overview**
 
-源代码在审查过程中可能存在一些漏洞，攻击者通过向大型语言模型（LLMs）应用程序的源代码注入恶意代码，通过漏洞隐藏代码逃过检查，对第三方开源或商业组件进行源代码投毒，导致应用程序在训练或者运行时出现安全问题，进而影响使用这些组件的下游模型应用业务开发厂商。
+Source code may contain vulnerabilities during the review process. Attackers inject malicious code into the source code of LLMs applications, use vulnerability-hidden code to evade inspection, or poison the source code of third-party open-source or commercial components. This causes security issues during the application's training or execution and affects downstream model application business developers who use these components.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Attackers can upload malicious code to open-source websites to manipulate models, affecting fields such as investment, trading, and news |
 
+**Attack Risks**
 
+Backdoor insertion: By injecting backdoor code into training data, attackers can control or manipulate model outputs during inference, leading to unauthorized access or data manipulation.
+Supply chain attacks: By injecting malicious code into open-source code, attackers can affect the entire supply chain using that code.
+Disinformation propagation: Attackers can use this technique to modify content — such as movie reviews or news reports — to spread false information or propaganda.
 
+**Mitigations**
 
-案例一
-攻击者可以通过上传恶意代码到开源网站来操纵模型，进而影响投资、交易、新闻等各个领域
+| Mitigation | Description |
+|------------|-------------|
+| Detect deviations from original code | Identify and intercept anomalous behavior caused by malicious code modifications |
+| Input validation and filtering | Perform strict input validation and cleaning before code is fed to the model |
 
-**攻击风险**
-
-后门插入：通过向训练数据中注入后门代码，允许攻击者在推理过程中控制或操纵模型的输出，导致未经授权的访问或数据操纵。
-供应链攻击：通过在开源代码中注入恶意代码，攻击者可以影响使用这些代码的整个供应链。
-虚假新闻宣传：攻击者可以利用这种技术修改内容，如电影评论或新闻报道，以传播虚假信息或宣传。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-检测偏离原始代码的变化
-识别和拦截因恶意代码修改引起的异常行为
-
-
-输入验证和过滤
-代码输入到模型之前，进行严格的输入验证和清洗
-
-**参考**
+**References**
 
 https://drive.google.com/file/d/1CTVcliUblX35cWfB49Xjhf8xk-fM3QH1/edit?pli=1
 
 ---
-### LLMs应用源代码窃取
+### LLMs Application Source Code Theft
 
-> 风险编号: GAARM.0037
-> 生命周期: 训练阶段
+> Risk number: GAARM.0037
+> Lifecycle: Training phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险是指模型或大型语言模型（LLMs）的源代码保存不当，或者部署环境存在安全风险，可能会被未经授权的人员攻击到相关部署环境，实现LLMs应用源代码的窃取，从而导致企业技术竞争优势受损的风险。
+This risk refers to improper storage of model or LLM source code, or a deployment environment with security risks, which may allow unauthorized parties to attack the relevant deployment environment and steal LLM application source code, thereby damaging the enterprise's technical competitive advantage.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Meta's 65-billion-parameter language model was leaked |
+| Case 2 | Large amounts of GPT-4 model architecture, training costs, datasets, and other information were leaked |
 
+**Attack Risks**
 
+Loss of technical advantage: Competitors may copy or modify leaked source code, weakening the enterprise's technical competitive edge.
+Cybersecurity threat: Attackers can use leaked source code to design targeted cyber attacks, e.g., exploiting disclosed vulnerabilities for system intrusion.
+Phishing risk: Leaked source code may be used to create more convincing phishing emails that mimic internal enterprise applications, increasing the risk of users being deceived.
 
+**Mitigations**
 
-案例一
-Meta 的 650 亿参数语言模型被泄露
+| Mitigation | Description |
+|------------|-------------|
+| Code encryption protection | Use strong encryption algorithms to encrypt LLM application source code, preventing unauthorized access and leakage |
+| Access control | Restrict access to LLM application source code, ensuring only authorized personnel can view or modify the code |
+| Model monitoring | Monitor model usage to ensure it is not used for malicious purposes |
 
-
-案例二
-OpenAI 旗下的 GPT-4 大量模型架构、训练成本、数据集等大量信息被泄露
-
-**攻击风险**
-
-技术优势丧失：竞争对手可能复制或修改泄露的源码，从而削弱企业的技术竞争优势。
-网络安全威胁：攻击者可以利用泄露的源码来设计针对性的网络攻击，例如通过揭露的漏洞进行系统渗透。
-钓鱼邮件风险：泄露的源码可能被用来创建更具欺骗性的钓鱼邮件，这些邮件模仿企业的内部应用，增加用户上当受骗的风险。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-代码加密保护
-使用强加密算法对LLMs应用程序的源代码进行加密，防止未授权访问和泄露
-
-
-访问权限控制
-限制对LLMs应用程序源代码的访问权限，确保只有经过授权的人员才能够查看或修改代码
-
-
-模型监控
-监控模型的使用情况，确保其不被用于恶意目的
-
-**参考**
+**References**
 
 https://analyticsindiamag.com/metas-llama-leaked-to-the-public-thanks-to-4chan/
 https://knightcolumbia.org/blog/the-llama-is-out-of-the-bag-should-we-expect-a-tidal-wave-of-disinformation

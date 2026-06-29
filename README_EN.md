@@ -630,7 +630,7 @@ Connect with security enthusiasts to share, learn, and grow together.
 | Community Group | Developer Group |
 |:--:|:--:|
 | Join discussions and get the latest product updates and usage tips | Join us for open-source contributions and deep technical discussions |
-| ![Specter Community Group](assets/社区交流群.jpg) | ![Specter Developer Group](assets/Specter开发者群聊.png) |
+| ![Specter Community Group](assets/community-group.jpg) | ![Specter Developer Group](assets/developer-group.png) |
 | **QQ Group: 954402631** | **QQ Group: 1065858551** |
 
 ---

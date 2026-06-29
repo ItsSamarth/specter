@@ -1,6 +1,6 @@
-# CTF Web 快速参考
+# CTF Web Quick Reference
 
-## 常见 flag 位置
+## Common Flag Locations
 
 ### Linux
 ```
@@ -15,20 +15,20 @@
 /srv/flag
 ```
 
-### Docker/环境变量
+### Docker / Environment Variables
 ```
 /proc/self/environ
 /environment
 /.env
 ```
 
-### PHP 特定
+### PHP-Specific
 ```php
-// phpinfo() 中的 flag
-// 查看环境变量段
-// 查看自定义段
+// flag in phpinfo()
+// check environment variable section
+// check custom section
 
-// 常见 flag 文件名
+// Common flag filenames
 flag.php
 flag.txt
 f1ag.php
@@ -37,99 +37,99 @@ fl@g.php
 th1s_1s_flag.php
 ```
 
-## First-Pass 工作流
+## First-Pass Workflow
 
 ```
-1. 访问目标 URL
-   → 查看页面源码（Ctrl+U）
-   → 检查 HTTP 头（Server, X-Powered-By, Set-Cookie）
-   → 检查 Cookie 值（base64/JWT/序列化）
+1. Visit target URL
+   → View page source (Ctrl+U)
+   → Check HTTP headers (Server, X-Powered-By, Set-Cookie)
+   → Check Cookie values (base64/JWT/serialized)
 
-2. 检查隐藏信息
+2. Check hidden information
    → robots.txt
    → .git/HEAD
    → .svn/
-   → backup 文件：index.php.bak, www.zip, .index.php.swp, index.php~
+   → Backup files: index.php.bak, www.zip, .index.php.swp, index.php~
    → DS_Store: .DS_Store
 
-3. 目录扫描
+3. Directory scan
    → /flag, /admin, /login, /upload, /api, /debug
    → /phpinfo.php, /info.php, /test.php
    → /console (Flask Debug), /actuator (Spring Boot)
 
-4. 如有源码 → 代码审计
-   → 参考 php-code-audit-checklist.md
+4. If source available → code audit
+   → See php-code-audit-checklist.md
 
-5. 如无源码 → 主动探测
-   → SQL 注入测试
-   → XSS 测试
-   → 文件上传
-   → SSTI 测试
+5. If no source → active probing
+   → SQL injection testing
+   → XSS testing
+   → File upload
+   → SSTI testing
    → LFI/RFI
 ```
 
-## 快速测试命令
+## Quick Test Commands
 
 ```bash
-# 检查基本信息
-curl -I http://target/              # HTTP 头
+# Check basic info
+curl -I http://target/              # HTTP headers
 curl http://target/robots.txt        # robots
-curl http://target/.git/HEAD         # git 泄露
+curl http://target/.git/HEAD         # git leak
 
-# 常见注入测试
+# Common injection tests
 ' OR 1=1 --                          # SQLi
 {{7*7}}                              # SSTI
 <script>alert(1)</script>            # XSS
 ../../../etc/passwd                  # LFI
 ```
 
-## 常见响应头 Hint
+## Common Response Header Hints
 
-| 响应头 | 含义 | 下一步 |
-|--------|------|--------|
-| `X-Forwarded-For: 127.0.0.1` | 需要本地访问 | 添加 X-Forwarded-For 头 |
-| `Server: nginx/1.x` | 服务器类型 | 搜索已知 CVE |
-| `X-Powered-By: PHP/7.x` | PHP 版本 | PHP 特定漏洞 |
-| `Set-Cookie: role=guest` | 权限控制 | 修改 Cookie |
-| `Hint: xxx` | 直接提示 | 按提示操作 |
-| `Flag: xxx` | 有时直接在头中 | 检查所有响应头 |
+| Header | Meaning | Next step |
+|--------|---------|-----------|
+| `X-Forwarded-For: 127.0.0.1` | Requires local access | Add X-Forwarded-For header |
+| `Server: nginx/1.x` | Server type | Search known CVEs |
+| `X-Powered-By: PHP/7.x` | PHP version | PHP-specific vulnerabilities |
+| `Set-Cookie: role=guest` | Privilege control | Modify Cookie |
+| `Hint: xxx` | Direct hint | Follow the hint |
+| `Flag: xxx` | Sometimes directly in header | Check all response headers |
 
-## 常见链形状
+## Common Chain Shapes
 
-### PHP 简单链
+### PHP Simple Chain
 ```
-URL → 源码 → 发现过滤 → 绕过过滤 → RCE → 读 flag
-```
-
-### PHP 多步链
-```
-入口页面 → 发现 hint → 跟随跳转 → 发现新页面 → 获取源码 → 分析利用 → RCE
+URL → source code → find filter → bypass filter → RCE → read flag
 ```
 
-### 文件包含链
+### PHP Multi-Step Chain
 ```
-LFI → 读源码（php://filter） → 发现包含点 → 日志投毒/Session包含 → RCE
-```
-
-### SQL 注入链
-```
-登录框 → SQLi → 读数据 → 发现管理员密码 → 登录后台 → 上传 Webshell → RCE
+Entry page → find hint → follow redirect → find new page → get source → analyze & exploit → RCE
 ```
 
-### 反序列化链
+### File Inclusion Chain
 ```
-可控的序列化数据 → 分析可用的 Gadgets → 构造利用链 → RCE/SSRF/文件读取
+LFI → read source (php://filter) → find include point → log poisoning/session inclusion → RCE
 ```
 
-## 编码/加密常见线索
+### SQL Injection Chain
+```
+Login form → SQLi → read data → find admin password → login admin panel → upload webshell → RCE
+```
 
-| 特征 | 可能编码 | 解码方法 |
-|------|---------|---------|
-| 末尾有 `=` | Base64 | `crypto_decode base64_decode` |
-| `0-9a-f` 偶数长度 | Hex | `crypto_decode hex_decode` |
-| `%XX` | URL 编码 | `crypto_decode url_decode` |
-| `&#xNN;` | HTML 实体 | `crypto_decode html_decode` |
-| `\uXXXX` | Unicode 转义 | `crypto_decode unicode_decode` |
-| 三段 `.` 分隔 | JWT | `crypto_decode jwt_decode` |
-| 点划线 | Morse | `crypto_decode morse_decode` |
-| 看不懂但像字母 | ROT13/Caesar | `crypto_decode rot13_decode` |
+### Deserialization Chain
+```
+Controllable serialized data → analyze available gadgets → construct exploit chain → RCE/SSRF/file read
+```
+
+## Encoding/Encryption Common Clues
+
+| Characteristic | Likely encoding | Decode method |
+|----------------|----------------|---------------|
+| Ends with `=` | Base64 | `crypto_decode base64_decode` |
+| `0-9a-f` even length | Hex | `crypto_decode hex_decode` |
+| `%XX` | URL encoding | `crypto_decode url_decode` |
+| `&#xNN;` | HTML entity | `crypto_decode html_decode` |
+| `\uXXXX` | Unicode escape | `crypto_decode unicode_decode` |
+| Three `.`-separated sections | JWT | `crypto_decode jwt_decode` |
+| Dots and dashes | Morse | `crypto_decode morse_decode` |
+| Looks like letters but unreadable | ROT13/Caesar | `crypto_decode rot13_decode` |

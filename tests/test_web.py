@@ -148,7 +148,7 @@ class TestWebServices:
         assert preview.constraints["allowed_ports"] == [443]
         assert preview.constraint_violations
         assert preview.constraint_violation_events
-        assert any("回避" in action or "约束" in action for action in preview.next_actions)
+        assert any("Avoid" in action or "constraint" in action.lower() for action in preview.next_actions)
 
         snapshots = store_mod.list_target_snapshots("https://example.com")
         diff = target_service.get_diff(
@@ -580,7 +580,7 @@ class TestWebServices:
 
         saved = manager.get_task(record.task_id)
         assert saved is not None
-        assert saved.status == "completed"
+        assert saved.status == "completed", f"Task failed with error: {saved.error}"
 
     def test_web_config_service_updates_safety_fields(self, monkeypatch):
         import specter.web.services.config_service as config_service
@@ -999,8 +999,8 @@ class TestWebApp:
         )
 
         assert "Fallback Web Shell" in source
-        assert "授权安全测试助手" in source
-        assert "输入目标，确认边界，再开始安全检查" in source
+        assert "Authorized Security Testing" in source
+        assert "Enter target, confirm scope, then start testing" in source
         assert "React 前端仍待后续阶段接入" not in source
         assert "Phase 1 的最小占位控制台" not in source
 

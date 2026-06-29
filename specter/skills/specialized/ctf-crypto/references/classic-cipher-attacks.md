@@ -1,10 +1,10 @@
-# 古典密码攻击
+# Classical Cipher Attacks
 
-## 凯撒密码
+## Caesar Cipher
 
 ```python
 def caesar_break(ciphertext):
-    """遍历所有位移"""
+    """Try all shifts"""
     for shift in range(26):
         result = ""
         for c in ciphertext:
@@ -16,14 +16,14 @@ def caesar_break(ciphertext):
         print(f"Shift {shift}: {result}")
 ```
 
-## Vigenère 密码
+## Vigenère Cipher
 
 ```python
 def vigenere_break(ciphertext, max_keylen=20):
-    """Kasiski + 频率分析破解 Vigenère"""
+    """Break Vigenère with Kasiski + frequency analysis"""
     from collections import Counter
 
-    # 1. Kasiski: 找到重复序列，估算密钥长度
+    # 1. Kasiski: find repeated sequences, estimate key length
     def kasiski(text):
         distances = []
         for length in range(3, 6):
@@ -35,13 +35,13 @@ def vigenere_break(ciphertext, max_keylen=20):
                 seqs[seq] = i
         return distances
 
-    # 2. 重合指数 (IC) 估算密钥长度
+    # 2. Index of Coincidence (IC) to estimate key length
     def ic(text):
         freq = Counter(text.upper())
         n = len(text)
         return sum(f * (f - 1) for f in freq.values()) / (n * (n - 1))
 
-    # 3. 频率分析解单个字母
+    # 3. Frequency analysis to solve each letter
     def solve_char(text, key_char):
         ENGLISH_FREQ = 'ETAOINSHRDLCUMWFGYPBVKJXQZ'
         key_base = ord(key_char.upper()) - ord('A')
@@ -60,17 +60,17 @@ def vigenere_break(ciphertext, max_keylen=20):
         return best_char
 ```
 
-## XOR 多字节加密
+## Multi-byte XOR Encryption
 
 ```python
 def multi_byte_xor_break(ciphertext, max_keylen=16):
-    """多字节 XOR 攻击：汉明距离 + 频率分析"""
+    """Multi-byte XOR attack: Hamming distance + frequency analysis"""
     from collections import Counter
 
     def hamming_distance(b1, b2):
         return sum(bin(a ^ b).count('1') for a, b in zip(b1, b2))
 
-    # 用汉明距离估算密钥长度
+    # Estimate key length using Hamming distance
     best_keylen = 1
     best_score = float('inf')
     for keylen in range(2, max_keylen + 1):
@@ -81,11 +81,11 @@ def multi_byte_xor_break(ciphertext, max_keylen=16):
             best_score = normalized
             best_keylen = keylen
 
-    # 按密钥长度分组，每组做单字节 XOR
+    # Group by key length, then solve each single-byte XOR
     key = b''
     for i in range(best_keylen):
         block = bytes(ciphertext[j] for j in range(i, len(ciphertext), best_keylen))
-        # 频率分析找最佳单字节密钥
+        # Frequency analysis to find best single-byte key
         best = 0
         best_score = 0
         for k in range(256):
@@ -99,32 +99,32 @@ def multi_byte_xor_break(ciphertext, max_keylen=16):
     return key
 ```
 
-## One-Time Pad (OTP) 重用攻击
+## One-Time Pad (OTP) Reuse Attack
 
 ```python
 """
-如果同一个 OTP 密钥被用于加密两条消息：
+If the same OTP key is used to encrypt two messages:
 C1 = P1 XOR key
 C2 = P2 XOR key
 C1 XOR C2 = P1 XOR P2
 
-利用语言冗余性（英文词频）破解
+Exploit language redundancy (English word frequency) to break it
 """
 from collections import Counter
 
 def otp_reuse_attack(c1, c2):
-    """OTP 密钥重用攻击"""
+    """OTP key reuse attack"""
     xor_result = bytes(a ^ b for a, b in zip(c1, c2))
-    # 频率分析恢复明文
+    # Frequency analysis to recover plaintext
 ```
 
-## 栅栏密码
+## Rail Fence Cipher
 
 ```python
 def railfence_break(ciphertext, max_rails=10):
-    """遍历栅栏数解密"""
+    """Try all rail counts to decrypt"""
     for rails in range(2, max_rails + 1):
-        # 重建栅栏结构
+        # Reconstruct the fence structure
         fence = [[] for _ in range(rails)]
         rail = 0
         direction = 1
@@ -133,7 +133,7 @@ def railfence_break(ciphertext, max_rails=10):
             rail += direction
             if rail == 0 or rail == rails - 1:
                 direction = -direction
-        # 逐行读取
+        # Read row by row
         result = ''.join(''.join(row) for row in fence)
         print(f"Rails {rails}: {result}")
 ```

