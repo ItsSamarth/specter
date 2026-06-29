@@ -24,17 +24,17 @@ def _fake_agent(tool_outputs: list[str] | None = None):
 
 def test_flag_evidence_helpers():
     assert solver._extract_flags("got flag{abc} and ctfshow{xyz}") == ["flag{abc}", "ctfshow{xyz}"]
-    # 声称的 flag 不在证据中 → 判定未验证
+    # claimed flag not in evidence → unverified
     assert solver._unverified_flags("flag{fake}", "server said: error") == ["flag{fake}"]
-    # 在证据中 → 视为已验证
+    # in evidence → treated as verified
     assert solver._unverified_flags("flag{real}", "body: flag{real}") == []
-    # flag 目标但证据无 flag → 完成不成立
-    ok, _ = solver._completion_is_grounded("找到 flag", "only status 200")
+    # flag goal but evidence has no flag → completion fails
+    ok, _ = solver._completion_is_grounded("find flag", "only status 200")
     assert ok is False
-    ok2, _ = solver._completion_is_grounded("找到 flag", "leaked flag{x}")
+    ok2, _ = solver._completion_is_grounded("find flag", "leaked flag{x}")
     assert ok2 is True
-    # 非 flag 目标 → 不强制
-    ok3, _ = solver._completion_is_grounded("枚举子域名", "")
+    # non-flag goal → not enforced
+    ok3, _ = solver._completion_is_grounded("enumerate subdomains", "")
     assert ok3 is True
 
 
@@ -51,12 +51,12 @@ async def test_solve_completes_when_reason_signals_goal(monkeypatch):
         calls["reason"] += 1
         if calls["reason"] == 1:
             return {"intents": [{"from": [], "description": "test sqli bypass"}]}
-        return {"complete": "flag{captured} 已验证"}
+        return {"complete": "flag{captured} verified"}
 
     async def fake_explore(agent, board, intent, *, max_tool_rounds, evidence_buffer, stream_sink=None):
-        # 模拟真实工具输出里出现了 flag（证据闸门据此放行）
+        # simulate real tool output containing the flag (evidence gate passes)
         evidence_buffer.append("HTTP 200\n<html>... flag{captured} ...</html>")
-        return True, "sqli 确认，提取到 flag{captured}"
+        return True, "sqli confirmed, extracted flag{captured}"
 
     monkeypatch.setattr(solver, "reason_step", fake_reason)
     monkeypatch.setattr(solver, "explore_step", fake_explore)
@@ -78,7 +78,7 @@ async def test_solve_completes_when_reason_signals_goal(monkeypatch):
 
 
 async def test_solve_completes_immediately_on_verified_flag(monkeypatch):
-    """探索一拿到有真实证据的 flag 就立即完成，不再多跑验证轮。"""
+    """Once exploration finds a flag with real evidence, complete immediately without extra verification rounds."""
     reason_calls = {"n": 0}
 
     async def fake_reason(agent, board, max_intents):
@@ -86,33 +86,33 @@ async def test_solve_completes_immediately_on_verified_flag(monkeypatch):
         return {"intents": [{"from": [], "description": "union inject"}]}
 
     async def fake_explore(agent, board, intent, *, max_tool_rounds, evidence_buffer, stream_sink=None):
-        evidence_buffer.append("欢迎你，flag{real_one}")  # 真实工具输出含 flag
-        return True, "union 注入回显 flag{real_one}"
+        evidence_buffer.append("Welcome, flag{real_one}")  # real tool output contains flag
+        return True, "union injection echoed flag{real_one}"
 
     monkeypatch.setattr(solver, "reason_step", fake_reason)
     monkeypatch.setattr(solver, "explore_step", fake_explore)
 
-    result = await solver.solve(_fake_agent(), origin="t", goal="找到 flag", max_steps=10)
+    result = await solver.solve(_fake_agent(), origin="t", goal="find flag", max_steps=10)
 
     assert result.completed is True
     assert "flag{real_one}" in result.board.complete_reason
-    # 拿到 flag 立即收敛：reason 只被调用一次，不再进入下一轮验证
+    # converge immediately on flag: reason called only once, no extra verification rounds
     assert reason_calls["n"] == 1
 
 
 async def test_solve_rejects_hallucinated_flag(monkeypatch):
-    """结论声称的 flag 不在真实工具输出里 → 判定幻觉、拒绝、不完成。"""
+    """Conclusion claims flag not in real tool output → hallucination detected, rejected, not completed."""
     reason_calls = {"n": 0}
 
     async def fake_reason(agent, board, max_intents):
         reason_calls["n"] += 1
         if reason_calls["n"] == 1:
             return {"intents": [{"from": [], "description": "test sqli"}]}
-        return {}  # 之后不再提出 → 前沿耗尽
+        return {}  # no more proposals → frontier exhausted
 
     async def fake_explore(agent, board, intent, *, max_tool_rounds, evidence_buffer, stream_sink=None):
-        # 不往 evidence_buffer 写 flag —— 模拟模型凭空编造
-        return True, "成功拿到 flag{HALLUCINATED}"
+        # don't write flag to evidence_buffer — simulate hallucination
+        return True, "successfully obtained flag{HALLUCINATED}"
 
     monkeypatch.setattr(solver, "reason_step", fake_reason)
     monkeypatch.setattr(solver, "explore_step", fake_explore)
@@ -121,7 +121,7 @@ async def test_solve_rejects_hallucinated_flag(monkeypatch):
     result = await solver.solve(
         _fake_agent(),
         origin="t",
-        goal="找到 flag",
+        goal="find flag",
         max_steps=10,
         on_event=lambda kind, payload: events.append(kind),
     )
@@ -133,14 +133,14 @@ async def test_solve_rejects_hallucinated_flag(monkeypatch):
 
 
 async def test_solve_rejects_ungrounded_completion(monkeypatch):
-    """目标要 flag，但真实工具输出里从未出现 flag → 拒绝 Reason 的完成声明。"""
+    """Goal requires flag, but flag never appears in real tool output → reject Reason's completion claim."""
     reason_calls = {"n": 0}
 
     async def fake_reason(agent, board, max_intents):
         reason_calls["n"] += 1
         if reason_calls["n"] == 1:
-            return {"complete": "我觉得已经拿到 flag 了"}  # 无任何证据支撑
-        return {}  # 之后不再提出 → 前沿耗尽
+            return {"complete": "I think the flag has been obtained"}  # no evidence backing
+        return {}  # no more proposals → frontier exhausted
 
     async def fake_explore(agent, board, intent, *, max_tool_rounds, evidence_buffer, stream_sink=None):
         return True, "x"
@@ -152,7 +152,7 @@ async def test_solve_rejects_ungrounded_completion(monkeypatch):
     result = await solver.solve(
         _fake_agent(),
         origin="t",
-        goal="找到 flag",
+        goal="find flag",
         max_steps=10,
         on_event=lambda kind, payload: events.append(kind),
     )
@@ -162,19 +162,19 @@ async def test_solve_rejects_ungrounded_completion(monkeypatch):
 
 
 async def test_solve_rejects_negated_completion_claim(monkeypatch):
-    """模型把「未达成」写进 complete 字段 → 绝不能误判达成（复现 i004 误报）。"""
+    """Model writes 'not achieved' in complete field → must never be misclassified as achieved (reproduces i004 false positive)."""
     reason_calls = {"n": 0}
 
     async def fake_reason(agent, board, max_intents):
         reason_calls["n"] += 1
         if reason_calls["n"] == 1:
-            # complete=true 但 reason 是否定结论（应被否定闸门拦截）
+            # complete=true but reason is a negating conclusion (should be caught by negation gate)
             return {
                 "complete": True,
                 "reason": "f001 only confirmed port and fingerprint; not reached the pentest completion standard required by goal",
                 "evidence": ["f001"],
             }
-        return {"complete": False}  # 之后不再提出 → 前沿耗尽
+        return {"complete": False}  # no more proposals → frontier exhausted
 
     async def fake_explore(agent, board, intent, *, max_tool_rounds, evidence_buffer, stream_sink=None):
         return True, "x"
@@ -186,7 +186,7 @@ async def test_solve_rejects_negated_completion_claim(monkeypatch):
     result = await solver.solve(
         _fake_agent(),
         origin="t",
-        goal="渗透分析站点",  # 非 flag 目标，旧逻辑无任何闸门会误判达成
+        goal="pentest analysis of site",  # non-flag goal, old logic had no gate to catch false positive
         max_steps=10,
         on_event=lambda kind, payload: events.append(kind),
     )
@@ -197,10 +197,10 @@ async def test_solve_rejects_negated_completion_claim(monkeypatch):
 
 
 async def test_solve_rejects_completion_without_explicit_bool(monkeypatch):
-    """旧式 {"complete": "<文字>"}（非显式 true）一律按未达成处理。"""
+    """Legacy {"complete": "<text>"} (not explicit true) always treated as not achieved."""
 
     async def fake_reason(agent, board, max_intents):
-        return {"complete": "我认为已经分析完了"}
+        return {"complete": "I think the analysis is complete"}
 
     async def fake_explore(agent, board, intent, *, max_tool_rounds, evidence_buffer, stream_sink=None):
         return True, "x"
@@ -212,7 +212,7 @@ async def test_solve_rejects_completion_without_explicit_bool(monkeypatch):
     result = await solver.solve(
         _fake_agent(),
         origin="t",
-        goal="渗透分析站点",
+        goal="pentest analysis of site",
         max_steps=10,
         on_event=lambda kind, payload: events.append(kind),
     )
@@ -222,12 +222,12 @@ async def test_solve_rejects_completion_without_explicit_bool(monkeypatch):
 
 
 async def test_solve_completes_nonflag_goal_with_evidence(monkeypatch):
-    """非 flag 目标：complete=true + 无否定理由 + 引用真实 fact → 正常达成。"""
+    """Non-flag goal: complete=true + no negation + real fact cited → normal completion."""
 
     async def fake_reason(agent, board, max_intents):
         return {
             "complete": True,
-            "reason": "f001 已确认存在未授权访问接口，目标达成",
+            "reason": "f001 confirmed unauthorized access endpoint exists, goal achieved",
             "evidence": ["f001"],
         }
 
@@ -241,14 +241,14 @@ async def test_solve_completes_nonflag_goal_with_evidence(monkeypatch):
     result = await solver.solve(
         _fake_agent(),
         origin="t",
-        goal="检测未授权访问",
+        goal="detect unauthorized access",
         max_steps=10,
         on_event=lambda kind, payload: events.append(kind),
     )
 
     assert result.completed is True
     assert "completed" in events
-    assert "未授权访问" in result.board.complete_reason
+    assert "unauthorized access" in result.board.complete_reason
 
 
 async def test_solve_stops_when_frontier_exhausted(monkeypatch):
@@ -279,7 +279,7 @@ async def test_solve_abandons_unproductive_intent(monkeypatch):
         return {}  # afterward propose nothing -> frontier exhausts
 
     async def fake_explore(agent, board, intent, *, max_tool_rounds, evidence_buffer, stream_sink=None):
-        return False, "该方向走不通"
+        return False, "this path leads nowhere"
 
     monkeypatch.setattr(solver, "reason_step", fake_reason)
     monkeypatch.setattr(solver, "explore_step", fake_explore)
@@ -289,7 +289,7 @@ async def test_solve_abandons_unproductive_intent(monkeypatch):
     assert result.completed is False
     board = result.board
     assert board.intents[0].status == IntentStatus.ABANDONED
-    assert board.intents[0].note == "该方向走不通"
+    assert board.intents[0].note == "this path leads nowhere"
 
 
 async def test_solve_respects_safety_step_budget(monkeypatch):

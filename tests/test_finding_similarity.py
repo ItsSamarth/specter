@@ -23,15 +23,15 @@ class TestNormalizeText:
         assert normalize_text("") == ""
 
     def test_url_path_standardized(self):
-        # 末尾斜杠去除，scheme/host 归一
+        # trailing slash removed, scheme/host normalized
         out = normalize_text("Found at https://Example.com/api/user/")
         assert "example.com/api/user" in out
         assert "https://" not in out
 
     def test_noise_tags_removed(self):
-        out = normalize_text("[自动] SQL注入 [已确认]")
-        assert "[自动]" not in out
-        assert "[已确认]" not in out
+        out = normalize_text("[auto] SQL injection [confirmed]")
+        assert "[auto]" not in out
+        assert "[confirmed]" not in out
 
 
 # ── text_similarity ──────────────────────────────────────────────────
@@ -52,7 +52,7 @@ class TestTextSimilarity:
 
     def test_partial_overlap(self):
         # {sql, injection, login} vs {sql, injection, search}
-        # 交集 2 / 并集 4 = 0.5
+        # intersection 2 / union 4 = 0.5
         sim = text_similarity("sql injection login", "sql injection search")
         assert abs(sim - 0.5) < 1e-9
 
@@ -69,19 +69,19 @@ class TestUrlSimilarity:
         assert url_similarity(u, u) == 1.0
 
     def test_same_path_different_query_value(self):
-        # 相同 host/path/参数名，仅参数值不同 — 应判定为同一接口（=1.0）
+        # same host/path/param names, only param values differ — should be treated as same endpoint (=1.0)
         a = "https://t.com/api/user?id=1"
         b = "https://t.com/api/user?id=999"
         assert url_similarity(a, b) == 1.0
 
     def test_same_path_different_query_keys(self):
-        # host 同 + path 同 + 参数名不同(0) => 0.3 + 0.4 + 0 = 0.7
+        # same host + same path + different param names(0) => 0.3 + 0.4 + 0 = 0.7
         a = "https://t.com/api/user?id=1"
         b = "https://t.com/api/user?name=bob"
         assert abs(url_similarity(a, b) - 0.7) < 1e-9
 
     def test_different_host(self):
-        # host 不同(0) + path 同 + 无参数(1) => 0 + 0.4 + 0.3 = 0.7
+        # different host(0) + same path + no params(1) => 0 + 0.4 + 0.3 = 0.7
         a = "https://a.com/api/user"
         b = "https://b.com/api/user"
         assert abs(url_similarity(a, b) - 0.7) < 1e-9
@@ -90,7 +90,7 @@ class TestUrlSimilarity:
         assert url_similarity("", "https://t.com/x") == 0.0
 
     def test_non_url_fallback_to_text(self):
-        # 非 URL 回退到文本相似度
+        # non-URL falls back to text similarity
         assert url_similarity("admin panel", "admin panel") == 1.0
 
 
@@ -100,29 +100,28 @@ class TestUrlSimilarity:
 class TestNormalizeVulnType:
     def test_sqli_aliases(self):
         assert normalize_vuln_type("sqli") == "sql_injection"
-        assert normalize_vuln_type("SQL注入") == "sql_injection"
         assert normalize_vuln_type("SQL Injection") == "sql_injection"
         assert normalize_vuln_type("blind sqli") == "sql_injection"
 
     def test_xss_aliases(self):
         assert normalize_vuln_type("xss") == "cross_site_scripting"
-        assert normalize_vuln_type("跨站脚本") == "cross_site_scripting"
+        assert normalize_vuln_type("cross-site scripting") == "cross_site_scripting"
 
     def test_ssrf(self):
         assert normalize_vuln_type("ssrf") == "server_side_request_forgery"
-        assert normalize_vuln_type("服务端请求伪造") == "server_side_request_forgery"
+        assert normalize_vuln_type("server side request forgery") == "server_side_request_forgery"
 
     def test_rce(self):
         assert normalize_vuln_type("rce") == "remote_code_execution"
-        assert normalize_vuln_type("命令执行") == "remote_code_execution"
+        assert normalize_vuln_type("command execution") == "remote_code_execution"
 
     def test_lfi(self):
         assert normalize_vuln_type("lfi") == "local_file_inclusion"
-        assert normalize_vuln_type("文件包含") == "local_file_inclusion"
+        assert normalize_vuln_type("file inclusion") == "local_file_inclusion"
 
     def test_idor(self):
         assert normalize_vuln_type("idor") == "insecure_direct_object_reference"
-        assert normalize_vuln_type("越权") == "insecure_direct_object_reference"
+        assert normalize_vuln_type("broken access control") == "insecure_direct_object_reference"
 
     def test_unknown_falls_back(self):
         assert normalize_vuln_type("Weird Custom Type") == "weird_custom_type"
@@ -153,11 +152,10 @@ class TestFindingSimilarity:
             description="login form vulnerable at https://t.com/api/login?u=1",
         )
         b = _mk(
-            "登录处 SQL 注入",
-            vuln_type="SQL注入",
-            description="https://t.com/api/login?u=2 注入漏洞",
+            "SQL Injection at login endpoint",
+            vuln_type="sql injection",
+            description="https://t.com/api/login?u=2 injection vulnerability",
         )
-        # 类型归一化匹配 0.8*0.3 + URL 同接口 1.0*0.4 + 描述部分重叠
         assert finding_similarity(a, b) >= 0.6
 
     def test_different_vuln_types_low(self):
@@ -193,9 +191,9 @@ class TestDeduplicateFindings:
                 description="https://t.com/api/login?u=1 vulnerable",
             ),
             _mk(
-                "登录处 SQL 注入",
-                vuln_type="SQL注入",
-                description="https://t.com/api/login?u=2 注入",
+                "SQL Injection at login endpoint",
+                vuln_type="sql injection",
+                description="https://t.com/api/login?u=2 injection",
             ),
         ]
         result = deduplicate_findings(findings, threshold=0.6)
@@ -249,13 +247,13 @@ class TestSessionStateIntegration:
             description="https://t.com/api/login?u=1 vulnerable",
         )
         f2 = _mk(
-            "登录处 SQL 注入",
-            vuln_type="SQL注入",
-            description="https://t.com/api/login?u=2 注入",
+            "SQL Injection at login endpoint",
+            vuln_type="sql injection",
+            description="https://t.com/api/login?u=2 injection",
         )
         state.semantic_dedup_threshold = 0.6
         assert state.add_finding(f1) is True
-        # 语义重复，应被拒绝（返回 False），findings 仍只有 1 个
+        # semantic duplicate — should be rejected (returns False), findings stays at 1
         assert state.add_finding(f2) is False
         assert len(state.findings) == 1
 

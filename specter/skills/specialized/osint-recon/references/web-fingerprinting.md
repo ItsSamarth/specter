@@ -89,7 +89,7 @@ def detect_framework(html):
 | AWS WAF | `x-amz-request-id`, `x-amz-cf-id` | 403 |
 | Alibaba Cloud WAF | Cookie contains `acw_tc` | 405/403 |
 | Tencent Cloud WAF | Specific JSON block page | 403 |
-| aaPanel WAF | Block page contains "宝塔" | 403 |
+| aaPanel WAF | Block page contains "aaPanel" / "BT Panel" | 403 |
 | SafeDog | Block page contains "safedog" | 403/404 |
 | ModSecurity | Specific 403 + Server header | 403 |
 | Nginx WAF | `HTTP/1.1 444` or special 403 | 444/403 |

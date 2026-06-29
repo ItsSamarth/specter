@@ -45,7 +45,7 @@ class _FakeClient:
         return self._router("POST", url, None, content)
 
 
-# ── JS 提取（纯函数）────────────────────────────────────────────────
+# ── JS extraction (pure functions) ────────────────────────────────────────────────
 
 
 def test_extract_from_js_pulls_paths_domains_secrets():
@@ -65,7 +65,7 @@ def test_extract_from_js_pulls_paths_domains_secrets():
 
 
 def test_extract_from_js_infers_rest_crud_from_base_and_entity():
-    """base path + entity name → CRUD 动词推断（修复 User/list、Org/list 漏判）。"""
+    """base path + entity name → CRUD verb inference (fixes User/list, Org/list missed cases)."""
     content = """
         var baseUrl = "/jalis/rest";
         var smBase = "/smweb/rest";
@@ -81,7 +81,7 @@ def test_extract_from_js_infers_rest_crud_from_base_and_entity():
 
 
 def test_extract_from_js_discovers_dynamic_entities():
-    """PascalCase 实体名动态提取——不依赖硬编码实体列表。"""
+    """Dynamic PascalCase entity name extraction — no hardcoded entity list."""
     content = """
         var base = "/smweb/rest";
         url: "AppRoleService";
@@ -96,20 +96,20 @@ def test_extract_from_js_discovers_dynamic_entities():
 
 
 def test_extract_from_js_captures_short_fragments():
-    """不以 / 开头的 REST 片段（如 "User/list"）也要提取。"""
+    """REST fragments not starting with / (e.g. "User/list") are also extracted."""
     content = """$.post(baseUrl + "User/list", data);"""
     out = recon_tools.extract_from_js(content)
     assert any("User/list" in p for p in out["paths"])
 
 
 def test_extract_from_js_captures_framework_verb_variants():
-    """listForLayUI / getAllByType 等框架变体也匹配。"""
+    """Framework verb variants like listForLayUI / getAllByType are also matched."""
     content = """$.post(base + "Article/listForLayUI", data);"""
     out = recon_tools.extract_from_js(content)
     assert any("Article/listForLayUI" in p for p in out["paths"])
 
 
-# ── 空间测绘：查询构造 + 解析 ───────────────────────────────────────
+# ── Space mapping: query construction + parsing ───────────────────────────────────────
 
 
 async def test_space_search_fofa_builds_b64_query_and_parses(monkeypatch):
@@ -162,12 +162,12 @@ async def test_space_search_quake_uses_token_header_and_post(monkeypatch):
     assert "9.9.9.9" in res
 
 
-# ── 目录枚举：全局伪装 200 识别 ─────────────────────────────────────
+# ── Directory enumeration: global fake-200 detection ─────────────────────────────────────
 
 
 async def test_dir_enum_aborts_on_global_200(monkeypatch):
     def router(method, url, params, content):
-        # 任何路径都返回 200 → 伪装
+        # every path returns 200 → fake-200 camouflage
         return _Resp(text="ok", status=200)
 
     monkeypatch.setattr(recon_tools, "_make_client", lambda cfg: _FakeClient(router))
@@ -204,7 +204,7 @@ async def test_dir_enum_respects_host_constraint(monkeypatch):
     assert "constraint_violation" in res
 
 
-# ── 子域名枚举：被动聚合 + 字典爆破关闭时不解析 ─────────────────────
+# ── Subdomain enumeration: passive aggregation + skip bruteforce when disabled ─────────────────────
 
 
 async def test_unauth_classify():
@@ -224,7 +224,7 @@ async def test_unauth_test_skips_destructive_and_flags_data(monkeypatch):
         if url.endswith("/api/user/list"):
             return _Resp(json_data=None, text='{"data":[{"uid":1}]}', status=200)
         if url.endswith("/api/user/profile"):
-            return _Resp(text="<html>请登录</html>", status=200)
+            return _Resp(text="<html>Please login</html>", status=200)
         return _Resp(text="nope", status=404)
 
     monkeypatch.setattr(recon_tools, "_make_client", lambda cfg: _FakeClient(router))

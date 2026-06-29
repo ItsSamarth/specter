@@ -50,39 +50,39 @@ def test_reflexion_disabled_keeps_legacy_same_path_warning(tmp_path):
 
 
 def test_reflexion_memory_persists_across_cycles(tmp_path):
-    """P2-7: persistent 跨周期保留失败记忆，但重置本周期 stuck 计数。"""
+    """P2-7: persistent cycle retains failure memory across cycles but resets stuck counters."""
     agent = _make_agent(tmp_path, reflexion_enabled=True)
 
-    # 周期 1：累积同类失败
+    # cycle 1: accumulate same-category failures
     rx = agent.runtime.reflexion
     for _ in range(2):
         rx.record_attempt(
             path="sqli",
             success=False,
             category=FailureCategory.ENV_CONSTRAINT,
-            details="WAF 拦截",
+            details="WAF blocked",
             vuln_type="sqli",
         )
     assert rx.state.consecutive_failures == 2
     assert rx.state.vuln_type_fail_count == 2
 
-    # 周期 1 结束：写回快照
+    # end of cycle 1: write snapshot
     agent._save_reflexion_snapshot()
     assert agent.context.state.reflexion_snapshot
 
-    # 周期 2 边界：重建 runtime 并恢复记忆
-    agent._reset_runtime_state(user_input="[Persistent Cycle 2] 继续渗透")
+    # cycle 2 boundary: rebuild runtime and restore memory
+    agent._reset_runtime_state(user_input="[Persistent Cycle 2] continue pentest")
     rx2 = agent.runtime.reflexion
 
-    # 记忆保留：失败路径可见
+    # memory retained: failed paths still visible
     assert "sqli" in rx2.get_failed_paths()
-    # 本周期 stuck 计数重置，卡住检测重新开始
+    # per-cycle stuck counters reset, stall detection restarts
     assert rx2.state.consecutive_failures == 0
     assert rx2.state.vuln_type_fail_count == 0
 
 
 def test_reflexion_snapshot_skipped_when_disabled(tmp_path):
-    """reflexion_enabled=False 时不写/不恢复快照。"""
+    """When reflexion_enabled=False, snapshots are not written or restored."""
     agent = _make_agent(tmp_path, reflexion_enabled=False)
     agent.runtime.reflexion.record_attempt(path="sqli", success=False, vuln_type="sqli")
     agent._save_reflexion_snapshot()

@@ -186,7 +186,7 @@ r = requests.get(f"{target}/aspnet_client/") # ASP.NET signature
 - MSSQL: `Microsoft SQL Server`
 - Oracle: `ORA-01756`
 
-### python_execute 检测
+### python_execute Detection
 ```python
 import socket
 

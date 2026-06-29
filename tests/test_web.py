@@ -568,7 +568,7 @@ class TestWebServices:
             task_service,
             "_build_prompt_v2",
             lambda request: (
-                "Perform authorized reconnaissance against https://example.com. 仅做信息收集。"
+                "Perform authorized reconnaissance against https://example.com. recon only."
             ),
         )
 
@@ -915,8 +915,8 @@ class TestWebApp:
         assert "onOpenReports(generatedReport.path)" in risk_source
         assert "useQueryClient" in risk_source
         assert 'queryKey: ["reports"]' in risk_source
-        assert "原始 JSON" not in risk_source
-        assert "原始 Target State" not in risk_source
+        assert "Raw JSON" not in risk_source
+        assert "Raw Target State" not in risk_source
         assert "taskOptionsToConstraints" in boundary_source
         assert "boundary-empty-state" in boundary_source
         assert "boundary.set_scope_home" in boundary_source
@@ -1001,8 +1001,8 @@ class TestWebApp:
         assert "Fallback Web Shell" in source
         assert "Authorized Security Testing" in source
         assert "Enter target, confirm scope, then start testing" in source
-        assert "React 前端仍待后续阶段接入" not in source
-        assert "Phase 1 的最小占位控制台" not in source
+        assert "React frontend pending" not in source
+        assert "Phase 1 minimal placeholder" not in source
 
     def test_cli_web_dry_run(self):
         from specter.cli.main import app

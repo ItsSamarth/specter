@@ -1,133 +1,133 @@
-# 密码学攻击手法
+# Cryptographic Attack Techniques
 
-## 1. 哈希攻击
+## 1. Hash Attacks
 
-### 彩虹表查询
-- crackstation.net — 免费，支持 MD5/SHA1/SHA256
-- cmd5.com — 中文，覆盖广泛
-- hashes.org — 社区维护
+### Rainbow Table Lookup
+- crackstation.net — free, supports MD5/SHA1/SHA256
+- cmd5.com — broad coverage
+- hashes.org — community maintained
 
-### 哈希长度扩展攻击
-- 适用：MD5, SHA1, SHA256 等基于 Merkle-Damgård 的哈希
-- 条件：知道 `H(message)` 和 `len(message)`，不知道 message 本身
-- 工具：hashpump, hash_extender
-- 场景：API 签名验证绕过
+### Hash Length Extension Attack
+- Applies to: MD5, SHA1, SHA256, and other Merkle-Damgård-based hashes
+- Condition: know `H(message)` and `len(message)`, without knowing message itself
+- Tools: hashpump, hash_extender
+- Scenario: API signature verification bypass
 
-### 哈希碰撞
-- MD5：fastcoll, HashClash
-- SHA1：SHAttered (理论可行)
-- 场景：文件完整性绕过、证书伪造
+### Hash Collision
+- MD5: fastcoll, HashClash
+- SHA1: SHAttered (theoretically feasible)
+- Scenario: file integrity bypass, certificate forgery
 
-## 2. 对称加密攻击
+## 2. Symmetric Encryption Attacks
 
-### ECB 模式攻击
-- 相同明文块 → 相同密文块
-- 可通过重排密文块重排明文
-- 可识别重复模式（如用户角色字段）
+### ECB Mode Attack
+- Identical plaintext blocks → identical ciphertext blocks
+- Can rearrange plaintext by rearranging ciphertext blocks
+- Can identify repeated patterns (e.g. user role fields)
 
-### CBC 字节翻转攻击
-- 修改 IV 或前一块密文即可翻转下一块明文的对应字节
-- 公式：`P[i] = D(C[i]) XOR C[i-1]`
-- 修改 `C[i-1][j]` → `P[i][j]` 翻转
-- 场景：修改加密的用户ID、角色字段
+### CBC Byte-Flipping Attack
+- Modifying the IV or previous ciphertext block flips corresponding bytes in the next plaintext block
+- Formula: `P[i] = D(C[i]) XOR C[i-1]`
+- Modify `C[i-1][j]` → flip `P[i][j]`
+- Scenario: modify encrypted user ID, role fields
 
-### Padding Oracle 攻击
-- 条件：服务端返回 padding 是否正确
-- 逐字节恢复明文，无需密钥
-- 工具：padbuster, padding-oracle-attacker
-- 场景：ASP.NET、Java 序列化 token
+### Padding Oracle Attack
+- Condition: server reveals whether padding is correct
+- Recover plaintext byte by byte without the key
+- Tools: padbuster, padding-oracle-attacker
+- Scenario: ASP.NET, Java serialized tokens
 
-### IV 重用攻击
-- CBC 模式下相同 IV + 相同 Key → 信息泄露
-- 可推断明文是否相同
+### IV Reuse Attack
+- CBC mode with same IV + same Key → information leakage
+- Can infer whether plaintext is identical
 
-## 3. RSA 攻击
+## 3. RSA Attacks
 
-### 小公钥指数攻击
-- e=3 时，如果明文 m^3 < n，直接开立方根恢复
-- 低加密指数广播攻击：同一明文用相同 e 不同 n 加密
+### Small Public Exponent Attack
+- When e=3, if m^3 < n, recover plaintext by taking cube root directly
+- Low-exponent broadcast attack: same plaintext encrypted with same e but different n values
 
-### 共模攻击
-- 同一明文用相同 n 不同 e 加密
-- 通过扩展欧几里得算法恢复明文
+### Common Modulus Attack
+- Same plaintext encrypted with same n but different e values
+- Recover plaintext using extended Euclidean algorithm
 
-### Wiener 攻击
-- d < n^0.25 时可分解 n
-- 适用于小私钥指数场景
+### Wiener's Attack
+- When d < n^0.25, factor n
+- Applies to small private exponent scenarios
 
-### Fermat 分解
-- p 和 q 相近时可快速分解 n
-- 适用于弱密钥生成
+### Fermat's Factorization
+- When p and q are close, quickly factor n
+- Applies to weak key generation
 
-### 已知密钥文件
-- 从 .pem/.der 文件中提取参数
-- openssl rsa -text -noout -in key.pem
+### Known Key File
+- Extract parameters from .pem/.der files
+- `openssl rsa -text -noout -in key.pem`
 
-## 4. 古典密码攻击
+## 4. Classical Cipher Attacks
 
-### Caesar 暴力
-- 仅 25 种可能，直接遍历
-- 配合词频分析选择最可能的结果
+### Caesar Brute Force
+- Only 25 possibilities, enumerate directly
+- Use frequency analysis to select most likely result
 
-### Vigenere 分析
-- Kasiski 测试确定密钥长度
-- 重合指数法验证密钥长度
-- 确定长度后每列做 Caesar 破解
+### Vigenère Analysis
+- Kasiski test to determine key length
+- Index of coincidence to verify key length
+- After determining length, solve each column as Caesar cipher
 
-### 栅栏密码
-- 常见栏数：2-8
-- 遍历所有可能的栏数
-- 检查结果是否有意义
+### Rail Fence Cipher
+- Common rail counts: 2–8
+- Enumerate all possible rail counts
+- Check whether result is meaningful
 
-### 培根密码
-- 两种字体/样式 → A/B 编码
-- 每5个字符解码一个字母
+### Bacon's Cipher
+- Two fonts/styles → A/B encoding
+- Every 5 characters decodes one letter
 
-## 5. JWT 攻击
+## 5. JWT Attacks
 
-### none 算法绕过
+### None Algorithm Bypass
 ```json
 {"alg": "none", "typ": "JWT"}
 ```
-- 将算法改为 none
-- 移除签名部分
-- 某些实现会接受无签名的 token
+- Change algorithm to none
+- Remove the signature portion
+- Some implementations accept unsigned tokens
 
-### RS256 → HS256 算法混淆
-- 将算法从 RS256 改为 HS256
-- 用公钥作为 HMAC 密钥签名
-- 如果服务端用公钥验证 HS256 签名 → 绕过
+### RS256 → HS256 Algorithm Confusion
+- Change algorithm from RS256 to HS256
+- Sign with public key as HMAC key
+- If server verifies HS256 signature with public key → bypass
 
-### 弱密钥爆破
+### Weak Key Brute Force
 - jwt-tool, jwt-cracker
-- 常见弱密钥：secret, password, 123456 等
+- Common weak keys: secret, password, 123456, etc.
 
-### JWK / jku 注入
-- 在 Header 中嵌入公钥（jwk 字段）
-- 或指向攻击者控制的 jku URL
-- 如果服务端信任 Header 中的密钥 → 伪造
+### JWK / jku Injection
+- Embed public key in header (jwk field)
+- Or point to attacker-controlled jku URL
+- If server trusts the key in the header → forgery
 
-## 6. 编码链攻击模式
+## 6. Encoding Chain Attack Patterns
 
-### WAF 绕过编码
-- 双重 URL 编码：`%2527` → `%27` → `'`
-- Unicode 标准化：`％27` → `'`（全角变半角）
-- HTML 实体：`&#39;` → `'`
-- Base64 编码注入参数
+### WAF Bypass Encoding
+- Double URL encoding: `%2527` → `%27` → `'`
+- Unicode normalization: `％27` → `'` (full-width to half-width)
+- HTML entity: `&#39;` → `'`
+- Base64-encode injection parameters
 
-### 反序列化中的编码
-- PHP: base64 编码的序列化对象
-- Java: Base64 编码的序列化字节流
+### Encoding in Deserialization
+- PHP: base64-encoded serialized objects
+- Java: Base64-encoded serialized byte stream
 - Python: base64 pickle payloads
 
-## 7. 工具速查
+## 7. Tool Quick Reference
 
-| 场景 | 工具 |
-|------|------|
-| 通用编解码 | CyberChef |
-| 哈希破解 | hashcat, john |
-| RSA 分析 | RsaCtfTool |
-| JWT 分析 | jwt-tool |
+| Scenario | Tool |
+|----------|------|
+| General encode/decode | CyberChef |
+| Hash cracking | hashcat, john |
+| RSA analysis | RsaCtfTool |
+| JWT analysis | jwt-tool |
 | Padding Oracle | padbuster |
-| 哈希扩展 | hashpump |
-| 在线解码 | base64decode.org, cyberchef.org |
+| Hash extension | hashpump |
+| Online decode | base64decode.org, cyberchef.org |

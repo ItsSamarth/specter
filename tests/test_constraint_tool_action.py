@@ -1,4 +1,4 @@
-"""Issue #45 回归：recon/scan 模式不应误拦正常的侦察/扫描工具调用。"""
+"""Issue #45 regression: recon/scan mode should not mistakenly block normal recon/scan tool calls."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ def _scope_recon_scan() -> TaskConstraints:
 
 
 def test_options_and_post_are_not_exploit():
-    # 方法本身不代表利用：OPTIONS 属侦察、POST 属扫描
+    # method alone doesn't imply exploitation: OPTIONS is recon, POST is scanning
     assert infer_tool_action("fetch", {"url": "http://t/", "method": "OPTIONS"}) == "recon"
     assert infer_tool_action("fetch", {"url": "http://t/login", "method": "POST", "body": "a=1"}) == "scan"
 
@@ -23,7 +23,7 @@ def test_requests_in_python_is_scan_not_exploit():
 
 def test_local_meta_tools_are_exempt_from_scope():
     scope = _scope_recon_scan()
-    # 加载技能文档 / 编解码不触碰目标，任何范围下都不应被拦
+    # loading skill docs / encoding-decoding doesn't touch the target; should never be blocked
     assert validate_tool_action("load_skill_reference", {"skill_name": "x", "reference_name": "y"}, scope) is None
     assert validate_tool_action("crypto_decode", {"operation": "base64_decode", "input": "eA=="}, scope) is None
 

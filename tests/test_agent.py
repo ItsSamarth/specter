@@ -86,7 +86,7 @@ class TestSessionState:
         state = SessionState()
         state.add_finding(VulnerabilityFinding(title="XSS", severity="High"))
         assert len(state.findings) == 1
-        # High severity without evidence gets [未验证] prefix in model_post_init
+        # High severity without evidence gets [unverified] prefix in model_post_init
         assert "XSS" in state.findings[0].title
 
     def test_add_step(self):
@@ -132,7 +132,7 @@ class TestSessionState:
         assert loaded.target == "192.168.1.100"
         assert loaded.phase == PentestPhase.RECON
         assert len(loaded.findings) == 1
-        # Critical severity without evidence gets [未验证] prefix
+        # Critical severity without evidence gets [unverified] prefix
         assert "SQLi" in loaded.findings[0].title
         assert loaded.reasoning.facts[0].value == "port 80 open"
 
@@ -620,9 +620,9 @@ class TestPromptBuilder:
     def test_prompt_with_skill_context(self):
         from specter.agent.prompts import build_system_prompt
 
-        prompt = build_system_prompt(skill_context="这是逆向分析的 Skill 上下文")
-        assert "逆向分析" in prompt
-        assert "Skill 上下文" in prompt
+        prompt = build_system_prompt(skill_context="This is the reverse engineering Skill context")
+        assert "reverse engineering" in prompt
+        assert "Skill context" in prompt
 
     def test_prompt_with_mcp_tools(self):
         from specter.agent.prompts import build_system_prompt
@@ -685,7 +685,7 @@ class TestAgentCore:
         from specter.agent.context import PentestPhase
 
         agent = self._make_agent()
-        assert agent._detect_phase("扫描 192.168.1.100 的端口") == PentestPhase.RECON
+        assert agent._detect_phase("scan 192.168.1.100 ports") == PentestPhase.RECON
         assert agent._detect_phase("information gathering recon") == PentestPhase.RECON
         assert agent._detect_phase("recon") == PentestPhase.RECON
 
@@ -702,9 +702,7 @@ class TestAgentCore:
         agent = self._make_agent()
         assert agent._detect_phase("exploit") == PentestPhase.EXPLOITATION
         assert agent._detect_phase("exploit rce getshell") == PentestPhase.EXPLOITATION
-        # Note: "利用漏洞" matches VULN_DISCOVERY because "漏洞" appears first in the scan
-        # This is a known limitation — more specific keywords should win
-        assert agent._detect_phase("poc验证") == PentestPhase.EXPLOITATION
+        assert agent._detect_phase("poc verify") == PentestPhase.EXPLOITATION
 
     def test_phase_detection_post(self):
         from specter.agent.context import PentestPhase
@@ -722,30 +720,30 @@ class TestAgentCore:
     def test_phase_detection_with_ip(self):
         agent = self._make_agent()
         # IP without any keyword should default to recon
-        phase = agent._detect_phase("10.0.0.1 有什么服务")
+        phase = agent._detect_phase("10.0.0.1 what services")
         assert phase is not None
 
     def test_phase_detection_none(self):
         agent = self._make_agent()
-        phase = agent._detect_phase("今天天气怎么样")
+        phase = agent._detect_phase("what is the weather today")
         assert phase is None
 
     def test_target_detection_ip(self):
         agent = self._make_agent()
-        assert agent._detect_target("对 192.168.1.100 进行渗透测试") == "192.168.1.100"
+        assert agent._detect_target("pentest 192.168.1.100") == "192.168.1.100"
 
     def test_target_detection_url(self):
         agent = self._make_agent()
-        assert agent._detect_target("测试 https://example.com") == "https://example.com"
+        assert agent._detect_target("test https://example.com") == "https://example.com"
 
     def test_target_detection_domain(self):
         agent = self._make_agent()
-        target = agent._detect_target("扫描 testsite.com")
+        target = agent._detect_target("scan testsite.com")
         assert target == "testsite.com"
 
     def test_target_detection_none(self):
         agent = self._make_agent()
-        assert agent._detect_target("没有目标的输入") is None
+        assert agent._detect_target("no target in this input") is None
 
     def test_skill_context_no_input(self):
         """Without user_input, should fallback to pentest-flow."""
@@ -757,16 +755,16 @@ class TestAgentCore:
     def test_skill_context_with_input(self):
         """With user_input, should dispatch to the right Skill."""
         agent = self._make_agent()
-        context = agent._get_active_skill_context(user_input="测试SQL注入")
+        context = agent._get_active_skill_context(user_input="test SQL injection")
         assert context is not None
         # Should match web-security-advanced
-        assert "注入" in context or "SQL" in context
+        assert "SQL" in context
 
     def test_skill_context_reverse(self):
         agent = self._make_agent()
-        context = agent._get_active_skill_context(user_input="对这个APP做逆向分析")
+        context = agent._get_active_skill_context(user_input="reverse analysis of this app")
         assert context is not None
-        assert "逆向" in context or "reverse" in context.lower()
+        assert "reverse" in context.lower()
 
     def test_build_openai_tools_includes_skill_ref(self):
         """Tools should include load_skill_reference."""
@@ -777,14 +775,14 @@ class TestAgentCore:
 
     def test_build_system_prompt(self):
         agent = self._make_agent()
-        prompt = agent._build_system_prompt(target="10.0.0.1", user_input="扫描端口")
+        prompt = agent._build_system_prompt(target="10.0.0.1", user_input="scan ports")
         assert "10.0.0.1" in prompt
         assert "Specter" in prompt
 
     def test_build_system_prompt_auto_mode(self):
         agent = self._make_agent()
         prompt = agent._build_system_prompt(
-            target="10.0.0.1", auto_mode=True, user_input="渗透测试"
+            target="10.0.0.1", auto_mode=True, user_input="pentest"
         )
         assert "autonomous pentest" in prompt
 
@@ -797,14 +795,14 @@ class TestAgentCore:
             "personnel": False,
         }
         agent.context.state.recon_dimension4_active = True
-        agent.context.state.notes = ["python_execute 里出现 github.com 和 twitter.com 字符串"]
-        agent.context.state.executed_steps = ["写了一个匹配 github/twitter 链接的脚本"]
+        agent.context.state.notes = ["github.com and twitter.com found in python_execute output"]
+        agent.context.state.executed_steps = ["wrote a script to match github/twitter links"]
 
-        agent._update_recon_dimension_completion("LLM 提到 github 但没有真实结果")
+        agent._update_recon_dimension_completion("LLM mentioned github but no real results")
         assert agent.context.state.recon_dimensions_completed["personnel"] is False
 
         agent.context.state.add_confirmed_fact("github_id=12345 followers=10 public_repos=3")
-        agent._update_recon_dimension_completion("工具结果确认了 GitHub 账号")
+        agent._update_recon_dimension_completion("tool result confirmed GitHub account")
         assert agent.context.state.recon_dimensions_completed["personnel"] is True
 
     def test_recon_non_personnel_dimension_can_use_notes_and_steps(self):
@@ -816,10 +814,10 @@ class TestAgentCore:
             "personnel": False,
         }
         agent.context.state.recon_dimension4_active = False
-        agent.context.state.notes = ["发现开放端口 80 和 443，运行 nginx 服务"]
-        agent.context.state.executed_steps = ["执行了 nmap 端口扫描"]
+        agent.context.state.notes = ["found open ports 80 and 443 running nginx"]
+        agent.context.state.executed_steps = ["ran nmap port scan"]
 
-        agent._update_recon_dimension_completion("端口扫描已完成")
+        agent._update_recon_dimension_completion("port scan completed")
         assert agent.context.state.recon_dimensions_completed["server"] is True
 
     def test_trim_summary_uses_system_role(self):
@@ -828,9 +826,9 @@ class TestAgentCore:
         cm = ContextManager(max_history=5)
         for i in range(8):
             if i % 2 == 0:
-                cm.add_user_message(f"用户消息 {i}")
+                cm.add_user_message(f"user message {i}")
             else:
-                cm.add_assistant_message(f"[+] 发现端口 {i}")
+                cm.add_assistant_message(f"[+] found port {i}")
 
         messages = cm.get_messages()
         assert len(messages) <= 5
@@ -841,7 +839,7 @@ class TestAgentCore:
         agent = self._make_agent()
         assert agent._is_completion_signal("[DONE]") is True
         assert agent._is_completion_signal("penetration test complete") is True
-        assert agent._is_completion_signal("继续扫描") is False
+        assert agent._is_completion_signal("continue scanning") is False
 
     def test_parse_findings(self):
         agent = self._make_agent()
@@ -1003,7 +1001,7 @@ class TestAgentCore:
         from specter.agent.input_analysis import extract_task_constraints
 
         # The period after .com is sentence punctuation, not part of the URL
-        constraints = extract_task_constraints("对 http://example.com. 进行渗透测试")
+        constraints = extract_task_constraints("pentest http://example.com.")
         assert "example.com" in constraints.allowed_hosts
         # Must NOT contain trailing dot - urlparse().hostname never returns trailing dots
         assert all(not h.endswith(".") for h in constraints.allowed_hosts)
@@ -1120,7 +1118,7 @@ class TestAgentCore:
         )
 
         agent._reset_runtime_state(
-            user_input="[Persistent Cycle 2] 继续对目标 https://example.com 进行渗透测试。",
+            user_input="[Persistent Cycle 2] continue pentesting target https://example.com.",
             detected_phase=PentestPhase.RECON,
         )
 
@@ -1317,7 +1315,7 @@ class TestAgentCoreLoop:
                     raise RuntimeError("connection error")
 
                 class Msg:
-                    content = "恢复成功"
+                    content = "recovered successfully"
                     tool_calls = None
 
                 class Choice:
@@ -1377,7 +1375,7 @@ class TestAgentCoreLoop:
         monkeypatch.setattr(llm_client.asyncio, "sleep", no_sleep)
         result = await llm_client.call_llm_auto(dummy, "sys", "round")
         assert "LLM recovered" in result
-        assert "恢复成功" in result
+        assert "recovered successfully" in result
         assert loop.calls == 3
 
     @pytest.mark.asyncio
@@ -1638,7 +1636,7 @@ class TestAgentCoreLoop:
 
         result = await llm_client.call_llm_auto(DummyAgent(), "sys", "round")
         assert result == "followup ok"
-        # call_llm_auto 不再自己写入上下文，由 caller（loop_controller L55）统一添加
+        # call_llm_auto no longer writes to context itself; caller (loop_controller) does it
         assert saved_messages == []
 
     @pytest.mark.asyncio
@@ -1647,7 +1645,7 @@ class TestAgentCoreLoop:
         from specter.agent import loop_controller
 
         async def _fake_call_llm_auto(agent_obj, system_prompt, round_context, **kwargs):
-            return "本轮未发现新漏洞，准备总结。\n[DONE]"
+            return "No new vulnerabilities found this round, preparing summary.\n[DONE]"
 
         monkeypatch.setattr(loop_controller, "call_llm_auto", _fake_call_llm_auto)
         # Use input that skips recon (so RECON_MIN_ROUNDS doesn't block [DONE])
@@ -1662,9 +1660,9 @@ class TestAgentCoreLoop:
         from specter.agent import loop_controller
 
         round_responses = [
-            "发现可疑文件，尝试读取。\nflag{test123}",
-            "验证 flag{test123} 正确，flag 获取成功！",
-            "总结：成功获取 flag{test123}，任务完成。\n[DONE]",
+            "Found suspicious file, attempting to read.\nflag{test123}",
+            "Verified flag{test123} is correct, flag obtained!",
+            "Summary: successfully obtained flag{test123}, task complete.\n[DONE]",
         ]
         call_idx = 0
 
@@ -1675,7 +1673,7 @@ class TestAgentCoreLoop:
             return text
 
         monkeypatch.setattr(loop_controller, "call_llm_auto", _fake_call_llm_auto)
-        results = await agent.auto_pentest("NSSCTF 解题找 flag", max_rounds=10)
+        results = await agent.auto_pentest("find flag on NSSCTF challenge", max_rounds=10)
 
         # Should claim flag on round 1
         assert agent.runtime.claimed_flag == "flag{test123}"
@@ -1692,10 +1690,10 @@ class TestAgentCoreLoop:
 
         async def _fake_call_llm_auto(agent_obj, system_prompt, round_context, **kwargs):
             # Same wording every round, with an attack-path keyword
-            return "尝试 sql注入测试，使用 UNION SELECT，未成功。"
+            return "tried SQL injection using UNION SELECT, unsuccessful."
 
         monkeypatch.setattr(loop_controller, "call_llm_auto", _fake_call_llm_auto)
-        results = await agent.auto_pentest("扫描 example.com 的 SQL注入漏洞", max_rounds=5)
+        results = await agent.auto_pentest("test SQL injection vulnerabilities on example.com", max_rounds=5)
 
         # Same path repeated without progress → counter increases
         assert agent.runtime.same_path_fail_count >= 3
@@ -1709,11 +1707,11 @@ class TestAgentCoreLoop:
         from specter.agent import loop_controller
 
         async def _fake_call_llm_auto(agent_obj, system_prompt, round_context, **kwargs):
-            return "信息收集完成，切换到漏洞利用。\nphase: exploitation"
+            return "Recon complete, switching to exploitation.\nphase: exploitation"
 
         monkeypatch.setattr(loop_controller, "call_llm_auto", _fake_call_llm_auto)
         results = await agent.auto_pentest(
-            "对 https://example.com 做信息收集。 Only allowed actions: recon",
+            "recon https://example.com. Only allowed actions: recon",
             max_rounds=3,
         )
 
@@ -1758,7 +1756,7 @@ class TestAgentCoreLoop:
             return "Access https://victim.local/admin failed, connection timed out."
 
         monkeypatch.setattr(loop_controller, "call_llm_auto", _fake_call_llm_auto)
-        await agent.auto_pentest("测试 victim.local", max_rounds=5)
+        await agent.auto_pentest("test victim.local", max_rounds=5)
 
         # victim.local should be tracked as failed
         assert "victim.local" in agent.runtime.failed_targets
@@ -1780,7 +1778,7 @@ class TestAgentCoreLoop:
 
         agent.auto_pentest = _fake_auto_pentest
         cycle_results = await agent.persistent_pentest(
-            "持续测试 target",
+            "persistent pentest target",
             max_cycles=3,
             rounds_per_cycle=5,
         )

@@ -9,7 +9,7 @@
 | Base16 | `0-9A-F`, even length | `4E535354662E706870` |
 | URL encoding | `%XX` | `%2F%61%64%6D%69%6E` |
 | HTML entity | `&#xNNN;` or `&#NNN;` | `&#x3C;script&#x3E;` |
-| Unicode | `\uXXXX` 或 `\UXXXXXXXX` | `\u003c\u0073\u0063` |
+| Unicode | `\uXXXX` or `\UXXXXXXXX` | `\u003c\u0073\u0063` |
 | Hex (Python) | `\xNN` | `\x4e\x53\x53\x54` |
 | ROT13 | letter substitution, Caesar | `axzc` → `nmp` |
 | Morse | `.` `-` `/` combination | `.-/-.../-.-.` |

@@ -246,7 +246,7 @@ class TestSettingsLoad:
         assert openai_default_headers()["User-Agent"] == "test-agent"
 
     def test_env_var_override_new_session_fields(self, monkeypatch):
-        """二开新增的 session 配置（反思/插件）可通过环境变量注入。"""
+        """Custom session config (reflexion/plugins) can be injected via environment variables."""
         from specter.config.settings import load_config
 
         monkeypatch.setenv("SPECTER_SESSION_REFLEXION_ENABLED", "false")

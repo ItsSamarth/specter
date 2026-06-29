@@ -96,7 +96,7 @@ class TestCallLlmStream:
         agent.context.get_messages.return_value = []
         agent._build_openai_tools.return_value = []
 
-        # Test
+        # test
         result = await call_llm_stream(agent, "system prompt")
 
         assert "Hello World" in result or result == "Hello World"
@@ -178,7 +178,7 @@ class TestTerminalStreamSink:
 
 
 class SpySink:
-    """记录所有 sink 方法调用的测试用 Sink。"""
+    """Test Sink that records all sink method calls."""
 
     def __init__(self):
         self.calls: list[tuple[str, str]] = []
@@ -203,14 +203,14 @@ class SpySink:
 
 
 class TestStreamOutputSequence:
-    """测试流式输出的调用顺序"""
+    """Tests for the call ordering of streaming output."""
 
     @pytest.mark.asyncio
     async def test_stream_calls_sink_in_order(self):
-        """验证 sink 方法按正确顺序被调用"""
+        """Verify sink methods are called in the correct order."""
         from specter.agent.llm_client import call_llm_stream
 
-        # 创建 Spy Sink
+        # create Spy Sink
         spy = SpySink()
 
         # Mock agent
@@ -261,23 +261,23 @@ class TestStreamOutputSequence:
         agent.context.get_messages.return_value = []
         agent._build_openai_tools.return_value = []
 
-        # Test
+        # test
         await call_llm_stream(agent, "system prompt", stream_sink=spy)
 
-        # 验证序列
+        # verify sequence
         assert len(spy.calls) > 0
-        # 第一个应该是 status (Thinking...)
+        # first call should be status (Thinking...)
         assert spy.calls[0][0] == 'status'
         assert 'Thinking' in spy.calls[0][1]
-        # 最后应该是 end
+        # last call should be end
         assert spy.calls[-1][0] == 'end'
-        # 中间应该有 content tokens
+        # there should be content tokens in between
         content_calls = [c for c in spy.calls if c[0] == 'content']
         assert len(content_calls) == 3  # "Hello", " ", "World"
 
     @pytest.mark.asyncio
     async def test_stream_with_reasoning_calls_thinking_then_content(self):
-        """验证 reasoning 和 content 的调用顺序"""
+        """Verify that reasoning appears before content in call order."""
         from specter.agent.llm_client import call_llm_stream
 
         spy = SpySink()
@@ -328,21 +328,21 @@ class TestStreamOutputSequence:
 
         await call_llm_stream(agent, "system prompt", stream_sink=spy)
 
-        # 验证 reasoning 出现在 content 之前
+        # verify reasoning appears before content
         thinking_calls = [c for c in spy.calls if c[0] == 'thinking']
         content_calls = [c for c in spy.calls if c[0] == 'content']
 
         assert len(thinking_calls) > 0
         assert len(content_calls) > 0
 
-        # 找到第一个 thinking 和 content 的索引
+        # find the index of the first thinking and content calls
         first_thinking_idx = next(i for i, c in enumerate(spy.calls) if c[0] == 'thinking')
         first_content_idx = next(i for i, c in enumerate(spy.calls) if c[0] == 'content')
         assert first_thinking_idx < first_content_idx
 
     @pytest.mark.asyncio
     async def test_stream_accumulates_full_text(self):
-        """验证返回的完整文本包含所有 token"""
+        """Verify the returned full text contains all tokens."""
         from specter.agent.llm_client import call_llm_stream
 
         spy = SpySink()
@@ -395,18 +395,18 @@ class TestStreamOutputSequence:
 
         result = await call_llm_stream(agent, "system prompt", stream_sink=spy)
 
-        # 验证返回值包含所有 token
+        # verify return value contains all tokens
         assert "The quick brown fox" in result or result == "The quick brown fox"
-        # 验证 token 数量
+        # verify token count
         content_tokens = [c for c in spy.calls if c[0] == 'content']
         assert len(content_tokens) == 4
 
 
 class TestTerminalStreamSinkRealOutput:
-    """测试 TerminalStreamSink 的实际输出"""
+    """Tests for actual output from TerminalStreamSink."""
 
     def test_sink_outputs_status(self):
-        """测试 on_status 正确输出"""
+        """Verify on_status produces correct output."""
         import io
 
         from rich.console import Console
@@ -424,7 +424,7 @@ class TestTerminalStreamSinkRealOutput:
         assert "Thinking" in result
 
     def test_sink_outputs_content_tokens(self):
-        """测试 on_content_token 正确输出"""
+        """Verify on_content_token produces correct output."""
         import io
 
         from rich.console import Console
@@ -445,7 +445,7 @@ class TestTerminalStreamSinkRealOutput:
         assert "World" in result
 
     def test_sink_show_thinking_true_outputs_thinking(self):
-        """测试 show_thinking=True 时 thinking 内容被输出"""
+        """Verify thinking content is output when show_thinking=True."""
         import io
 
         from rich.console import Console
@@ -463,7 +463,7 @@ class TestTerminalStreamSinkRealOutput:
         assert "thinking" in result
 
     def test_sink_show_thinking_false_hides_thinking(self, capsys):
-        """测试 show_thinking=False 时 thinking 内容被隐藏"""
+        """Verify thinking content is hidden when show_thinking=False."""
         import io
 
         from rich.console import Console
@@ -479,12 +479,12 @@ class TestTerminalStreamSinkRealOutput:
         sink.on_stream_end()
 
         result = output.getvalue()
-        # thinking 不应该在输出中
-        # 但 content 应该输出
+        # thinking should not appear in output
+        # but content should be output
         assert "answer" in result
 
     def test_sink_outputs_tool_call(self):
-        """测试 on_tool_call 正确输出"""
+        """Verify on_tool_call produces correct output."""
         import io
 
         from rich.console import Console
@@ -503,7 +503,7 @@ class TestTerminalStreamSinkRealOutput:
         assert "example.com" in result
 
     def test_sink_outputs_tool_result(self):
-        """测试 on_tool_result 正确输出"""
+        """Verify on_tool_result produces correct output."""
         import io
 
         from rich.console import Console
@@ -522,7 +522,7 @@ class TestTerminalStreamSinkRealOutput:
         assert "open" in result
 
     def test_sink_truncates_long_tool_result(self):
-        """测试超长工具结果被截断"""
+        """Verify overly long tool results are truncated."""
         import io
 
         from rich.console import Console
@@ -538,16 +538,16 @@ class TestTerminalStreamSinkRealOutput:
         sink.on_stream_end()
 
         result = output.getvalue()
-        # 应该被截断到 200 字符左右
+        # should be truncated to around 200 characters
         assert len(result) < 300
 
 
 class TestStreamFallback:
-    """测试流式降级到非流式的场景"""
+    """Tests for streaming fallback to non-streaming scenarios."""
 
     @pytest.mark.asyncio
     async def test_stream_fallback_when_streaming_not_supported(self):
-        """测试当 Provider 不支持流式时自动降级"""
+        """Verify automatic fallback when provider does not support streaming."""
         from specter.agent.llm_client import call_llm_stream
 
         spy = SpySink()
@@ -561,7 +561,7 @@ class TestStreamFallback:
         agent.config.llm.max_tokens = None
         agent.config.llm.temperature = None
 
-        # Mock 非流式响应（fallback 路径）
+        # mock non-streaming response (fallback path)
         class MockMessage:
             def __init__(self):
                 self.content = "Fallback response text"
@@ -579,15 +579,15 @@ class TestStreamFallback:
         agent.context.get_messages.return_value = []
         agent._build_openai_tools.return_value = []
 
-        # Test - 应该返回 fallback 响应
+        # test - should return fallback response
         result = await call_llm_stream(agent, "system prompt", stream_sink=spy)
 
-        # 验证返回值
+        # verify return value
         assert "Fallback response text" in result
 
     @pytest.mark.asyncio
     async def test_stream_with_cancellation_returns_partial(self):
-        """测试流式中断时返回已收集的部分文本"""
+        """Verify partial text collected before stream interruption is returned."""
         from specter.agent.llm_client import call_llm_stream
 
         spy = SpySink()
@@ -601,7 +601,7 @@ class TestStreamFallback:
         agent.config.llm.max_tokens = None
         agent.config.llm.temperature = None
 
-        # 创建一个会抛出 CancelledError 的流
+        # create a stream that will raise CancelledError
         class MockAsyncStream:
             def __init__(self):
                 self.yielded = False
@@ -626,23 +626,23 @@ class TestStreamFallback:
         agent.context.get_messages.return_value = []
         agent._build_openai_tools.return_value = []
 
-        # Test
+        # test
         try:
             result = await call_llm_stream(agent, "system prompt", stream_sink=spy)
-            # 如果没有抛出异常，验证返回值
+            # if no exception raised, verify return value
             assert result is not None
         except asyncio.CancelledError:
-            # 如果抛出异常，这是可接受的行为
-            # 但最好能优雅处理
+            # if exception is raised, that is acceptable behavior
+            # but graceful handling is preferred
             pass
 
 
 class TestCallLlmAutoStream:
-    """测试 call_llm_auto_stream 功能"""
+    """Tests for call_llm_auto_stream functionality."""
 
     @pytest.mark.asyncio
     async def test_auto_stream_handles_tool_calls(self):
-        """测试工具调用被正确处理"""
+        """Test that tool calls are handled correctly."""
         from specter.agent.llm_client import call_llm_auto_stream
 
         spy = SpySink()
@@ -656,7 +656,7 @@ class TestCallLlmAutoStream:
         agent.config.llm.max_tokens = None
         agent.config.llm.temperature = None
 
-        # Mock 流式响应，包含工具调用（同步迭代器）
+        # mock streaming response containing tool calls (sync iterator)
         class MockDelta:
             def __init__(self, content="", reasoning="", tool_calls=None):
                 self.content = content
@@ -693,7 +693,7 @@ class TestCallLlmAutoStream:
 
         mock_client.chat.completions.create.return_value = mock_stream
 
-        # Mock 工具执行
+        # mock tool execution
         async def mock_handle_tool_calls_with_results(agent_obj, message):
             return [{"tool_call_id": "call_123", "content": "Tool executed"}], []
 
@@ -701,7 +701,7 @@ class TestCallLlmAutoStream:
         agent._build_openai_tools.return_value = []
         agent.context.add_assistant_message = MagicMock()
 
-        # Patch handle_tool_calls_with_results
+        # patch handle_tool_calls_with_results
         import specter.agent.llm_client as llm_client_module
         original = llm_client_module.handle_tool_calls_with_results
         llm_client_module.handle_tool_calls_with_results = mock_handle_tool_calls_with_results
@@ -710,14 +710,14 @@ class TestCallLlmAutoStream:
             result = await call_llm_auto_stream(
                 agent, "system prompt", "round context", stream_sink=spy
             )
-            # 验证返回值
+            # verify return value
             assert result is not None
         finally:
             llm_client_module.handle_tool_calls_with_results = original
 
     @pytest.mark.asyncio
     async def test_auto_stream_text_only_response(self):
-        """测试纯文本响应（无工具调用）"""
+        """Test text-only response (no tool calls)."""
         from specter.agent.llm_client import call_llm_auto_stream
 
         spy = SpySink()
@@ -731,7 +731,7 @@ class TestCallLlmAutoStream:
         agent.config.llm.max_tokens = None
         agent.config.llm.temperature = None
 
-        # Mock 流式响应（纯文本，同步迭代器）
+        # mock streaming response (text-only, sync iterator)
         class MockDelta:
             def __init__(self, content="", reasoning=""):
                 self.content = content
@@ -766,5 +766,5 @@ class TestCallLlmAutoStream:
             agent, "system prompt", "round context", stream_sink=spy
         )
 
-        # 验证返回值包含响应文本
+        # verify return value contains response text
         assert "Analysis complete" in result

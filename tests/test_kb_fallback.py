@@ -15,18 +15,18 @@ def _seed_store(tmp_path):
         "techniques",
         "sqli-bypass",
         {
-            "title": "SQL 注入绕过技巧",
-            "description": "绕过 WAF 的 SQL injection payload 构造方法",
+            "title": "SQL Injection Bypass Techniques",
+            "description": "SQL injection payload construction methods for WAF bypass",
             "tags": ["sqli", "waf-bypass", "web"],
-            "bypass_methods": ["大小写混合 SeLeCt", "内联注释"],
+            "bypass_methods": ["mixed case SeLeCt", "inline comment"],
         },
     )
     store.add_entry(
         "techniques",
         "xss-bypass",
         {
-            "title": "XSS 绕过技巧",
-            "description": "绕过 WAF 的 cross site scripting payload",
+            "title": "XSS Bypass Techniques",
+            "description": "Cross-site scripting payload methods for WAF bypass",
             "tags": ["xss", "waf-bypass", "web"],
         },
     )
