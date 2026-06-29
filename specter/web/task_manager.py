@@ -9,6 +9,8 @@ from collections import deque
 from datetime import datetime
 from uuid import uuid4
 
+from pydantic import ValidationError
+
 from specter.config.settings import WEB_TASKS_FILE, ensure_dirs
 from specter.web.schemas import TaskCreateRequest, TaskEvent, TaskRecord, TaskSummary
 
@@ -168,11 +170,25 @@ class WebTaskManager:
         except (json.JSONDecodeError, OSError):
             return
 
-        for item in raw.get("tasks", []):
-            record = TaskRecord(**item)
+        if not isinstance(raw, dict):
+            return
+
+        for item in raw.get("tasks", []) or []:
+            # Skip records that don't satisfy the schema rather than crashing
+            # the whole web service on a single malformed/corrupt entry.
+            try:
+                record = TaskRecord(**item)
+            except (ValidationError, TypeError):
+                continue
             self._tasks[record.task_id] = record
             self._queues[record.task_id] = asyncio.Queue()
 
-        for task_id, items in raw.get("history", {}).items():
-            self._history[task_id] = deque((TaskEvent(**item) for item in items), maxlen=500)
+        for task_id, items in (raw.get("history", {}) or {}).items():
+            events = []
+            for item in items:
+                try:
+                    events.append(TaskEvent(**item))
+                except (ValidationError, TypeError):
+                    continue
+            self._history[task_id] = deque(events, maxlen=500)
             self._queues.setdefault(task_id, asyncio.Queue())

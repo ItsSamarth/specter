@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
+from contextlib import suppress
 from typing import Any
 from urllib.parse import urlparse
 
@@ -883,8 +884,16 @@ def _write_python_audit(
             "code_preview": code[:300],
             "code_lines": code.count("\n") + 1,
         }
-        with open(PYTHON_EXECUTE_AUDIT_FILE, "a", encoding="utf-8") as f:
-            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        # The audit log records previews of executed code, so keep it
+        # owner-only (0600). Pre-create with restrictive perms before the
+        # first append so previews are never world-readable.
+        fd = os.open(PYTHON_EXECUTE_AUDIT_FILE, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        try:
+            with os.fdopen(fd, "a", encoding="utf-8") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        finally:
+            with suppress(OSError):
+                PYTHON_EXECUTE_AUDIT_FILE.chmod(0o600)
     except Exception:
         return
 

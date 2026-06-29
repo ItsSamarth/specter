@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import subprocess
 import time
 from contextlib import suppress
@@ -13,6 +14,16 @@ from urllib.parse import urlparse
 from specter.agent.builtin_tools import infer_port_from_url
 from specter.config.schema import MCPServerConfig, SpecterConfig
 from specter.mcp.registry import HealthStatus, MCPRegistry
+
+
+def _mcp_ssl_verify() -> bool:
+    """Whether to verify TLS certificates for MCP infrastructure connections.
+
+    Defaults to True (verify) to prevent MITM on MCP server health checks and
+    the built-in fetch tool. Operators who must talk to MCP endpoints with
+    self-signed certificates can opt out by setting ``SPECTER_VERIFY_MCP_SSL=0``.
+    """
+    return os.environ.get("SPECTER_VERIFY_MCP_SSL", "1").lower() not in ("0", "false", "no", "off")
 
 try:
     from mcp import ClientSession, StdioServerParameters
@@ -464,7 +475,9 @@ class MCPLifecycleManager:
         try:
             import httpx
 
-            with httpx.stream("GET", url, timeout=min(timeout_s, 10), verify=False) as response:
+            with httpx.stream(
+                "GET", url, timeout=min(timeout_s, 10), verify=_mcp_ssl_verify()
+            ) as response:
                 return response.status_code < 500
         except Exception:
             return False
@@ -1595,7 +1608,7 @@ class MCPLifecycleManager:
             headers = args.get("headers", {})
             body = args.get("body")
 
-            async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
+            async with httpx.AsyncClient(verify=_mcp_ssl_verify(), timeout=30.0) as client:
                 response = await client.request(
                     method=method,
                     url=url,

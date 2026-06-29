@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from specter.agent.context import SessionState
 from specter.config.settings import TARGETS_DIR, ensure_dirs
 from specter.target_state.store import (
@@ -28,8 +30,14 @@ def list_targets(limit: int = 20) -> list[TargetView]:
     ensure_dirs()
     items: list[tuple[float, TargetView]] = []
     for state_path in TARGETS_DIR.glob("*/state.json"):
-        raw = json.loads(state_path.read_text(encoding="utf-8"))
-        items.append((_mtime(state_path), _build_target_view(raw)))
+        # Skip corrupt or schema-invalid state files instead of letting one
+        # bad target take down the whole listing.
+        try:
+            raw = json.loads(state_path.read_text(encoding="utf-8"))
+            view = _build_target_view(raw)
+        except (json.JSONDecodeError, OSError, ValidationError, TypeError, KeyError, ValueError):
+            continue
+        items.append((_mtime(state_path), view))
     items.sort(key=lambda item: item[0], reverse=True)
     return [view for _, view in items[:limit]]
 

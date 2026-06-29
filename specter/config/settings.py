@@ -34,9 +34,18 @@ DEFAULT_OPENAI_USER_AGENT = "Mozilla/5.0"
 
 
 def ensure_dirs() -> None:
-    """Create Specter config directories if they don't exist."""
+    """Create Specter config directories if they don't exist.
+
+    Directories are created with mode 0700 (owner-only) because they hold
+    sensitive pentest data — sessions, target state, the knowledge base and
+    recon results — that other local users should not be able to read.
+    """
     for d in [CONFIG_DIR, SESSIONS_DIR, TARGETS_DIR, KB_DIR, SKILLS_DIR]:
-        d.mkdir(parents=True, exist_ok=True)
+        d.mkdir(parents=True, exist_ok=True, mode=0o700)
+        # mkdir's mode is subject to umask and is ignored if the dir already
+        # exists, so tighten permissions explicitly. Best-effort on POSIX.
+        with suppress(OSError):
+            d.chmod(0o700)
 
 
 def openai_default_headers() -> dict[str, str]:
@@ -90,13 +99,26 @@ def load_config() -> SpecterConfig:
 
 
 def save_config(config: SpecterConfig) -> None:
-    """Save configuration to YAML file."""
+    """Save configuration to a YAML file.
+
+    The config holds secrets (LLM API keys plus FOFA/HUNTER/SHODAN/ZOOMEYE/...
+    recon keys), so the file is created/maintained with mode 0600 (owner
+    read/write only). We pre-create the file with restrictive permissions
+    before writing so the secrets never briefly exist as world-readable.
+    """
     ensure_dirs()
     raw = config.model_dump(mode="json")
     # Remove default values to keep config clean
     _strip_defaults(raw)
-    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-        yaml.dump(raw, f, default_flow_style=False, allow_unicode=True)
+    # Ensure the file exists with 0600 perms before writing any secrets.
+    fd = os.open(CONFIG_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            yaml.dump(raw, f, default_flow_style=False, allow_unicode=True)
+    finally:
+        # Tighten perms on pre-existing files too (O_CREAT mode is ignored then).
+        with suppress(OSError):
+            CONFIG_FILE.chmod(0o600)
 
 
 def set_config_value(key: str, value: str) -> None:
