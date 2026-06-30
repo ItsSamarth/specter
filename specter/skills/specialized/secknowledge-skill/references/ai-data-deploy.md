@@ -1,229 +1,164 @@
-# AI数据安全 - 部署阶段
+# AI Data Security - Deployment Phase
 
-> 来源: AISS绿盟大模型安全智链社区 | 拆自 ai-data-security.md
-> 阶段: 部署阶段（GAARM.0012-0016 备份/传输/存储/日志/缓存）
+> Source: AISS Green Alliance Large Model Security Smart Chain Community | Extracted from ai-data-security.md
+> Phase: Deployment phase (GAARM.0012-0016 backup/transmission/storage/logs/cache)
 
-## 部署阶段
+## Deployment Phase
 
-### 备份数据窃取
+### Backup Data Theft
 
-> 风险编号: GAARM.0012
-> 生命周期: 部署阶段
+> Risk number: GAARM.0012
+> Lifecycle: Deployment phase
 
-**攻击概述**
+**Attack Overview**
 
-备份数据中通常包含模型的训练数据、算法逻辑、敏感数据、个人数据等重要信息。如果保护不当，攻击者可以通过未授权访问或者其他攻击方式获取到备份数据，从而导致模型相关重要信息外泄等风险，甚至带来经济风险。
+Backup data typically contains important information such as model training data, algorithm logic, sensitive data, and personal data. If inadequately protected, attackers can obtain backup data through unauthorized access or other attack methods, leading to leakage of important model-related information and other risks, and even financial risks.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Attackers obtained access credentials for a technology company employee via a phishing email, gained unauthorized access to cloud storage services, and stole large model backup data containing sensitive personal information and trade secrets, causing the company to face legal and financial risks |
 
+**Attack Risks**
 
+Model tampering: If backup data contains model training data, algorithms, and other information, attackers can use this information to tamper with the model.
+Sensitive data leakage: If backup data contains user, customer, and other information, leakage will lead to identity theft, fraudulent activities, extortion, etc.
 
+**Mitigations**
 
-案例一
-攻击者通过钓鱼邮件获取了科技公司员工的访问凭证，未授权访问云存储服务后窃取了包含敏感个人信息和商业秘密的大模型备份数据，导致公司面临法律和经济风险
-
-**攻击风险**
-
-模型篡改：如果备份数据中包含模型的训练数据、算法等信息，攻击者可以利用这些信息对模型进行篡改等。
-敏感数据泄露：如果备份数据中包含用户、客户等信息，泄露将会导致身份盗窃、欺诈活动、勒索等。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-数据加密
-在备份数据存储过程中使用强大的加密算法，确保数据在存储和传输过程中都得到保护，即使泄露也难以解密
-
-
-多重认证
-引入多重认证机制，如双因素认证，增强对备份数据的访问控制，提高安全性
+| Mitigation | Description |
+|------------|-------------|
+| Data encryption | Use strong encryption algorithms during backup data storage to ensure data is protected during both storage and transmission, making it difficult to decrypt even if leaked |
+| Multi-factor authentication | Introduce multi-factor authentication mechanisms, such as two-factor authentication, to enhance access control for backup data and improve security |
 
 ---
-### 数据传输劫持
+### Data Transmission Hijacking
 
-> 风险编号: GAARM.0013
-> 生命周期: 部署阶段
+> Risk number: GAARM.0013
+> Lifecycle: Deployment phase
 
-**攻击概述**
+**Attack Overview**
 
-在进行大型模型的预训练、精调和推理服务时，需要在不同的主体或部门之间传输数据。这些数据往往包含各种敏感信息和隐私，比如个人身份信息和金融数据等。攻击者通过恶意截取传输时的数据，可以获取到相关的隐私信息，进而导致敏感信息泄露，给用户带来安全和隐私问题。
+During large model pre-training, fine-tuning, and inference services, data needs to be transmitted between different entities or departments. This data often contains various sensitive information and privacy, such as personally identifiable information and financial data. Attackers can obtain relevant private information by maliciously intercepting transmitted data, leading to sensitive information leakage and causing security and privacy issues for users.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Attackers exploited an unencrypted network transmission vulnerability to successfully intercept personal financial data transmitted by a financial institution during large model services, resulting in sensitive information leakage and posing security and privacy risks to users |
 
+**Attack Risks**
 
+Sensitive data leakage: Attackers may obtain sensitive information by intercepting data, such as personally identifiable information, financial data, medical records, etc.
+Intellectual property: If data contains trade secrets or proprietary algorithms, data interception may lead to leakage of this intellectual property.
 
+**Mitigations**
 
-案例一
-攻击者利用未加密的网络传输漏洞，成功截获了一家金融机构在进行大模型服务时传输的个人金融数据，导致敏感信息泄露，给用户带来安全和隐私风险
+| Mitigation | Description |
+|------------|-------------|
+| Data encryption | Ensure the security of data during transmission by encrypting sensitive data |
 
-**攻击风险**
-
-敏感数据泄露：攻击者可能通过截获数据获取敏感信息，如个人身份信息、财务数据、医疗记录等。
-知识产权：如果数据中包含了商业机密或专有算法，数据截获可能导致这些知识产权的泄露。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-数据加密
-通过对敏感数据进行加密处理，确保数据在传输过程中的安全性
-
-**参考**
+**References**
 
 https://bj.bcebos.com/ensec-web-privacy/anquan/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%AE%89%E5%85%A8%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E7%99%BD%E7%9A%AE%E4%B9%A6.pdf
 https://mp.weixin.qq.com/s/JlJwDRzYG985kF4d6g7qjw
 
 ---
-### 数据存储服务攻击
+### Data Storage Service Attacks
 
-> 风险编号: GAARM.0014
-> 生命周期: 部署阶段
+> Risk number: GAARM.0014
+> Lifecycle: Deployment phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险是指数据的存储和组织过程中可能存在安全隐患，如不充分的访问控制、不安全的数据处理实践或加密措施的缺失，攻击者利用相关漏洞可以进行未经授权的访问、数据泄露或篡改等攻击，获取到敏感信息，甚至可以进行身份盗窃、诈骗活动等，导致用户隐私和企业资产暴露，带来数据泄露、法律诉讼和信誉损失的可能性。
+This risk refers to potential security hazards in the data storage and organization process, such as insufficient access control, insecure data handling practices, or lack of encryption measures. Attackers exploiting related vulnerabilities can conduct unauthorized access, data leakage, or tampering attacks, obtaining sensitive information, and may even engage in identity theft, fraud, and other activities, exposing user privacy and enterprise assets and creating the potential for data leakage, legal lawsuits, and reputational damage.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Clearview AI's source code repository was misconfigured to allow any user to access it, exposing production credentials and training data, highlighting the need to strengthen traditional network security measures for ML system security |
 
+**Attack Risks**
 
+Sensitive data leakage: Sensitive data without encryption protection or with improper access control may be obtained by attackers, leading to data leakage.
+Identity theft: Stored personally identifiable information may be stolen and used for identity theft, fraud, and other criminal activities.
 
+**Mitigations**
 
-案例一
-Clearview AI的源代码存储库配置错误，使得任意用户可以访问，暴露了生产凭据和训练数据，强调了ML系统安全需要加固传统网络安全措施。
+| Mitigation | Description |
+|------------|-------------|
+| Access control | Ensure only authorized users can access data in the data repository |
+| Data classification | Classify information in the repository and implement appropriate security measures based on data sensitivity |
+| Data encryption | Encrypt stored sensitive data so that even if data is accessed without authorization, its content cannot be easily read |
 
-**攻击风险**
-
-敏感数据泄露：未经加密保护或访问控制不当的敏感数据可能被攻击者获取，导致数据泄露。
-身份窃取：存储的个人身份信息可能被盗取，用于进行身份盗窃、诈骗等犯罪活动。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-访问控制
-确保只有授权用户才能访问数据存储库中的数据
-
-
-数据分类
-对存储库中的信息进行分类，并根据数据的敏感性实施相应的安全措施
-
-
-数据加密
-对存储的敏感数据进行加密，即使数据被未授权访问，也能保护其内容不被轻易读取
-
-**参考**
+**References**
 
 https://news.cctv.com/2022/06/21/ARTIdhgLL1sSK5Hjl0uYWybr220621.shtml
 https://atlas.mitre.org/techniques/AML.T0036
 
 ---
-### 日志和审计记录窃取
+### Log and Audit Record Theft
 
-> 风险编号: GAARM.0015
-> 生命周期: 部署阶段
+> Risk number: GAARM.0015
+> Lifecycle: Deployment phase
 
-**攻击概述**
+**Attack Overview**
 
-模型的日志和审计记录扮演着监控系统活动和事件的关键角色，它们详细记录了包括用户登录行为、文件访问情况、系统配置的更改以及各类安全事件在内的信息。攻击者在获取到相关服务器权限后，通过对日志和审计记录的窃取，导致用户的个人行为模式被暴露，还可能揭示系统的潜在漏洞，导致攻击者发起更具针对性的攻击。
+Model logs and audit records play a key role in monitoring system activities and events; they record detailed information including user login behavior, file access, system configuration changes, and various security events. After attackers obtain relevant server permissions, theft of logs and audit records can expose users' personal behavior patterns and may also reveal potential system vulnerabilities, causing attackers to launch more targeted attacks.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | This case describes how ChatGPT leaked user login credentials and personal details |
 
+**Attack Risks**
 
+Sensitive data leakage: Leads to personal privacy leakage, account theft, and other problems.
+Targeted attacks: Attackers may be able to discover security vulnerabilities and weaknesses in the system, enabling them to launch more targeted attacks.
 
+**Mitigations**
 
-案例一
-该案例描述了chatgpt泄露了用户登录凭据以及个人详情等信息
+| Mitigation | Description |
+|------------|-------------|
+| Regular audits | Regularly audit access and operations of logs and audit records, check for abnormal or unusual behavior, and promptly detect and handle security threats |
+| Separate storage of logs and audit records | Store logs and audit records separately from other data, ensuring they are independent of production data to reduce leakage risk |
+| Establish access control policies | Establish strict access control policies, only authorizing necessary personnel to access logs and audit records, restricting permission scope, and preventing unauthorized access |
 
-**攻击风险**
-
-敏感数据泄露：导致个人隐私泄露、账号被盗用等问题。
-针对性攻击：攻击者可能能够发现系统中的安全漏洞和弱点，从而发起更具针对性的攻击。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-定期审计
-定期审计日志和审计记录的访问和操作情况，检查是否存在异常或不正常的行为，及时发现并处理安全威胁
-
-
-日志和审计记录分离存储
-将日志和审计记录与其他数据分开存储，确保其独立于生产数据，降低泄露风险
-
-
-建立访问控制策略
-建立严格的访问控制策略，仅授权必要的人员能够访问日志和审计记录，限制权限范围，避免未经授权的访问
-
-**参考**
+**References**
 
 https://www.kuaikuaicloud.com/market/3667.html
 
 ---
-### 缓存数据&索引信息窃取
+### Cache Data & Index Information Theft
 
-> 风险编号: GAARM.0016
-> 生命周期: 部署阶段
+> Risk number: GAARM.0016
+> Lifecycle: Deployment phase
 
-**攻击概述**
+**Attack Overview**
 
-缓存数据和索引信息可能泄露用户的敏感信息，包括但不限于身份识别信息、支付细节以及个人偏好等。攻击者通过非法访问缓存和索引数据，既可以对数据进行篡改或毁坏，影响系统的运行和数据完整性；也可以据此精心策划并实施定向钓鱼攻击，利用用户的个人信息来增加攻击的可信度和成功率，从而对用户造成更为严重的安全威胁和财产损失。
+Cached data and index information may leak users' sensitive information, including but not limited to identity information, payment details, and personal preferences. By illegally accessing cache and index data, attackers can tamper with or destroy data, affecting system operation and data integrity; they can also use this information to carefully plan and implement targeted phishing attacks, using users' personal information to increase the credibility and success rate of attacks, thereby causing more serious security threats and property losses to users.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | This case describes how OpenAI used Redis to cache user information on servers; due to an error in the client open-source library redis-py, clients incorrectly received cached email addresses belonging to other users |
 
+**Attack Risks**
 
+Sensitive data leakage: Leaked cached data may contain users' credential information, such as usernames and passwords; attackers may use this information to conduct identity theft, account hijacking, and other activities.
+Data tampering: Attackers may use this information to tamper with or destroy data in the cache, thereby affecting system operation and data integrity.
 
+**Mitigations**
 
-案例一
-该案例描述了OpenAI使用redis在服务器中缓存了用户信息，由于客户端开源库redis-py的错误，导致客户在接收时错误地收到了缓存在Redis中的其他用户的邮件地址
+| Mitigation | Description |
+|------------|-------------|
+| Data encryption | Ensure data security by encrypting sensitive data |
 
-**攻击风险**
-
-敏感数据泄露：泄露的缓存数据可能包含用户的凭证信息，如用户名、密码等，攻击者可能利用这些信息进行身份盗用、账号劫持等活动。
-数据篡改：攻击者可能会利用这些信息对缓存中的数据进行篡改或破坏，从而影响系统的运行和数据的完整性。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-数据加密
-通过对敏感数据进行加密处理，确保数据的安全性
-
-**参考**
+**References**
 
 http://www.nelab-bdst.org.cn/data/upload/ueditor/20230707/64a78209c719c.pdf
 

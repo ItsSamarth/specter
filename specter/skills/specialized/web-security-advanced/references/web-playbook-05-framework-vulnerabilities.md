@@ -174,7 +174,7 @@ Execution Outline:
 2. 2. ThinkPHP 5.1.x RCE
 3. 3. ThinkPHP 5.0.23 RCE
 4. 4. Information gathering
-## Laravel远程代码执行
+## Laravel Remote Code Execution
 - ID: laravel-rce
 - Difficulty: intermediate
 - Subcategory: Laravel
@@ -190,7 +190,7 @@ Execution Outline:
 2. 2. Debug mode information disclosure
 3. 3. .env file disclosure
 4. 4. APP_KEY exploitation
-## Apache Shiro反序列化
+## Apache Shiro Deserialization
 - ID: shiro-deserialize
 - Difficulty: intermediate
 - Subcategory: Apache Shiro
@@ -206,7 +206,7 @@ Execution Outline:
 2. 2. Generate a payload with ysoserial
 3. 3. Send the malicious request
 4. 4. Common key list
-## JBoss漏洞利用
+## JBoss Vulnerability Exploitation
 - ID: jboss-vuln
 - Difficulty: intermediate
 - Subcategory: JBoss
@@ -222,7 +222,7 @@ Execution Outline:
 2. 2. Deploy a War package via JMX Console
 3. 3. BSHDeployer deployment
 4. 4. Use tooling
-## Apache Tomcat漏洞
+## Apache Tomcat Vulnerabilities
 - ID: tomcat-vuln
 - Difficulty: intermediate
 - Subcategory: Tomcat
@@ -238,7 +238,7 @@ Execution Outline:
 2. 2. Deploy a War package
 3. 3. CVE-2020-1938 Ghostcat
 4. 4. Arbitrary file write via the PUT method
-## Django框架漏洞
+## Django Framework Vulnerabilities
 - ID: django-vuln
 - Difficulty: intermediate
 - Subcategory: Django
@@ -254,7 +254,7 @@ Execution Outline:
 2. 2. Debug mode information disclosure
 3. 3. SECRET_KEY exploitation
 4. 4. Path traversal
-## Flask框架漏洞
+## Flask Framework Vulnerabilities
 - ID: flask-vuln
 - Difficulty: intermediate
 - Subcategory: Flask

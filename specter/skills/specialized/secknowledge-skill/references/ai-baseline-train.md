@@ -1,202 +1,138 @@
-# AI基座安全 - 训练阶段
+# AI Baseline Security - Training Phase
 
-> 来源: AISS绿盟大模型安全智链社区 | 拆自 ai-baseline-security.md
-> 阶段: 训练阶段（开发工具漏洞/环境隔离）
+> Source: AISS Green Alliance Large Model Security Smart Chain Community | Extracted from ai-baseline-security.md
+> Phase: Training phase (development tool vulnerabilities/environment isolation)
 
-## 训练阶段
+## Training Phase
 
-### 模型开发工具漏洞
+### Model Development Tool Vulnerabilities
 
-> 风险编号: GAARM.0001.001
-> 生命周期: 训练阶段
+> Risk number: GAARM.0001.001
+> Lifecycle: Training phase
 
-**攻击概述**
+**Attack Overview**
 
-模型开发训练涉及到数据预处理、特征工程、模型选择、训练、评估和部署等多个步骤。在这个过程中使用的工具如果存在安全漏洞，会导致整个机器学习流程面临风险。攻击者可以利用这些漏洞来篡改模型训练数据、窃取模型参数、或者在模型部署后执行特定的攻击，导致模型输出不准确、参数被窃取、传播恶意软件等严重安全后果。
+Model development and training involves multiple steps including data preprocessing, feature engineering, model selection, training, evaluation, and deployment. If the tools used in this process contain security vulnerabilities, the entire machine learning workflow faces risk. Attackers can exploit these vulnerabilities to tamper with model training data, steal model parameters, or execute specific attacks after the model is deployed, resulting in inaccurate model outputs, stolen parameters, spreading of malicious software, and other serious security consequences.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | TensorFlow contains a code execution vulnerability; there is a code execution risk when loading models |
+| Case 2 | PyTorch contains a code execution vulnerability; this vulnerability can execute remote code on a target system within the context of the user running the program, posing a risk of executing malicious code |
+| Case 3 | This document covers different TensorFlow use cases, outlining TensorFlow security vulnerability issues, where different use cases bring different risk consequences |
 
+**Attack Risks**
 
+Supply chain attacks: Attackers can plant malicious code in legitimate software packages used for ML development, implementing dependency chain attacks that spread malware during distribution.
+Model poisoning: Attackers inject malicious data into training data, affecting the model's decision-making process, causing inaccurate model outputs or introducing bias.
+Intellectual property loss: If model parameters are stolen, attackers may copy or illegally use the model.
 
+**Mitigations**
 
-案例一
-Tensorflow存在代码执行漏洞，加载模型时存在代码执行风险
+| Mitigation | Description |
+|------------|-------------|
+| Regular updates and patching | Keep all development tools and libraries at their latest versions to benefit from the latest security fixes |
+| Secure dependency chain | Review the dependency chain to ensure all third-party libraries and packages come from trusted sources |
 
-
-案例二
-Pytorch存在代码执行漏洞，此漏洞能够在运行程序的用户上下文中在目标系统上执行远程代码，存在执行恶意代码的风险
-
-
-案例三
-本文档涵盖了 TensorFlow 的不同用例，概述了 TensorFlow 存在的安全漏洞的问题，其中不同的用例会带来不同的风险后果
-
-**攻击风险**
-
-供应链攻击：攻击者可通过植入恶意代码至ML开发用的合法软件包，实施依赖链攻击，从而在分发过程中传播恶意软件。
-模型投毒：攻击者向训练数据中注入恶意数据，影响模型的决策过程，导致模型输出不准确或产生偏见。
-知识产权损失：如果模型参数被窃取，攻击者可能复制或非法使用该模型。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-定期更新和打补丁
-保持所有开发工具和库的最新版本，以利用最新的安全修复
-
-
-安全的依赖链
-审查依赖链，确保所有第三方库和包都来自可信的源
-
-**参考**
+**References**
 
 https://www.secrss.com/articles/64006
 https://huntr.com/bounties/a795bf93-c91e-4c79-aae8-f7d8bda92e2a
 
 ---
-### 训练数据管理系统漏洞
+### Training Data Management System Vulnerabilities
 
-> 风险编号: GAARM.0001.002
-> 生命周期: 训练阶段
+> Risk number: GAARM.0001.002
+> Lifecycle: Training phase
 
-**攻击概述**
+**Attack Overview**
 
-训练数据管理系统负责存储、处理、标注和提供数据，将准备好的数据交付给模型进行学习。当该系统存在供应链相关的安全漏洞，攻击者可以利用这些漏洞来篡改数据、窃取数据，甚至通过数据投毒影响模型的训练结果。
+Training data management systems are responsible for storing, processing, labeling, and providing data to deliver prepared data to the model for learning. When this system contains supply chain-related security vulnerabilities, attackers can exploit these vulnerabilities to tamper with data, steal data, or even affect model training results through data poisoning.
 
-**攻击风险**
+**Attack Risks**
 
-数据投毒攻击：攻击者可能会向训练数据中注入恶意数据，影响模型的决策过程，导致模型预测不准确或产生偏见。
-模型窃取攻击：攻击者尝试通过询问模型来逆向工程并获得模型的参数或训练数据，从而窃取知识产权。
-数据泄露：攻击者通过未授权访问获取敏感的训练数据。
+Data poisoning attacks: Attackers may inject malicious data into training data, affecting the model's decision-making process, causing inaccurate model predictions or introducing bias.
+Model theft attacks: Attackers attempt to reverse engineer and obtain model parameters or training data by querying the model, thereby stealing intellectual property.
+Data leakage: Attackers obtain sensitive training data through unauthorized access.
 
-**缓解措施**
+**Mitigations**
 
-缓解方式
-描述
+| Mitigation | Description |
+|------------|-------------|
+| Security updates and audits | Regularly update and audit training data management systems to fix vulnerabilities and enhance security |
+| Monitoring and logging | Implement real-time monitoring and logging to promptly detect and respond to suspicious activities |
 
-
-
-
-安全更新与审计
-定期更新和审计训练数据管理系统以修复漏洞并增强安全性
-
-
-监控和日志
-实施实时监控和日志记录，以便及时发现和响应可疑活动
-
-**参考**
+**References**
 
 https://doc.dataiku.com/dss/latest/concepts/homepage/index.html
 https://www.secrss.com/articles/62742
 
 ---
-### 训练环境安全风险
+### Training Environment Security Risks
 
-> 风险编号: GAARM.0001
-> 生命周期: 训练阶段
+> Risk number: GAARM.0001
+> Lifecycle: Training phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险是指模型的训练与开发环境中使用的深度学习框架（如TensorFlow或PyTorch）和必要的依赖库等应用开发组件，如果引用的这些框架自身存在安全漏洞，对下游的LLMs应用造成供应链攻击，从而影响训练数据、ML模型和部署平台的完整性。
+This risk refers to deep learning frameworks (such as TensorFlow or PyTorch) and necessary dependency libraries used as application development components in the model training and development environment. If the referenced frameworks themselves contain security vulnerabilities, they can cause supply chain attacks on downstream LLM applications, thereby affecting the integrity of training data, ML models, and deployment platforms.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Integration plugin sample code provided by OpenAI contained a vulnerable MinIO Docker image, which could lead to key and password leakage; a vulnerability in the Redis-py library used by ChatGPT led to users' chat history and payment information being exposed |
+| Case 2 | The open-source machine learning framework PyTorch contains a significant hierarchical vulnerability CVE-2024-5480; attackers can use it to remotely attack the master nodes of distributed training. Once these nodes are compromised, attackers have the opportunity to steal AI-related sensitive data |
+| Case 3 | The pickle format used by PyTorch models can be weaponized by threat actors to execute arbitrary code and deploy Cobalt Strike, Mythic, and Metasploit payloads; attackers can compromise hosted conversion services and file hosting systems using malicious PyTorch binaries |
 
+**Attack Risks**
 
+User privacy leakage: As shown in Case 1, due to a bug in the Redis-py library, ChatGPT users' chat history titles and conversation content may be visible to other users, causing user privacy data leakage.
+System integrity compromised: Attackers may exploit vulnerabilities to undermine system integrity, affecting the reliability and availability of LLM services.
 
+**Mitigations**
 
-案例一
-OpenAI提供的集成插件示例代码中包含了一个存在漏洞的MinIO docker镜像，该漏洞可能导致密钥和密码泄露；ChatGPT使用的Redis-py库存在漏洞导致用户的聊天历史和支付信息
+| Mitigation | Description |
+|------------|-------------|
+| Security updates and audits | Regularly update and audit service software in training and development environments to fix vulnerabilities and enhance security |
+| Security audits and monitoring | Conduct regular security audits, use monitoring tools to detect and alert suspicious behavior, and perform effective logging |
 
-
-案例二
-开源机器学习框架PyTorch存在重大层级漏洞CVE-2024-5480，攻击者可将其用来远端攻击分散式训练的master节点，一旦这些节点遭到入侵，对方就有机会窃取与AI有关的敏感资料
-
-
-案例三
-PyTorch模型使用的pickle格式可以被威胁行为者武器化，用于执行任意代码并部署Cobalt Strike、Mythic和Metasploit的攻击载荷，攻击者可以通过使用恶意PyTorch二进制文件破坏托管的转换服务，并破坏文件托管系统
-
-**攻击风险**
-
-用户隐私泄露：如案例一所示，由于Redis-py库的bug，ChatGPT用户的聊天记录标题和对话内容可能被其他用户看到，导致用户隐私数据泄露。
-系统完整性受损：攻击者可能利用漏洞破坏系统完整性，影响LLMs服务的可靠性和可用性。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-安全更新与审计
-定期更新和审计训练与开发环境中的服务软件以修复漏洞并增强安全性
-
-
-安全审计和监控
-定期进行安全审计，使用监控工具来检测和警报可疑行为，并进行有效的日志记录
-
-**参考**
+**References**
 
 https://llmtop10.com/llm05/
 
 ---
-### 训练环境隔离缺陷
+### Training Environment Isolation Defects
 
-> 风险编号: GAARM.0002
-> 生命周期: 训练阶段
+> Risk number: GAARM.0002
+> Lifecycle: Training phase
 
-**攻击概述**
+**Attack Overview**
 
-训练环境隔离是指，通过将调试和运行环境划分为两个完全隔离的区域，以此防止调试环境对运行环境的渗透攻击。在调试环境中，可以修改程序逻辑但只能使用脱敏数据；而在运行环境中，能操作真实全量数据且操作受到审查，结果可追溯和可追责。如果训练环境隔离存在缺陷，可以从开发环境进入到运行测试环境，则会导致未授权用户访问敏感数据，给攻击者可趁之机。
+Training environment isolation means dividing the debugging and runtime environments into two completely isolated areas to prevent penetration attacks from the debugging environment into the runtime environment. In the debugging environment, program logic can be modified but only desensitized data can be used; in the runtime environment, full real data can be operated on and operations are subject to review, with results traceable and accountable. If training environment isolation has defects, allowing movement from the development environment into the runtime test environment, this can result in unauthorized user access to sensitive data, giving attackers an opportunity.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+| Case | Description |
+|------|-------------|
+| Case 1 | Training environment isolation defects allowed attackers to move from the developer environment into the runtime test environment, resulting in risks such as training data leakage |
 
+**Attack Risks**
 
+Data leakage: Attackers may access and steal sensitive data stored in the runtime environment; the leakage of this data may lead to significant financial loss and legal liability.
+Gaining system control: If attackers penetrate the runtime environment, they may gain system control, further manipulating data access, resource management, and system settings.
 
+**Mitigations**
 
-案例一
-训练环境隔离缺陷，导致攻击者从开发者环境进入到运行测试环境，从而出现训练数据泄露等风险
+| Mitigation | Description |
+|------------|-------------|
+| Strengthen isolation measures | Use security technologies and best practices to strengthen isolation between debugging and runtime environments |
+| Access control | Implement role-based access control (RBAC) policies to ensure only authorized personnel can access the runtime environment |
+| Security sandbox technology | Isolate and protect the LLM runtime environment to prevent it from being subject to external attacks and interference |
 
-**攻击风险**
-
-数据泄露：攻击者可能会访问和窃取存储在运行环境中的敏感数据，这些数据的泄露可能导致重大的经济损失和法律责任。
-获取系统控制权：如果攻击者渗透到运行环境，他们可能会获得系统控制权，进而操控数据访问、资源管理和系统设置。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-强化隔离措施
-使用安全技术和最佳实践来加强调试环境和运行环境之间的隔离
-
-
-访问控制
-实施基于角色的访问控制（RBAC）策略，确保只有经过授权的人员才能访问运行环境
-
-
-安全沙箱技术
-将LLM的运行环境进行隔离和保护，以防止其受到外部攻击和干扰
-
-
-**参考**
+**References**
 
 - https://cloud.baidu.com/article/621826
 
 ---
-

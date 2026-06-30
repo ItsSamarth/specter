@@ -306,7 +306,7 @@ This risk involves applying special processing operations to keywords in Prompts
 **Attack Cases**
 
 Common keyword obfuscation methods in English LLMs include: letter obfuscation (bomb -> b0mb), synonym substitution (bomb -> explosive), word splitting (bomb -> b-o-m-b).
-For Chinese LLMs, due to differences in tokenization methods, keyword obfuscation methods also differ significantly. Common Chinese keyword obfuscation methods include: pinyin substitution (炸弹 -> zha弹), synonym substitution (炸弹 -> 爆炸物), similar-character substitution (炸弹 -> 炸掸), etc.
+For Chinese LLMs, due to differences in tokenization methods, keyword obfuscation methods also differ significantly. Common Chinese keyword obfuscation methods include: pinyin substitution (bomb -> b0mb in Chinese characters), synonym substitution (bomb -> explosive), similar-character substitution (bomb -> visually similar alternative), etc.
 
 **Attack Risks**
 
