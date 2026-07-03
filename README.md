@@ -40,7 +40,7 @@ Specter executes:
   Round 4:  Reporting → Structured report + Python PoC script
 ```
 
-<img width="1148" height="642" alt="image" src="https://github.com/user-attachments/assets/576e1cf6-25da-4969-864b-40e77d020dbf" />
+> 📸 **Screenshots coming soon** — Specter CLI and Web UI demos will be added to showcase the workflow in action.
 
 Suitable for authorized pentests, CTF competitions, security training, and red team operations.
 
