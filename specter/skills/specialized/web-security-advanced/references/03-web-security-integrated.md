@@ -1843,7 +1843,7 @@ save
 
 ### 5.10 认证绕过测试清单
 
-| 测试项 | 方法 | 工具 |
+| 测试项 | Method | 工具 |
 |--------|------|------|
 | Cookie伪造 | 修改用户标识字段 | BurpSuite |
 | Session固定 | 复用他人Session | 抓包工具 |
@@ -1973,7 +1973,7 @@ Path: references\web-file-infra.md
 
 黑名单绕过速查表:
 
-| 技巧 | PHP | ASP/ASPX | JSP |
+| Technique | PHP | ASP/ASPX | JSP |
 |-----|-----|----------|-----|
 | 大小写 | `.Php .pHp` | `.Asp .aSp` | `.Jsp .jSp` |
 | 双写 | `.pphphp` | `.asaspp` | `.jsjspp` |
@@ -2886,7 +2886,7 @@ kubectl get networkpolicy -A
 
 ### 2.6 CI/CD流水线安全
 
-| 风险 | 说明 | 防御 |
+| 风险 | 说明 | Defense |
 |------|------|------|
 | 密钥明文存储 | Pipeline配置中硬编码密钥 | 使用Vault/Sealed Secrets |
 | 依赖不可信 | CI中拉取未验证的构建工具 | 锁定CI镜像版本 |

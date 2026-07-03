@@ -2035,7 +2035,7 @@ AI编程助手(Claude Code/Cursor等)的Skills和Rules系统引入新的供应�
 | - | High | 启动信任对话框前即可执行命令 |
 | - | Moderate | 恶意仓库配置导致数据泄露 |
 
-#### 防御建议
+#### Defense建议
 
 - **Skill审计**: 安装前审查SKILL.md和所有reference文件内容
 - **签名验证**: 验证skill来源和完整性(目前无官方机制,需手动)
@@ -3119,7 +3119,7 @@ https://llmtop10.com/llm05/
 
 #### 2.2 Sysbox 特定检测
 
-| 检测项 | 方法 | 安全影响 |
+| 检测项 | Method | 安全影响 |
 |--------|------|----------|
 | CE vs EE版本 | `sysbox-runc --version` 或检查UID映射范围 | CE共享映射有跨租户风险 |
 | UID映射独占性 | `cat /proc/self/uid_map`, CE通常`0 165536 65536`(共享) | 共享映射→跨容器提权可能 |

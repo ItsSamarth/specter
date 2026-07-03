@@ -1,135 +1,135 @@
-# XSS跨站脚本
+# XSS Cross-Site Scripting
 English: XSS Cross-Site Scripting
 - Entry Count: 12
 - Use this file to shortlist relevant payloads, then open the linked source markdown for the full workflow and commands.
-## 反射型XSS
+## Reflected XSS
 - ID: xss-reflected
 - Difficulty: beginner
-- Subcategory: 反射型
+- Subcategory: Reflected
 - Tags: xss, reflected, javascript
 - Original Extracted Source: original extracted web-security-wiki source/xss-reflected.md
 Description:
-反射型跨站脚本攻击技术
+Reflected cross-site scripting attack techniques
 Prerequisites:
-- 存在用户输入反射到页面
-- 输入未经过滤或编码
+- User input is reflected back to the page
+- Input is not filtered or encoded
 Execution Outline:
-1. 1. 探测XSS注入点
-2. 2. 事件处理器绕过
-3. 3. 标签绕过
-4. 4. 窃取Cookie
-## 存储型XSS
+1. 1. Probe XSS injection points
+2. 2. Event handler bypass
+3. 3. Tag bypass
+4. 4. Steal cookies
+## Stored XSS
 - ID: xss-stored
 - Difficulty: intermediate
-- Subcategory: 存储型
+- Subcategory: Stored
 - Tags: xss, stored, persistent
 - Original Extracted Source: original extracted web-security-wiki source/xss-stored.md
 Description:
-存储型跨站脚本攻击技术
+Stored cross-site scripting attack techniques
 Prerequisites:
-- 存在数据存储功能
-- 存储数据未经过滤显示
+- Data storage functionality exists
+- Stored data is displayed without filtering
 Execution Outline:
-1. 1. 探测存储点
-2. 2. 隐蔽Payload
-3. 3. 持久化控制
+1. 1. Probe storage points
+2. 2. Stealthy payload
+3. 3. Persistent control
 4. 4. BeEF Hook
-## DOM型XSS
+## DOM-Based XSS
 - ID: xss-dom
 - Difficulty: intermediate
-- Subcategory: DOM型
+- Subcategory: DOM-Based
 - Tags: xss, dom, javascript
 - Original Extracted Source: original extracted web-security-wiki source/xss-dom.md
 Description:
-基于DOM的跨站脚本攻击
+DOM-based cross-site scripting attacks
 Prerequisites:
-- 存在JavaScript动态操作DOM
-- 用户输入直接写入DOM
+- JavaScript dynamically manipulates the DOM
+- User input is written directly to the DOM
 Execution Outline:
-1. 1. 探测DOM XSS
-2. 2. 常见Sink点
-3. 3. location.hash利用
-4. 4. postMessage利用
-## CSP绕过
+1. 1. Probe DOM XSS
+2. 2. Common sink points
+3. 3. location.hash exploitation
+4. 4. postMessage exploitation
+## CSP Bypass
 - ID: xss-csp-bypass
 - Difficulty: advanced
-- Subcategory: CSP绕过
+- Subcategory: CSP Bypass
 - Tags: xss, csp, bypass
 - Original Extracted Source: original extracted web-security-wiki source/xss-csp-bypass.md
 Description:
-绕过内容安全策略(CSP)的XSS技术
+XSS techniques for bypassing Content Security Policy (CSP)
 Prerequisites:
-- 存在XSS漏洞
-- 存在CSP策略但配置不当
+- XSS vulnerability exists
+- CSP policy is present but misconfigured
 Execution Outline:
-1. 1. 分析CSP策略
-2. 2. 利用unsafe-inline
-3. 3. 利用unsafe-eval
-4. 4. JSONP绕过
-## 突变型XSS(mXSS)
+1. 1. Analyze CSP policy
+2. 2. Exploit unsafe-inline
+3. 3. Exploit unsafe-eval
+4. 4. JSONP bypass
+## Mutation XSS (mXSS)
 - ID: xss-mxss
 - Difficulty: advanced
-- Subcategory: 突变型
+- Subcategory: Mutation-Based
 - Tags: xss, mxss, mutation, bypass
 - Original Extracted Source: original extracted web-security-wiki source/xss-mxss.md
 Description:
-利用浏览器解析差异导致的XSS攻击
+XSS attacks exploiting browser parsing discrepancies
 Prerequisites:
-- 存在HTML输出点
-- 浏览器解析差异
+- HTML output point exists
+- Browser parsing discrepancies exist
 Execution Outline:
-1. 1. 基础mXSS探测
+1. 1. Basic mXSS probing
 2. 2. SVG mXSS
 3. 3. Math mXSS
-4. 4. DOM clobbering配合
+4. 4. DOM clobbering combination
 ## Unicode XSS
 - ID: xss-unicode
 - Difficulty: intermediate
-- Subcategory: Unicode编码
+- Subcategory: Unicode Encoding
 - Tags: xss, unicode, encoding, bypass
 - Original Extracted Source: original extracted web-security-wiki source/xss-unicode.md
 Description:
-利用Unicode编码特性绕过过滤
+Using Unicode encoding characteristics to bypass filters
 Prerequisites:
-- 存在XSS注入点
-- 过滤器检查关键字
+- XSS injection point exists
+- Filter checks for keywords
 Execution Outline:
-1. 1. Unicode转义
-2. 2. HTML实体编码
-3. 3. Unicode规范化攻击
-4. 4. UTF-7编码
-## XSS过滤器绕过
+1. 1. Unicode escaping
+2. 2. HTML entity encoding
+3. 3. Unicode normalization attack
+4. 4. UTF-7 encoding
+## XSS Filter Bypass
 - ID: xss-filter-bypass
 - Difficulty: intermediate
-- Subcategory: 过滤器绕过
+- Subcategory: Filter Bypass
 - Tags: xss, filter, bypass, waf
 - Original Extracted Source: original extracted web-security-wiki source/xss-filter-bypass.md
 Description:
-各种绕过XSS过滤器的技术
+Various techniques for bypassing XSS filters
 Prerequisites:
-- 存在XSS注入点
-- 存在过滤机制
+- XSS injection point exists
+- Filtering mechanism is in place
 Execution Outline:
-1. 1. 大小写混淆
-2. 2. 双写绕过
-3. 3. 注释混淆
-4. 4. 空字节截断
-## XSS编码绕过
+1. 1. Case obfuscation
+2. 2. Double-write bypass
+3. 3. Comment obfuscation
+4. 4. Null byte truncation
+## XSS Encoding Bypass
 - ID: xss-encoding
 - Difficulty: intermediate
-- Subcategory: 编码绕过
+- Subcategory: Encoding Bypass
 - Tags: xss, encoding, bypass
 - Original Extracted Source: original extracted web-security-wiki source/xss-encoding.md
 Description:
-利用各种编码技术绕过XSS过滤
+Using various encoding techniques to bypass XSS filters
 Prerequisites:
-- 存在XSS注入点
-- 存在编码处理
+- XSS injection point exists
+- Encoding processing is in place
 Execution Outline:
-1. 1. URL编码
-2. 2. HTML实体编码
-3. 3. JavaScript编码
-4. 4. CSS编码
+1. 1. URL encoding
+2. 2. HTML entity encoding
+3. 3. JavaScript encoding
+4. 4. CSS encoding
 ## Polyglot XSS
 - ID: xss-polyglot
 - Difficulty: intermediate
@@ -137,61 +137,60 @@ Execution Outline:
 - Tags: xss, polyglot, universal
 - Original Extracted Source: original extracted web-security-wiki source/xss-polyglot.md
 Description:
-多环境通用的XSS payload
+Universal XSS payloads for multiple environments
 Prerequisites:
-- 存在XSS注入点
-- 不确定具体环境
+- XSS injection point exists
+- Specific environment is unknown
 Execution Outline:
-1. 1. 经典Polyglot
-2. 2. 短Polyglot
-3. 3. 属性注入Polyglot
-4. 4. URL参数Polyglot
-## XSS Cookie窃取
+1. 1. Classic polyglot
+2. 2. Short polyglot
+3. 3. Attribute injection polyglot
+4. 4. URL parameter polyglot
+## XSS Cookie Theft
 - ID: xss-cookie-theft
 - Difficulty: beginner
-- Subcategory: Cookie窃取
+- Subcategory: Cookie Theft
 - Tags: xss, cookie, theft, session
 - Original Extracted Source: original extracted web-security-wiki source/xss-cookie-theft.md
 Description:
-利用XSS窃取用户Cookie
+Stealing user cookies using XSS
 Prerequisites:
-- 存在XSS漏洞
-- Cookie未设置HttpOnly
+- XSS vulnerability exists
+- Cookie does not have HttpOnly flag set
 Execution Outline:
-1. 1. 基础Cookie窃取
-2. 2. Fetch API窃取
-3. 3. XMLHttpRequest窃取
-4. 4. 编码传输
-## XSS键盘记录
+1. 1. Basic cookie theft
+2. 2. Fetch API theft
+3. 3. XMLHttpRequest theft
+4. 4. Encoded transmission
+## XSS Keylogger
 - ID: xss-keylogger
 - Difficulty: intermediate
-- Subcategory: 键盘记录
+- Subcategory: Keylogger
 - Tags: xss, keylogger, credential
 - Original Extracted Source: original extracted web-security-wiki source/xss-keylogger.md
 Description:
-利用XSS记录用户键盘输入
+Recording user keyboard input using XSS
 Prerequisites:
-- 存在存储型XSS
-- 目标页面有敏感输入
+- Stored XSS exists
+- Target page has sensitive input fields
 Execution Outline:
-1. 1. 基础键盘记录
-2. 2. 完整键盘记录
-3. 3. 表单窃取
-4. 4. 表单提交劫持
-## BeEF框架利用
+1. 1. Basic keylogging
+2. 2. Full keylogger
+3. 3. Form theft
+4. 4. Form submission hijacking
+## BeEF Framework Exploitation
 - ID: xss-beef
 - Difficulty: advanced
-- Subcategory: BeEF利用
+- Subcategory: BeEF Exploitation
 - Tags: xss, beef, framework, exploitation
 - Original Extracted Source: original extracted web-security-wiki source/xss-beef.md
 Description:
-使用BeEF框架进行XSS利用
+Using BeEF framework for XSS exploitation
 Prerequisites:
-- 存在XSS漏洞
-- 部署BeEF服务器
+- XSS vulnerability exists
+- BeEF server deployed
 Execution Outline:
-1. 1. 部署BeEF
-2. 2. 注入Hook脚本
-3. 3. 常用命令
-4. 4. 模块利用
-
+1. 1. Deploy BeEF
+2. 2. Inject hook script
+3. 3. Common commands
+4. 4. Module exploitation

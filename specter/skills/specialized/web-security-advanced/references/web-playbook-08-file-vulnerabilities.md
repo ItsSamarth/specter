@@ -1,75 +1,75 @@
-# 文件漏洞
+# File Vulnerabilities
 English: File Vulnerabilities
 - Entry Count: 7
 - Use this file to shortlist relevant payloads, then open the linked source markdown for the full workflow and commands.
-## 文件上传绕过
+## File Upload Bypass
 - ID: file-upload-bypass
 - Difficulty: intermediate
-- Subcategory: 文件上传
+- Subcategory: File Upload
 - Tags: upload, bypass, webshell
 - Original Extracted Source: original extracted web-security-wiki source/file-upload-bypass.md
 Description:
-文件上传限制绕过技术
+File upload restriction bypass techniques
 Prerequisites:
-- 目标存在文件上传功能
-- 存在上传限制
+- Target has a file upload function
+- Upload restrictions are in place
 Execution Outline:
-1. 扩展名绕过
+1. Extension bypass
 2. Content-Type
-3. 图片马
-4. 空格绕过
-## 任意文件下载
+3. Image webshell
+4. Whitespace bypass
+## Arbitrary File Download
 - ID: file-download
 - Difficulty: beginner
-- Subcategory: 下载
+- Subcategory: Download
 - Tags: file-download, lfi, leak
 - Original Extracted Source: original extracted web-security-wiki source/file-download.md
 Description:
-利用文件下载功能中的路径控制缺陷下载服务器上的任意敏感文件
+Exploiting path control flaws in file download functionality to download arbitrary sensitive files from the server
 Prerequisites:
-- 目标存在文件下载功能
-- 文件路径参数可控
-- 服务端未对路径进行严格过滤
+- Target has a file download function
+- File path parameter is controllable
+- Server does not strictly filter paths
 Execution Outline:
-1. 识别文件下载接口
-2. 路径遍历下载敏感文件
-3. 下载源码与数据库配置
-4. 自动化批量敏感文件探测
-## 条件竞争
+1. Identify file download interface
+2. Path traversal to download sensitive files
+3. Download source code and database configuration
+4. Automated batch sensitive file probing
+## Race Condition
 - ID: file-competition
 - Difficulty: advanced
 - Subcategory: Race Condition
 - Tags: race-condition, file-upload
 - Original Extracted Source: original extracted web-security-wiki source/file-competition.md
 Description:
-利用文件上传/处理过程中的竞态条件(Race Condition)，在安全检查与文件使用之间的时间窗口内执行恶意操作
+Exploiting race conditions (TOCTOU) during file upload/processing to execute malicious operations within the time window between security check and file use
 Prerequisites:
-- 目标存在文件上传功能
-- 服务端先上传后检查的处理流程
-- 可以高并发访问上传的文件
-- 了解临时文件存储路径
+- Target has a file upload function
+- Server follows an upload-then-check processing flow
+- High-concurrency access to uploaded files is possible
+- Temporary file storage path is known
 Execution Outline:
-1. 识别竞态条件窗口
-2. 竞态条件利用 - 上传与访问并发
-3. Python并发竞态利用脚本
-4. .htaccess竞态写入
-## 路径遍历
+1. Identify race condition window
+2. Race condition exploitation - concurrent upload and access
+3. Python concurrent race exploitation script
+4. .htaccess race write
+## Path Traversal
 - ID: file-traversal
 - Difficulty: beginner
 - Subcategory: Traversal
 - Tags: traversal, file
 - Original Extracted Source: original extracted web-security-wiki source/file-traversal.md
 Description:
-利用路径遍历(../)序列突破文件访问的目录限制，读取或写入Web根目录以外的任意文件
+Using path traversal (../) sequences to break out of directory restrictions for file access, reading or writing arbitrary files outside the web root
 Prerequisites:
-- 目标存在文件读取/包含功能
-- 文件路径参数可控
-- 服务端路径过滤不严格
+- Target has file read/include functionality
+- File path parameter is controllable
+- Server path filtering is not strict
 Execution Outline:
-1. 基础路径遍历测试
-2. 编码绕过路径过滤
-3. Windows特有路径遍历
-4. LFI到RCE升级
+1. Basic path traversal testing
+2. Encoding bypass of path filters
+3. Windows-specific path traversal
+4. LFI to RCE escalation
 ## Zip Slip
 - ID: file-zip-slip
 - Difficulty: intermediate
@@ -77,48 +77,47 @@ Execution Outline:
 - Tags: zip-slip, file, rce
 - Original Extracted Source: original extracted web-security-wiki source/file-zip-slip.md
 Description:
-利用恶意构造的压缩包文件(ZIP/TAR)中的路径遍历实现任意文件写入，覆盖服务器上的关键文件或写入Webshell
+Using path traversal in maliciously crafted archive files (ZIP/TAR) to achieve arbitrary file write, overwriting critical server files or writing a webshell
 Prerequisites:
-- 目标存在ZIP/TAR文件上传并自动解压功能
-- 解压库未对文件名中的路径遍历进行过滤
-- 了解Web根目录或其他关键目录的路径
+- Target has ZIP/TAR file upload with automatic extraction
+- Extraction library does not filter path traversal in filenames
+- Web root or other critical directory path is known
 Execution Outline:
-1. 探测ZIP上传和解压功能
-2. 构造Zip Slip恶意压缩包
-3. 上传并验证Zip Slip
-4. TAR包Zip Slip变体
-## MIME类型绕过
+1. Probe ZIP upload and extraction functionality
+2. Construct Zip Slip malicious archive
+3. Upload and verify Zip Slip
+4. TAR archive Zip Slip variant
+## MIME Type Bypass
 - ID: file-mime
 - Difficulty: beginner
 - Subcategory: MIME
 - Tags: mime, bypass
 - Original Extracted Source: original extracted web-security-wiki source/file-mime.md
 Description:
-通过伪造MIME类型(Content-Type)绕过文件上传的类型检查，上传恶意可执行文件
+Bypassing file upload type checks by spoofing MIME type (Content-Type) to upload malicious executable files
 Prerequisites:
-- 目标存在文件上传功能
-- 服务端仅通过Content-Type判断文件类型
-- 了解目标允许的MIME类型
+- Target has a file upload function
+- Server only determines file type by Content-Type
+- Allowed MIME types are known
 Execution Outline:
-1. 探测文件类型检查机制
-2. MIME类型伪造上传Webshell
-3. Magic Bytes伪造
-4. 验证上传结果
-## 空字节截断
+1. Probe file type checking mechanism
+2. MIME type spoofing to upload webshell
+3. Magic bytes spoofing
+4. Verify upload result
+## Null Byte Truncation
 - ID: file-null-byte
 - Difficulty: intermediate
 - Subcategory: Null Byte
 - Tags: null-byte, bypass
 - Original Extracted Source: original extracted web-security-wiki source/file-null-byte.md
 Description:
-利用空字节(%00/\x00)截断文件名的扩展名验证，绕过文件上传白名单限制
+Using null bytes (%00/\x00) to truncate file extension validation, bypassing file upload whitelist restrictions
 Prerequisites:
-- 目标使用白名单验证文件扩展名
-- 后端语言或库受空字节截断影响(PHP<5.3.4, Java旧版本)
-- 服务端在路径拼接中存在截断点
+- Target uses whitelist to validate file extensions
+- Backend language or library is affected by null byte truncation (PHP<5.3.4, older Java versions)
+- Truncation point exists in server-side path concatenation
 Execution Outline:
-1. 空字节截断原理与环境检测
-2. 文件上传空字节截断
-3. 文件包含空字节截断
-4. 现代替代方案(PHP>=5.3.4)
-
+1. Null byte truncation principles and environment detection
+2. File upload null byte truncation
+3. File inclusion null byte truncation
+4. Modern alternatives (PHP>=5.3.4)

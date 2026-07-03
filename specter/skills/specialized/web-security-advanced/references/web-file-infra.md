@@ -38,7 +38,7 @@
 
 黑名单绕过速查表:
 
-| 技巧 | PHP | ASP/ASPX | JSP |
+| Technique | PHP | ASP/ASPX | JSP |
 |-----|-----|----------|-----|
 | 大小写 | `.Php .pHp` | `.Asp .aSp` | `.Jsp .jSp` |
 | 双写 | `.pphphp` | `.asaspp` | `.jsjspp` |

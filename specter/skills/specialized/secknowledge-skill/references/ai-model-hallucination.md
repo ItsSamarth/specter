@@ -1,123 +1,93 @@
-# AI模型安全 - 应用阶段 - 幻觉风险
+# AI Model Security - Application Phase - Hallucination Risks
 
-> 来源: AISS绿盟大模型安全智链社区 | 拆自 ai-model-app.md
-> 风险类别: 幻觉（GAARM.0028.x + 0064 跨模态幻觉）
+> Source: AISS NSFOCUS Large Model Security Smart-Chain Community | Split from ai-model-app.md
+> Risk Category: Hallucination (GAARM.0028.x + 0064 Cross-modal Hallucination)
 
 ---
 
-### 事实性幻觉
+### Factual Hallucination
 
-> 风险编号: GAARM.0028.001
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0028.001
+> Lifecycle: Application Phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险涉及模型输出内容与现实世界中可验证的事实不符或捏造信息。这种风险来源有很多种可能，在大模型从训练到应用的各个方面都可能带来幻觉风险。此外，攻击者可以通过特意构造的攻击手段来让大模型产生幻觉，例如随机喂给大模型一段乱码，则会影响它输出内容的真实性。最终可能导致助长虚假新闻和阴谋论的传播，从而对社会产生深远的负面影响，包括但不限于误导公众、破坏信息真实性和扰乱社会秩序
-事实性幻觉可分为以下几类:
+This risk involves model output content that is inconsistent with verifiable real-world facts or that fabricates information. This risk has many potential sources; hallucination risks may arise at every stage from model training to application. In addition, attackers can use deliberately crafted attack methods to cause large models to hallucinate—for example, feeding the model a string of garbled text will affect the truthfulness of its output content. This may ultimately lead to the spread of fake news and conspiracy theories, creating far-reaching negative social impacts including but not limited to misleading the public, undermining information integrity, and disrupting social order.
 
-事实不一致：模型的输出与现实世界中已知的信息相矛盾；
-事实捏造：指模型生成的内容完全基于虚构，而无法通过任何现实世界的信息来验证其准确性；
+Factual hallucinations can be divided into the following categories:
 
-**攻击案例**
+- Factual inconsistency: the model's output contradicts information already known in the real world.
+- Factual fabrication: the model generates content that is entirely based on fiction and cannot be verified for accuracy against any real-world information.
 
-案例一：模型被问到第一个登上月球的人时，模型编造出虚假人物
+**Attack Cases**
 
+Case 1: When asked who the first person to walk on the moon was, the model fabricated a fictitious individual.
 
   
-事实性幻觉案例
+Factual Hallucination Case
 
-**攻击风险**
+**Attack Risks**
 
-传播虚假信息：事实性幻觉可能导致虚假信息的传播，尤其是在社交媒体和其他在线平台上。这不仅会误导公众，还可能加剧假新闻、阴谋论等社会问题。
-法律和合规风险：生成包含不准确事实的内容可能违反特定行业的法律和合规要求，比如医疗信息的准确性、金融建议的可靠性等，从而导致法律诉讼或罚款。
-伦理和社会责任：事实性幻觉可能违背伦理和社会责任原则，尤其是当错误信息影响到敏感话题（如政治、健康、安全等）时，可能对社会造成负面影响。
-用户信任下降：频繁的事实性错误可能导致用户对AI系统的信任下降，从而影响其使用意愿和技术的普及 。
+- Spread of false information: factual hallucinations may lead to the spread of false information, especially on social media and other online platforms. This not only misleads the public but may also exacerbate social problems such as fake news and conspiracy theories.
+- Legal and compliance risk: generating content containing inaccurate facts may violate legal and compliance requirements in specific industries—such as the accuracy of medical information and the reliability of financial advice—resulting in lawsuits or fines.
+- Ethical and social responsibility: factual hallucinations may violate ethical and social responsibility principles, especially when incorrect information affects sensitive topics (such as politics, health, and safety), potentially causing negative impacts on society.
+- Declining user trust: frequent factual errors may cause users' trust in AI systems to decline, thereby affecting their willingness to use them and the popularization of the technology.
 
-**缓解措施**
+**Mitigations**
 
-缓解方式
-描述
+Mitigation | Description
+--- | ---
+Manual review and feedback mechanism | Implement manual review and feedback mechanisms for model outputs to promptly identify and correct errors in model outputs and continuously optimize the model.
+Ensemble learning and multi-model fusion | By using ensemble learning or multi-model fusion, combining the strengths of multiple models can improve overall prediction performance and reduce hallucination phenomena.
+Application of regularization techniques | Applying regularization techniques (such as L1, L2 regularization) can prevent model overfitting and improve the model's generalization capability.
 
-
-
-
-人工审核和反馈机制
-对模型的输出进行人工审核和反馈机制，及时发现和纠正模型输出的错误，不断优化模型
-
-
-集成学习与多模型融合
-通过集成学习或多模型融合的方式，结合多个模型的优势，可以提高整体的预测性能和减少幻觉现象
-
-
-正则化技术应用
-应用正则化技术（如L1、L2正则化）可以防止模型过拟合，提高模型的泛化能力
-
-**参考**
+**References**
 
 https://www.lakera.ai/blog/guide-to-hallucinations-in-large-language-models
 https://arxiv.org/pdf/2305.13534.pdf
 
 ---
-### 攻击案例
+### Attack Cases (Fidelity Hallucination)
 
-> 风险编号: GAARM.0028.002
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0028.002
+> Lifecycle: Application Phase
 
-**攻击概述**
+**Attack Overview**
 
-忠实幻觉性指的是生成的内容与用户所提供的指令或上下文信息之间存在不一致。有很多攻击手段可以让大模型产生忠实性幻觉。例如，通过对输入数据进行微小的扰动，使模型产生错误预测或生成虚假信息，影响大模型的逻辑；通过多次查询模型，推断其内部逻辑，进而设计输入使模型产生幻觉；利用生成对抗网络生成虚假的数据样本，诱使其他模型产生错误输出等。
-忠实性幻觉分为以下三种类型:
+Fidelity hallucination refers to inconsistencies between generated content and the instructions or contextual information provided by the user. Many attack methods can cause large models to produce fidelity hallucinations. For example, making minor perturbations to input data can cause the model to make incorrect predictions or generate false information, affecting the large model's reasoning; repeatedly querying the model to infer its internal logic and then designing inputs that cause the model to hallucinate; using generative adversarial networks to generate fake data samples to induce other models to produce incorrect outputs, and so on.
 
-指令不一致：LLM忽略了用户提供的具体指令。例如，按照指示将一个问题翻译成西班牙语，但模型却以英语提供了答案；
-上下文不一致：模型输出的内容包含了未在提供的上下文中出现或与之相矛盾的信息。例如，LLM声称尼罗河起源于山脉，而不是用户输入中提到的大湖地区；
-逻辑不一致：模型的输出包含了逻辑错误，尽管开始时是正确的。例如，在一道分步数学解题中，LLM可能会在执行算术运算时出现错误，尽管开始时是正确的；
+Fidelity hallucinations fall into the following three types:
 
-**攻击案例**
+- Instruction inconsistency: the LLM ignores the specific instructions provided by the user. For example, instructed to translate a question into Spanish, the model instead provides the answer in English.
+- Context inconsistency: the model's output contains information that does not appear in the provided context or that contradicts it. For example, the LLM claims the Nile originates from mountains, rather than the Great Lakes region mentioned in the user's input.
+- Logical inconsistency: the model's output contains logical errors despite starting correctly. For example, in a step-by-step math problem, the LLM may make errors when performing arithmetic operations, despite starting correctly.
 
-案例一：模型总结新闻文章，该模型错误地生成实际事件日期
+**Attack Cases**
 
+Case 1: The model summarized a news article and incorrectly generated the dates of actual events.
 
   
 Fidelity Hallucination
 
+Case | Description
+--- | ---
+Case 2 | The LLM output incorrect code when implementing TCP SYN scanning detection software.
 
+**Attack Risks**
 
+- Misleading user decisions: inconsistency between the model's output and the original content may mislead users, especially when users rely on AI-provided information for decision-making.
+- Declining user satisfaction: when users find that the generated content does not match their request or contains obvious logical errors, they may feel confused or disappointed, which directly affects user satisfaction and trust in the system.
+- **Automated process errors:** in automated processes, fidelity hallucinations may cause automated processes to go wrong or be interrupted, requiring manual intervention to correct, thereby reducing overall efficiency and output.
 
-案例
-描述
+**Mitigations**
 
+Mitigation | Description
+--- | ---
+Manual review and feedback mechanism | Implement manual review and feedback mechanisms for model outputs to promptly identify and correct errors in model outputs and continuously optimize the model.
+Ensemble learning and multi-model fusion | By using ensemble learning or multi-model fusion, combining the strengths of multiple models can improve overall prediction performance and reduce hallucination phenomena.
+Application of regularization techniques | Applying regularization techniques (such as L1, L2 regularization) can prevent model overfitting and improve the model's generalization capability.
 
-
-
-案例二
-LLM在实现检测TCP SYN扫描软件时输出了错误的代码
-
-**攻击风险**
-
-用户决策误导：模型的输出与原始内容不一致，可能会误导用户，尤其是当用户依赖AI系统提供的信息进行决策时。
-用户满意度下降：当用户发现生成的内容与其请求不匹配或逻辑上存在明显错误时，可能会感到困惑或失望，这会直接影响到用户对系统的满意度和信任度。
-**自动化流程出错：**在自动化流程中，忠实性幻觉可能导致自动化流程出错或中断，需要人工介入纠正，从而降低整体效率和产出。
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-人工审核和反馈机制
-对模型的输出进行人工审核和反馈机制，及时发现和纠正模型输出的错误，不断优化模型
-
-
-集成学习与多模型融合
-通过集成学习或多模型融合的方式，结合多个模型的优势，可以提高整体的预测性能和减少幻觉现象
-
-
-正则化技术应用
-应用正则化技术（如L1、L2正则化）可以防止模型过拟合，提高模型的泛化能力
-
-**参考**
+**References**
 
 https://arxiv.org/pdf/2311.05232.pdf
 https://mp.weixin.qq.com/s/qFAQQJ_FuhY2iaLzkoWynA
@@ -125,128 +95,94 @@ https://www.lakera.ai/blog/guide-to-hallucinations-in-large-language-models
 https://www.appendata.com/blogs/ai-hallucinations
 
 ---
-### 模型幻觉风险
+### Model Hallucination Risk
 
-> 风险编号: GAARM.0028
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0028
+> Lifecycle: Application Phase
 
-**攻击概述**
+**Attack Overview**
 
-模型幻觉风险是指大型语言模型在生成文本或其他类型的输出时，可能会产生与现实不符或完全虚构的信息，这些信息可能被当作真实信息使用，从而导致误导或错误决策。针对该风险的攻击会诱导大模型产生幻觉，生成虚假的输出，从而误导决策。
-以下是常见的模型幻觉攻击手段：
-- 随机噪声攻击（OoD Attack）：即让无意义的随机字符串诱导大模型产生预定义的幻觉输出。
-- 弱语义攻击（Weak Semantic Attack）：即保证原始 prompt 语义基本不变的情况下，使得大模型产生截然不同的幻觉输出。
+Model hallucination risk refers to the possibility that large language models, when generating text or other types of output, may produce information that is inconsistent with reality or entirely fabricated. This information may be used as if it were real, thereby causing misunderstandings or incorrect decisions. Attacks targeting this risk induce large models to hallucinate and generate false outputs, thereby misleading decision-making.
 
-**攻击案例**
+The following are common model hallucination attack methods:
+- Random Noise Attack (OoD Attack): meaningless random strings are used to induce the large model to produce predefined hallucinated outputs.
+- Weak Semantic Attack: while keeping the semantics of the original prompt essentially unchanged, the large model is caused to produce entirely different hallucinated outputs.
 
-案例一：攻击者通过添加无意义的字符串让模型输出错误言论。
-案例链接
+**Attack Cases**
 
+Case 1: An attacker added a meaningless string to cause the model to output incorrect statements.
+Case link
 
   
 OoD
 
-案例二：攻击者在保持原Prompt不变的情况下重构Prompt，使得模型输出与原来不同的语句。
-
+Case 2: An attacker reconstructed the prompt while keeping the original prompt unchanged, causing the model to output statements different from the original.
 
   
 Weak Semantic Attack
 
-案例三：2023年6月，律师 Steven A. Schwartz 和 Peter LoDuca 因提交 ChatGPT 生成的法律简报而被罚款 5000 美元，其中包括对不存在案件的引用。
-
+Case 3: In June 2023, lawyers Steven A. Schwartz and Peter LoDuca were fined USD 5,000 for submitting a ChatGPT-generated legal brief that included citations to non-existent cases.
 
   
-律师使用 ChatGPT 生成的法律简报被处罚
+Lawyers penalized for submitting ChatGPT-generated legal brief
 
-**攻击风险**
+**Attack Risks**
 
-误导决策：模型可能产生误导性的输出，影响依赖模型输出的决策过程。
-语义混淆：即使输入的语义内容保持不变，模型也可能产生与预期完全不同的输出，导致混淆。
-信任度下降：频繁的幻觉输出会降低用户和组织对模型可靠性的信任。
+- Misleading decisions: the model may produce misleading outputs that affect decision-making processes relying on model outputs.
+- Semantic confusion: even if the semantic content of the input remains unchanged, the model may produce outputs completely different from what was expected, causing confusion.
+- Declining trust: frequent hallucinated outputs will reduce users' and organizations' trust in the model's reliability.
 
-**缓解措施**
+**Mitigations**
 
-缓解方式
-描述
+Mitigation | Description
+--- | ---
+Input validation and filtering | Strictly validate and preprocess input data to filter out anomalous or noisy data.
+Model robustness training | Improve the model's resistance to such attacks by incorporating random noise and adversarial examples during the training process.
+Multi-model ensemble | Use an ensemble of multiple models, employing majority voting or ensemble learning to reduce the impact of errors from a single model.
 
-
-
-
-输入验证和过滤
-对输入数据进行严格的验证和预处理，以过滤掉异常或噪声数据
-
-
-模型鲁棒性训练
-通过在训练过程中加入随机噪声和对抗性样本，提高模型对这类攻击的抵抗力
-
-
-多模型集成
-使用多个模型的集成方法，通过多数投票或集成学习来减少单一模型出错的影响
-
-**参考**
+**References**
 
 https://github.com/PKU-YuanGroup/Hallucination-Attack
 https://zhuanlan.zhihu.com/p/661444210
 https://arxiv.org/pdf/2310.01469.pdf
 
 ---
-### 跨模态幻觉
+### Cross-modal Hallucination
 
-> 风险编号: GAARM.0064
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0064
+> Lifecycle: Application Phase
 
-**攻击概述**
+**Attack Overview**
 
-跨模态幻觉是指多模态模型在不同模态间产生矛盾、不一致或完全虚构的内容，导致模型输出与输入现实不符的错误信息。这种风险的核心在于多模态模型在处理和融合文本、图像、音频、视频等多种信息时，由于模态间语义映射错误、跨模态注意力机制缺陷或多模态融合过程中的信息丢失或扭曲，产生了严重的逻辑错误和事实错误。跨模态幻觉不仅影响模型的可靠性，还可能导致错误的决策、误导性的信息传播和严重的应用后果。
+Cross-modal hallucination refers to situations where multimodal models produce contradictory, inconsistent, or entirely fabricated content across different modalities, causing the model's output to convey erroneous information that is inconsistent with input reality. The core of this risk lies in the fact that multimodal models, when processing and fusing information from multiple modalities such as text, images, audio, and video, may produce serious logical errors and factual errors due to incorrect semantic mapping between modalities, defects in cross-modal attention mechanisms, or information loss or distortion during the multimodal fusion process. Cross-modal hallucinations not only affect model reliability but may also lead to incorrect decisions, misleading information dissemination, and serious application consequences.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
+Case | Description
+--- | ---
+Case 1 | When performing diagnostic reasoning on medical imaging (such as CT scans and X-rays), GPT-4V frequently generates diagnostic conclusions that are inconsistent with the actual content of the images—i.e., the diagnostic information output by the model contains obvious logical and factual errors relative to the imaging content itself. Specific manifestations include incorrectly identifying lesions, incorrectly locating structures, and even incorrectly judging pathological changes, none of which correspond to what the image shows; from a diagnostic standpoint these constitute hallucinated outputs. These errors were derived from testing with real imaging data and cannot simply be attributed to model training assumptions, but rather are incorrect interpretations produced by the model when fusing visual and linguistic information.
 
+Risk Manifestations
 
+- Image-text description inconsistency: obvious contradictions exist between image content and text descriptions.
+- Audio-video understanding deviation: serious deviations occur in the understanding of audio and video content.
+- Cross-modal reasoning logical errors: logical errors occur in the cross-modal reasoning process.
+- Inter-modal information conflict: information from different modalities conflicts with each other.
+- Fabricated cross-modal associations: non-existent inter-modal associations are created.
 
+**Mitigations**
 
-案例一
-在针对医学影像（如 CT、X 光片）进行诊断推理时，GPT-4V 经常生成与图像实际内容不一致的诊断结论，即模型输出的诊断信息与影像内容本身存在明显逻辑和事实错误。具体表现包括错误识别病灶、错误定位结构、甚至错误判断病理改变，这些都不是图像所显示的，从诊断角度看属于幻觉性输出。 这类错误由真实影像数据测试得出，不能简单归结为模型训练设想，而是模型在融合视觉与语言信息时产生的错误解释。
+Mitigation | Description
+--- | ---
+Cross-modal consistency checking | Establish inter-modal consistency verification mechanisms; implement multimodal content cross-validation; detect logical contradictions between modalities.
+Attention mechanism optimization | Improve cross-modal attention allocation algorithms; implement multi-level attention mechanisms; establish attention weight verification.
+Information fusion enhancement | Optimize multimodal information fusion algorithms; implement information retention mechanisms; establish monitoring of the fusion process.
+Factual verification | Establish cross-modal factual verification systems; implement comparison against external knowledge bases; detect fabricated and contradictory information.
 
+**References**
 
-
-风险表现
-
-图文描述不一致：图像内容和文本描述存在明显矛盾
-音视频理解偏差：音频和视频内容的理解产生严重偏差
-多模态推理逻辑错误：跨模态推理过程出现逻辑错误
-模态间信息冲突：不同模态的信息相互冲突
-虚构跨模态关联：创造不存在的模态间关联关系
-
-**缓解措施**
-
-缓解方式
-描述
-
-
-
-
-跨模态一致性检查
-建立模态间一致性验证机制，实施多模态内容交叉验证，检测模态间的逻辑矛盾
-
-
-注意力机制优化
-改进跨模态注意力分配算法，实施多级注意力机制，建立注意力权重验证
-
-
-信息融合增强
-优化多模态信息融合算法，实施信息保留机制，建立融合过程监控
-
-
-事实性验证
-建立跨模态事实性验证系统，实施外部知识库比对，检测虚构和矛盾信息
-
-**参考**
-
-基于注意力汇聚的多模态大语言模型幻觉攻击
-GPT-4V能否服务于医疗应用？GPT-4V在多模态医学诊断中的案例研究
-从“律师因AI编造案例被罚”谈起：大模型幻觉的根源与最新研究进展
+Multimodal Large Language Model Hallucination Attacks Based on Attention Pooling
+Can GPT-4V Serve Medical Applications? A Case Study of GPT-4V in Multimodal Medical Diagnosis
+Starting from "Lawyer Penalized for AI-Fabricated Cases": Root Causes of Large Model Hallucinations and the Latest Research Progress
 
 ---

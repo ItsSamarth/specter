@@ -1,67 +1,67 @@
-# AI基座安全
+# AI Foundation Security
 
-> 来源: AISS绿盟大模型安全智链社区
-> 条目数: 19
+> Source: AISS NSFOCUS Large Model Security Intelligence Chain Community
+> Entry Count: 19
 
 ---
 
-## 应用阶段
+## Application Phase
 
-### LLMs拒绝服务&资源耗尽
+### LLMs Denial of Service & Resource Exhaustion
 
-> 风险编号: GAARM.0008
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0008
+> Lifecycle: Application Phase
 
-**攻击概述**
+**Attack Overview**
 
-攻击者可能会通过发送大量请求来攻击机器学习系统，以降低ML服务速度或者导致服务关闭。由于LLMs系统需要大量的专用计算资源，攻击者可以有意地构造需要大量无用计算的输入，以消耗LLMs系统的资源，导致LLMs和其他用户的服务质量下降，并可能产生高额的资源成本。由于LLM的资源密集型特性和用户输入的不可预测性，这种漏洞的危害性很容易被放大。
+Attackers may attack machine learning systems by sending large volumes of requests to slow down ML services or cause service outages. Because LLM systems require substantial dedicated computing resources, attackers can deliberately craft inputs that require large amounts of wasteful computation to exhaust LLM system resources, degrading the quality of service for LLMs and other users, and potentially incurring high resource costs. Due to the resource-intensive nature of LLMs and the unpredictability of user inputs, the severity of this vulnerability can easily be amplified.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-在agent中进行Prompt注入，诱骗其重复调用 LLM 和 SerpAPI，快速增加成本。
-
-
-案例二
-由于Sourcegraph站点管理员访问令牌意外泄漏，并被利用来冒充用户以获得对系统管理控制台的访问权限，导致API使用量显著增加并泄露大量用户数据。
-
-
-案例三
-利用Prompt注入让MathGPT泄露API密钥，并导致拒绝服务
-
-
-案例四
-在电力系统中应用LLM进行决策，如果发生DOS攻击，可能导致决策的延误和错误，最终影响电力系统的稳定运行
-
-**攻击风险**
-
-资源耗尽攻击：攻击者可能会发送大量的请求来占用模型的计算资源，使得服务不可用，影响用户体验，甚至导致服务中断。
-数据泄露和滥用：攻击过程可能导致模型异常泄露API令牌等敏感信息，攻击者可能会进行未授权访问。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-API速率限制
-强制执行API速率限制，限制个体用户或IP地址在特定时间内可以发出的请求数量
+Case 1
+Perform Prompt injection into an agent, tricking it into repeatedly calling LLM and SerpAPI, rapidly increasing costs.
 
 
-限制执行数量
-限制排队操作的数量和对LLM响应的系统中的总操作数量
+Case 2
+Due to an accidental leak of a Sourcegraph site administrator access token, which was exploited to impersonate users and gain access to the system administration console, leading to a significant increase in API usage and the leak of large amounts of user data.
 
 
-实时监控与告警
-持续监视硬件的资源利用情况，以识别异常的峰值或模式，可能表明存在拒绝服务攻击
+Case 3
+Use Prompt injection to make MathGPT leak its API key, causing denial of service.
+
+
+Case 4
+When LLM is applied for decision-making in power systems, a DOS attack could cause delays and errors in decisions, ultimately affecting the stable operation of the power system.
+
+**Attack Risks**
+
+Resource Exhaustion Attack: Attackers may send large numbers of requests to occupy the model's computing resources, making the service unavailable, degrading user experience, and potentially causing service interruptions.
+Data Leakage and Abuse: The attack process may cause the model to abnormally leak sensitive information such as API tokens, and attackers may conduct unauthorized access.
+
+**Mitigation Measures**
+
+Mitigation Method
+Description
+
+
+
+
+API Rate Limiting
+Enforce API rate limits, restricting the number of requests that individual users or IP addresses can make within a specific time period
+
+
+Limit Execution Count
+Limit the number of queued operations and the total number of operations in the system responding to LLM
+
+
+Real-time Monitoring and Alerting
+Continuously monitor hardware resource utilization to identify abnormal spikes or patterns that may indicate a denial-of-service attack
 
 **参考**
 
@@ -70,50 +70,50 @@ https://owasp.org/www-project-top-10-for-large-language-model-applications/asset
 https://www.cnblogs.com/LittleHann/p/17596696.html
 
 ---
-### 代码解析器执行逃逸
+### Code Interpreter Execution Escape
 
-> 风险编号: GAARM.0007.001
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0007.001
+> Lifecycle: Application Phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险是指攻击者利用GPT-4等代码解析器的功能，通过它们具备的代码解析和代码生成的能力，以多次会话上下文交互逐步构造和隐藏恶意代码、使用Unicode字符及编码混淆等方式来隐藏恶意代码等方式，对恶意代码进行隐藏和绕过，进而实现对模型应用的代码安全检查机制，绕过完成沙盒逃逸，进而获得对系统的访问权限。这种恶意代码隐蔽性强，难以被检测，一旦突破沙箱隔离，攻击者可以控制整个系统，窃取数据、植入后门等。
+This risk refers to attackers exploiting the functionality of code interpreters such as GPT-4, using their code parsing and code generation capabilities to progressively construct and conceal malicious code through multiple session context interactions, using Unicode characters and encoding obfuscation to hide malicious code. This allows the malicious code to bypass the model application's code security inspection mechanisms, complete sandbox escape, and gain access to the system. Such malicious code is highly stealthy and difficult to detect; once the sandbox isolation is breached, attackers can control the entire system, steal data, plant backdoors, and more.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-在GPT4执行代码的时候，通过多次会话上下文交互以及编码方式对恶意代码进行隐藏和绕过，最终通过字符串触发执行，绕过了GPT-4的安全检查，执行了cat /etc/issue命令，成功获取到了目标环境的Linux发行版
-
-**攻击风险**
-
-数据泄露风险：攻击者能够从 LLM 应用程序或其连接的系统中提取敏感数据。
-系统完整性风险：攻击者可以执行未经授权的操作，修改系统设置或文件，甚至植入恶意代码，从而对系统造成损害。
-权限提升风险：一旦攻击者成功逃逸沙盒，他们可能会获取比原本所拥有的更高权限的访问权限。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-严格测试隔离环境
-对沙盒环境进行严格的测试和验证，确保其安全
+Case 1
+During GPT-4 code execution, malicious code was hidden and bypassed through multiple session context interactions and encoding methods, ultimately triggered via a string, bypassing GPT-4's security checks and executing the `cat /etc/issue` command to successfully obtain the Linux distribution of the target environment.
+
+**Attack Risks**
+
+Data Leakage Risk: Attackers can extract sensitive data from LLM applications or their connected systems.
+System Integrity Risk: Attackers can perform unauthorized operations, modify system settings or files, and even plant malicious code, thereby damaging the system.
+Privilege Escalation Risk: Once an attacker successfully escapes the sandbox, they may gain access with higher privileges than they originally possessed.
+
+**Mitigation Measures**
+
+Mitigation Method
+Description
 
 
-输入/输出验证
-过滤掉不安全的Prompt，最大限度保证系统安全
 
 
-访问控制
-在 LLM 应用程序及其沙盒环境中实施严格的访问控制和权限分离，确保只有授权实体才能访问敏感资源，并限制特权操作的执行
+Rigorous Sandbox Environment Testing
+Conduct rigorous testing and validation of sandbox environments to ensure their security
+
+
+Input/Output Validation
+Filter out unsafe Prompts to maximize system security
+
+
+Access Control
+Implement strict access controls and privilege separation in LLM applications and their sandbox environments, ensuring only authorized entities can access sensitive resources and restricting the execution of privileged operations
 
 **参考**
 
@@ -122,57 +122,57 @@ https://www.mufeedvh.com/llm-security/#2-sandboxing-extended-llms
 https://owasp.org/www-project-top-10-for-large-language-model-applications/Archive/0_1_vulns/Inadequate_Sandboxing.html
 
 ---
-### 容器运行时风险
+### Container Runtime Risks
 
-> 风险编号: GAARM.0004 (从AISS分类推断)
-> 生命周期: 部署阶段
+> Risk ID: GAARM.0004 (inferred from AISS classification)
+> Lifecycle: Deployment Phase
 
-**攻击概述**
+**Attack Overview**
 
-基于集成框架开发的LLMs应用程序，通常结合K8S集群以及容器环境实现各个Agents运行环境的搭建与隔离，攻击者通过精心构造提示词，间接通过模型的Agent执行针对容器运行时环境的攻击行为，实现对容器环境下容器逃逸、容器提权等攻击。
+LLM applications developed on integrated frameworks typically combine K8S clusters and container environments to build and isolate the runtime environments for various Agents. Attackers craft prompts to indirectly execute attacks against the container runtime environment through the model's Agents, achieving container escape and container privilege escalation within the container environment.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-Wiz通过上传恶意模型到Huggingface Face获取模型容器运行环境权限。
-
-**攻击风险**
-
-突破容器隔离：攻击者通过利用容器的漏洞或者配置缺陷，尝试突破容器的隔离环境，获取宿主机的访问权限。
-镜像内容篡改：攻击者可能会篡改模型镜像内容，植入恶意代码。
-数据泄露：攻击者可能获取敏感数据，如宿主机上的文件系统信息。
-服务中断：攻击者可能破坏宿主机上的服务，导致服务不可用。
-横向移动：攻击者可能利用逃逸的容器作为跳板，进一步攻击内网中的其他系统。
-持久性控制：攻击者可能在宿主机上安装后门，实现长期控制。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-定期审查
-定期扫描容器镜像和依赖组件，确保没有安全漏洞。
+Case 1
+Wiz obtained model container runtime environment permissions by uploading a malicious model to Hugging Face.
+
+**Attack Risks**
+
+Breaking container isolation: Attackers attempt to breach the container's isolated environment by exploiting container vulnerabilities or configuration flaws to gain access to the host machine.
+Image content tampering: Attackers may tamper with model image content and plant malicious code.
+Data leakage: Attackers may obtain sensitive data, such as file system information on the host machine.
+Service disruption: Attackers may disrupt services on the host machine, causing service unavailability.
+Lateral movement: Attackers may use escaped containers as a pivot point to further attack other systems in the internal network.
+Persistent control: Attackers may install backdoors on the host machine to achieve long-term control.
+
+**Mitigation Measures**
+
+Mitigation Method
+Description
 
 
-资源限制和访问隔离
-实施资源限制和隔离策略，防止单个容器消耗过多资源以及对于集群内其他机器的影响。
 
 
-最小权限原则
-避免使用--privileged等模式运行特权容器，仅授予容器所需的最小权限集。
+Regular Audits
+Regularly scan container images and dependency components to ensure there are no security vulnerabilities.
 
 
-输入/输出验证
-确保模型输入输出侧提示词与结果的安全性，针对可疑的攻击行为实施拦截
+Resource Limits and Access Isolation
+Implement resource limits and isolation policies to prevent individual containers from consuming excessive resources and affecting other machines in the cluster.
+
+
+Principle of Least Privilege
+Avoid running privileged containers with --privileged mode; grant only the minimum set of permissions required by the container.
+
+
+Input/Output Validation
+Ensure the security of prompts and results on the model's input/output side, and intercept suspicious attack behaviors.
 
 **参考**
 
@@ -180,50 +180,50 @@ https://mp.weixin.qq.com/s/tf4ljSJ0Ue0YniojWhYMKg
 https://www.wiz.io/blog/wiz-and-hugging-face-address-risks-to-ai-infrastructure
 
 ---
-### 容器集群环境探测
+### Container Cluster Environment Reconnaissance
 
-> 风险编号: GAARM.0006
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0006
+> Lifecycle: Application Phase
 
-**攻击概述**
+**Attack Overview**
 
-该风险是指攻击者利用模型部署环境中的第三方云厂商或者自建K8S集群自身存在的安全性问题，如系统权限控制、配置错误、集群本身的安全漏洞、第三方集成插件。针对LLMs集成应用中的Agents等功能进行攻击，利用这些功能与业务部署环境的交互，实现对模型业务应用系统的攻击行为。成功渗透到部署环境后，可能导致敏感数据泄露，后门程序被植入等风险。
+This risk refers to attackers exploiting security issues in third-party cloud providers or self-built K8S clusters in model deployment environments, such as system permission controls, misconfigurations, cluster security vulnerabilities, and third-party integration plugins. Attackers target Agents and other functions in LLM integrated applications, leveraging the interaction of these functions with the business deployment environment to carry out attacks against the model's business application system. After successfully penetrating the deployment environment, risks such as sensitive data leakage and backdoor implantation may occur.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-Wiz通过上传恶意模型到Huggingface Face获取模型运行环境权限，进一步利用EKS集群错误配置实现权限提升。
-
-**攻击风险**
-
-资源耗尽攻击：对资源的无限制访问可能成为攻击向量，攻击者可能会消耗大量资源，影响系统的正常运行。
-特权模式运行风险：以特权模式运行的容器可能会增加系统被攻破的风险。
-未授权的集群访问：如果未实施安全措施或者集群存在错误的配置，攻击者可能会获得对整个集群的完全访问权限。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-定期审查
-定期扫描容器镜像和依赖组件，确保没有安全漏洞
+Case 1
+Wiz obtained model runtime environment permissions by uploading a malicious model to Hugging Face, then further exploited EKS cluster misconfigurations to achieve privilege escalation.
+
+**Attack Risks**
+
+Resource exhaustion attack: Unrestricted access to resources may become an attack vector; attackers may consume large amounts of resources, affecting normal system operation.
+Privileged mode execution risk: Containers running in privileged mode may increase the risk of the system being compromised.
+Unauthorized cluster access: If security measures are not implemented or the cluster has incorrect configurations, attackers may gain full access to the entire cluster.
+
+**Mitigation Measures**
+
+Mitigation Method
+Description
 
 
-资源限制和访问隔离
-实施资源限制和隔离策略，防止单个容器消耗过多资源，通过在Kubernetes中创建的密钥和特定权限角色来限制对资源的访问
 
 
-控制网络流量
-利用Kubernetes网络策略来控制Pod之间的入站和出站网络流量，减少集群内部潜在的横向移动和
+Regular Audits
+Regularly scan container images and dependency components to ensure there are no security vulnerabilities
+
+
+Resource Limits and Access Isolation
+Implement resource limits and isolation policies to prevent individual containers from consuming excessive resources; restrict access to resources through secrets and specific permission roles created in Kubernetes
+
+
+Control Network Traffic
+Use Kubernetes network policies to control inbound and outbound network traffic between Pods, reducing potential lateral movement within the cluster
 
 **参考**
 
@@ -233,156 +233,156 @@ https://pradiptabanerjee.medium.com/confidential-containers-for-large-language-m
 https://www.run.ai/guides/kubernetes-architecture/securing-your-ai-ml-kubernetes-environment
 
 ---
-### 容器集群环境攻击
+### Container Cluster Environment Attack
 
-> 风险编号: GAARM.0007
-> 生命周期: 应用阶段
+> Risk ID: GAARM.0007
+> Lifecycle: Application Phase
 
-**攻击概述**
+**Attack Overview**
 
-基于集成框架开发的LLMs应用程序，通常会集成各种功能性Agent，这些Agent会部署在Kubernetes集群的容器环境中。攻击者可以通过精心构造提示词，间接诱导LLMs的Agent执行探测容器的命令，以此实现对集群内容环境信息探测与收集，为后续的攻击过程做好前置探测。探测完毕并收集到相应的信息后，可以针对性地寻找并利用集群中的漏洞和配置问题，从而进一步渗透和攻击整个容器集群。
+LLM applications developed on integrated frameworks typically integrate various functional Agents, which are deployed in container environments within Kubernetes clusters. Attackers can craft prompts to indirectly induce LLM Agents to execute commands that probe the container, thereby achieving reconnaissance and collection of cluster environment information as a prerequisite for subsequent attacks. After completing reconnaissance and collecting the relevant information, attackers can specifically search for and exploit vulnerabilities and configuration issues in the cluster to further penetrate and attack the entire container cluster.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-在GPT4执行代码的时候，通过多次会话上下文交互以及编码方式对恶意代码进行隐藏和绕过，最终通过字符串触发执行，绕过了GPT-4的安全检查，执行了cat /etc/issue命令，成功获取到了目标环境的Linux发行版以及集群环境变量等信息
-
-**攻击风险**
-
-集群环境信息泄露：攻击者通过构造特定的提示词，可能诱使AI模型执行未授权的命令，从而泄露容器内部架构或安全配置信息。
-集群安全配置泄露：攻击者通过探测可以获得集群的安全配置细节，这可能导致集群的安全性降低，增加被攻破的风险。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-实施严格的访问控制
-确保所有服务和端口都经过严格审查，仅授权必要的访问，减少潜在的攻击面
+Case 1
+During GPT-4 code execution, malicious code was hidden and bypassed through multiple session context interactions and encoding methods, ultimately triggered via a string, bypassing GPT-4's security checks, executing the `cat /etc/issue` command, and successfully obtaining the target environment's Linux distribution and cluster environment variable information.
+
+**Attack Risks**
+
+Cluster environment information leakage: By crafting specific prompts, attackers may induce the AI model to execute unauthorized commands, thereby leaking information about the container's internal architecture or security configuration.
+Cluster security configuration leakage: Attackers can obtain cluster security configuration details through reconnaissance, which may reduce cluster security and increase the risk of being compromised.
+
+**Mitigation Measures**
+
+Mitigation Method
+Description
 
 
-输入/输出验证
-确保模型输入输出侧提示词与结果的安全性，针对可疑的攻击行为实施拦截
+
+
+Implement Strict Access Controls
+Ensure all services and ports are rigorously reviewed, authorize only necessary access, and reduce the potential attack surface.
+
+
+Input/Output Validation
+Ensure the security of prompts and results on the model's input/output side, and intercept suspicious attack behaviors.
 
 **参考**
 
 https://mp.weixin.qq.com/s/Ry1PoZLfPvw6Lj8bz14mgw
 
 ---
-## 部署阶段
+## Deployment Phase
 
-### CI&CD流程攻击
+### CI/CD Pipeline Attack
 
-> 风险编号: GAARM.0004
-> 生命周期: 部署阶段
+> Risk ID: GAARM.0004
+> Lifecycle: Deployment Phase
 
-**攻击概述**
+**Attack Overview**
 
-在大模型开发的全生命周期中，CI/CD流程负责将模型从开发环境推送到生产环境，自动化的将LLM大模型进行部署，并负责后续的更新与维护。CI&CD流程攻击是指，在CI/CD将模型推送到生产环境的过程中，由于CI/CD基础设施的漏洞、第三方工具的不可靠等，攻击者可以通过这些安全漏洞攻击CI/CD的流程，例如在其中提交恶意代码、污染依赖包等，导致模型被非法篡改、敏感信息泄露等严重后果。
+Throughout the full lifecycle of large model development, the CI/CD pipeline is responsible for pushing models from the development environment to the production environment, automating the deployment of LLM large models, and handling subsequent updates and maintenance. A CI/CD pipeline attack refers to a scenario where, during the process of CI/CD pushing a model to the production environment, attackers exploit security vulnerabilities in the CI/CD infrastructure, unreliable third-party tools, etc., to attack the CI/CD pipeline — for example by submitting malicious code or poisoning dependency packages — leading to serious consequences such as illegal model tampering and sensitive information leakage.
 
   
 
-大模型开发生命周期CI/CD流程
+LLM development lifecycle CI/CD pipeline
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-通过钓鱼手段获取开发人员或运维人员的凭证，进而在CI/CD流程中提交恶意代码。
-
-
-案例二
-利用服务器漏洞，如Gitlab、Jenkins等CI/CD基础设施的漏洞，进行攻击。
-
-
-案例三
-针对第三方工具和应用程序依赖性进行攻击，如通过污染依赖包或伪造依赖包名称上传恶意包到开源中心仓。
-
-**攻击风险**
-
-虚拟环境污染：持续集成环境中的虚拟环境或容器受到攻击，攻击者可能会篡改环境中的依赖项或运行时配置，以影响模型训练和部署的结果。
-构建和部署流程被篡改：攻击者可能尝试修改自动化构建和部署流程，以在模型部署过程中插入恶意代码或操作。
-敏感信息泄露：持续集成/持续交付环境中存储有敏感信息（如访问凭证、配置文件、密钥等），一旦被攻击者获取，可能导致敏感信息泄露和隐私风险。
-拒绝服务攻击：攻击者可能试图通过拒绝服务（DoS）攻击来使持续集成/持续交付系统无法正常工作，导致模型开发和部署过程中断或延迟。
-未经授权的模型访问：模型部署过程受到攻击，攻击者可能通过漏洞获取未经授权的访问权限，从而对模型进行非法操作或篡改。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-加强访问控制和权限管理
-限制对持续集成/持续交付系统和相关环境的访问权限，确保只有授权人员可以访问关键资源
+Case 1
+Obtain developer or operations personnel credentials through phishing, then submit malicious code into the CI/CD pipeline.
 
 
-安全更新与审计
-定期更新和审计模型部署软件以修复漏洞并增强安全性
+Case 2
+Exploit server vulnerabilities, such as vulnerabilities in CI/CD infrastructure like GitLab and Jenkins.
 
 
-加强监控和日志记录
-及时发现异常活动和攻击行为，及时采取响应措施，以减少潜在的安全风险和损失
+Case 3
+Attack third-party tools and application dependencies, such as poisoning dependency packages or uploading malicious packages with spoofed dependency names to open-source central repositories.
+
+**Attack Risks**
+
+Virtual environment contamination: Virtual environments or containers in the continuous integration environment are attacked; attackers may tamper with dependencies or runtime configurations in the environment to affect model training and deployment outcomes.
+Build and deployment pipeline tampering: Attackers may attempt to modify automated build and deployment pipelines to insert malicious code or operations during the model deployment process.
+Sensitive information leakage: CI/CD environments store sensitive information (such as access credentials, configuration files, keys, etc.); once obtained by attackers, this may lead to sensitive information leakage and privacy risks.
+Denial-of-service attack: Attackers may attempt to render CI/CD systems inoperable through denial-of-service (DoS) attacks, causing interruptions or delays in the model development and deployment process.
+Unauthorized model access: When the model deployment process is attacked, attackers may gain unauthorized access through vulnerabilities, enabling illegal operations or tampering with the model.
+
+**Mitigation Measures**
+
+Mitigation Method
+Description
+
+
+
+
+Strengthen Access Controls and Permission Management
+Restrict access to CI/CD systems and related environments, ensuring only authorized personnel can access critical resources.
+
+
+Security Updates and Audits
+Regularly update and audit model deployment software to fix vulnerabilities and enhance security.
+
+
+Strengthen Monitoring and Logging
+Promptly detect anomalous activities and attack behaviors, and take timely response measures to reduce potential security risks and losses.
 
 **参考**
 
 https://github.com/knownsec/KCon/blob/master/2023/CICD%E6%94%BB%E5%87%BB%E5%9C%BA%E6%99%AF.pdf
 
 ---
-### 云平台多租户隔离失效
+### Cloud Platform Multi-Tenant Isolation Failure
 
-> 风险编号: GAARM.0003.001
-> 生命周期: 部署阶段
+> Risk ID: GAARM.0003.001
+> Lifecycle: Deployment Phase
 
-**攻击概述**
+**Attack Overview**
 
-在多租户架构的云平台中，每个租户应拥有独立的操作环境和数据存储，确保用户行为和数据的相互隔离。隔离失效可能由设计缺陷、配置错误等引起，随着高价值算力服务的普及，攻击者可能借此突破租户边界，对其他租户的数据进行访问和篡改，甚至执行恶意操作，进而导致不同租户（用户或组织）之间的数据和资源无法得到有效保护，引发的一系列安全问题。
+In cloud platforms with multi-tenant architectures, each tenant should have an independent operating environment and data storage to ensure mutual isolation of user behavior and data. Isolation failures may be caused by design flaws, misconfigurations, etc. As high-value computing services become more prevalent, attackers may exploit this to breach tenant boundaries, access and tamper with other tenants' data, or even execute malicious operations, leading to a series of security issues where data and resources across different tenants (users or organizations) cannot be effectively protected.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-本文对“AI 模型是否在隔离环境中运行”进行了研究，Wiz利用AWS中IMDS元数据服务，完成Amazon EKS权限提升后接管整个集群服务，在EKS集群内进行横向移动，进一步可以进行跨租户访问并导致敏感数据泄露
-
-**攻击风险**
-
-数据泄露：多租户隔离失效可能导致租户之间的数据混淆或泄露，这可能包括敏感信息或个人身份信息。
-信任度下降：安全事件可能削弱用户对云服务提供商的信任。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-强化访问控制
-通过访问控制列表（ACLs）、角色基础访问控制（RBAC）等权限管控机制，强化对系统资源的访问控制
+Case 1
+This research investigated “whether AI models run in isolated environments.” Wiz exploited the AWS IMDS metadata service to complete Amazon EKS privilege escalation and take over the entire cluster service, performing lateral movement within the EKS cluster, enabling further cross-tenant access and sensitive data leakage.
+
+**Attack Risks**
+
+Data leakage: Multi-tenant isolation failures may cause data confusion or leakage between tenants, which may include sensitive information or personally identifiable information.
+Reduced trust: Security incidents may undermine user trust in cloud service providers.
+
+**Mitigation Measures**
+
+Mitigation Method
+Description
 
 
-资源监控
-监控资源使用情况，及时发现异常行为，如资源抢占或滥用
+
+
+Strengthen Access Controls
+Strengthen access control for system resources through permission management mechanisms such as Access Control Lists (ACLs) and Role-Based Access Control (RBAC).
+
+
+Resource Monitoring
+Monitor resource usage to promptly detect anomalous behaviors such as resource contention or abuse.
 
 **参考**
 
@@ -391,49 +391,49 @@ https://www.helloaliyun.com/tutorial/1039.html
 https://support.huaweicloud.com/usermanual-gaussdbformysql/gaussdbformysql_05_0347.html
 
 ---
-### 云平台安全漏洞
+### Cloud Platform Security Vulnerabilities
 
-> 风险编号: GAARM.005
-> 生命周期: 部署阶段
+> Risk ID: GAARM.005
+> Lifecycle: Deployment Phase
 
-**攻击概述**
+**Attack Overview**
 
-大模型应用由于对算力的高需求，通常需要依托云平台环境来完成训练和推理任务，因此云平台的安全性对于大模型的安全至关重要。但是由于云平台的技术缺陷、技术漏洞、缺乏多重身份验证等原因导致的安全隐患，攻击者可以利用这些安全问题，对部署在云上的大模型进行恶意攻击，例如读取敏感数据、非法窃取并使用账号凭证等，给平台带来一系列损失，包括但不限于数据泄露、服务中断、恶意代码执行等。这些攻击不仅影响大模型的安全性，还可能威胁到使用该云服务的其他用户。
+Due to their high computing demands, large model applications typically rely on cloud platform environments to complete training and inference tasks, making cloud platform security critical to large model security. However, security risks arising from technical flaws, vulnerabilities, lack of multi-factor authentication, and other issues in cloud platforms allow attackers to exploit these security problems to maliciously attack large models deployed in the cloud — for example, reading sensitive data or illegally stealing and using account credentials — causing a series of losses to the platform including but not limited to data leakage, service interruption, and malicious code execution. These attacks not only affect the security of large models but may also threaten other users of the cloud service.
 
-**攻击案例**
+**Attack Cases**
 
-案例
-描述
-
-
-
-
-案例一
-Amazon SageMaker Notebook服务发现CSRF漏洞，攻击者可能利用漏洞读取敏感数据并在客户环境中执行任意操作
-
-
-案例二
-由于Laravel 版本 ( CVE-2021-3129 ) 的系统存在安全隐患，易受攻击，导致有攻击者利用从Laravel窃取到的AWS凭证，非法探测该凭证可以使用的云端托管模型服务，受害者每天损失可超46000美元
-
-**攻击风险**
-
-数据泄露：由于云应用程序的安全漏洞、不安全的API等原因，可能导致敏感信息被未授权的第三方访问或公开，造成严重的隐私和合规性问题。
-模型应用未授权访问：云平台安全漏洞可能导致用户部署的模型应用出现未授权访问的风险。
-
-**缓解措施**
-
-缓解方式
-描述
+Case
+Description
 
 
 
 
-严格的访问控制
-确保只有经过身份验证和授权的用户可以访问API端点
+Case 1
+A CSRF vulnerability was discovered in the Amazon SageMaker Notebook service; attackers could exploit the vulnerability to read sensitive data and execute arbitrary operations in customer environments.
 
 
-最小权限原则
-实施最小权限原则，确保用户和进程仅拥有完成其任务所必需的访问权限
+Case 2
+Due to security vulnerabilities in Laravel versions (CVE-2021-3129), attackers used AWS credentials stolen from Laravel to illegally probe cloud-hosted model services accessible with those credentials; victims suffered losses of over $46,000 per day.
+
+**Attack Risks**
+
+Data leakage: Cloud application security vulnerabilities and insecure APIs may cause sensitive information to be accessed or exposed by unauthorized third parties, creating serious privacy and compliance issues.
+Unauthorized access to model applications: Cloud platform security vulnerabilities may expose user-deployed model applications to the risk of unauthorized access.
+
+**Mitigation Measures**
+
+Mitigation Method
+Description
+
+
+
+
+Strict Access Controls
+Ensure only authenticated and authorized users can access API endpoints.
+
+
+Principle of Least Privilege
+Implement the principle of least privilege, ensuring users and processes only have the minimum access permissions necessary to complete their tasks.
 
 **参考**
 
@@ -1050,7 +1050,7 @@ https://llmtop10.com/llm05/
 
 #### 2.2 Sysbox 特定检测
 
-| 检测项 | 方法 | 安全影响 |
+| 检测项 | Method | 安全影响 |
 |--------|------|----------|
 | CE vs EE版本 | `sysbox-runc --version` 或检查UID映射范围 | CE共享映射有跨租户风险 |
 | UID映射独占性 | `cat /proc/self/uid_map`, CE通常`0 165536 65536`(共享) | 共享映射→跨容器提权可能 |

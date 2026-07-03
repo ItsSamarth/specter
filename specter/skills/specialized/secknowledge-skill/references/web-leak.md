@@ -1,54 +1,54 @@
-# Web 安全 - 信息泄露
+# Web Security - Information Disclosure
 
-> 来源: WooYun 漏洞库 | 拆自 web-file-infra.md
+> Source: WooYun Vulnerability Database | Split from web-file-infra.md
 
-## 三、信息泄露
+## III. Information Disclosure
 
-### 3.1 漏洞本质
+### 3.1 Vulnerability Essence
 
 ```
-信息泄露本质: 攻击面暴露 -> 信任链断裂 -> 纵深渗透
-规律: 一个泄露点可导致整条信任链崩溃
-      源码 -> 配置 -> 数据库 -> 内网 -> 全部沦陷
+Information disclosure essence: Attack surface exposure -> Trust chain breach -> In-depth penetration
+Pattern: A single leak point can cause the entire trust chain to collapse
+         Source code -> Config -> Database -> Internal network -> Total compromise
 ```
 
-### 3.2 敏感文件路径字典
+### 3.2 Sensitive File Path Dictionary
 
-版本控制泄露:
+Version control disclosure:
 
 ```bash
-# Git泄露 (检测优先级最高)
-/.git/config          # 含远程仓库地址
-/.git/HEAD            # 当前分支
-/.git/index           # 暂存区索引
-/.git/logs/HEAD       # 操作日志
+# Git disclosure (highest detection priority)
+/.git/config          # Contains remote repository URL
+/.git/HEAD            # Current branch
+/.git/index           # Staging area index
+/.git/logs/HEAD       # Operation log
 
-# SVN泄露
-/.svn/entries         # SVN 1.6及以下
-/.svn/wc.db           # SVN 1.7+ SQLite数据库
+# SVN disclosure
+/.svn/entries         # SVN 1.6 and below
+/.svn/wc.db           # SVN 1.7+ SQLite database
 
-# 利用工具: dvcs-ripper, GitHack, svn-extractor
+# Exploitation tools: dvcs-ripper, GitHack, svn-extractor
 ```
 
-备份文件泄露:
+Backup file disclosure:
 
 ```bash
-# 压缩包备份 (530例命中)
+# Archive backups (530 hits)
 /wwwroot.rar | /www.zip | /web.rar | /backup.zip | /site.tar.gz
 /{domain}.zip | /{domain}.rar
 
-# SQL备份 (136例命中)
+# SQL backups (136 hits)
 /backup.sql | /database.sql | /db.sql | /dump.sql
 
-# 配置备份 (101例命中)
+# Config backups (101 hits)
 /config.php.bak | /web.config.bak | /.env.bak
 /config_global.php.bak
 ```
 
-配置文件泄露:
+Configuration file disclosure:
 
 ```bash
-# 通用
+# General
 /.env | /.env.local | /.env.production
 /config.yml | /config.json | /appsettings.json
 
@@ -63,30 +63,30 @@
 /web.config | /connectionStrings.config
 ```
 
-探针/调试/日志文件:
+Probe / debug / log files:
 
 ```bash
-# 探针文件
+# Probe files
 /phpinfo.php | /info.php | /test.php | /probe.php
 
-# 日志文件
+# Log files
 /ctp.log | /logs/ctp.log | /debug.log | /storage/logs/
 
-# 管理界面
+# Admin interfaces
 /phpmyadmin/ | /pma/ | /adminer.php
 /swagger-ui.html | /api-docs
 /actuator/env                    # Spring Boot
 ```
 
-### 3.3 探测方法论
+### 3.3 Detection Methodology
 
 ```
-Phase 1 被动收集: 响应头(Server/X-Powered-By) -> 错误页面 -> robots.txt -> 源码注释/JS
-Phase 2 定向探测: 版本控制(.git/.svn) -> 备份文件(域名/日期) -> 敏感路径
-Phase 3 搜索引擎: Google Hacking语法
+Phase 1 Passive collection: Response headers (Server/X-Powered-By) -> Error pages -> robots.txt -> Source code comments/JS
+Phase 2 Targeted probing: Version control (.git/.svn) -> Backup files (domain/date) -> Sensitive paths
+Phase 3 Search engines: Google Hacking syntax
 ```
 
-Google Hacking速查:
+Google Hacking quick reference:
 
 ```
 site:target.com filetype:sql | filetype:bak | filetype:zip
@@ -96,20 +96,20 @@ site:target.com inurl:phpinfo | intitle:phpinfo
 site:target.com "db_password" | "mysql_connect"
 ```
 
-### 3.4 信息利用链
+### 3.4 Information Exploitation Chain
 
 ```
-源码泄露   -> 配置文件 -> 数据库凭证 -> 数据库接管 -> 服务器提权
-版本控制   -> 源码审计 -> SQL注入等  -> 管理权限   -> 文件上传getshell
-配置泄露   -> DB连接串 -> 数据库    -> 用户数据   -> 业务接管
-日志泄露   -> Session  -> 身份劫持  -> 业务数据   -> 横向移动
-API接口    -> 凭证/密码 -> 解密     -> 批量控制   -> 全面渗透
-第三方凭证 -> 短信/OSS -> 验证码    -> 账户接管   -> 数据泄露
+Source code leak  -> Config file    -> DB credentials  -> DB takeover    -> Server privilege escalation
+Version control   -> Source audit   -> SQL injection    -> Admin access   -> File upload to get shell
+Config leak       -> DB connection  -> Database        -> User data      -> Business takeover
+Log leak          -> Session        -> Identity hijack -> Business data  -> Lateral movement
+API interface     -> Credentials    -> Decryption      -> Mass control   -> Full penetration
+Third-party creds -> SMS/OSS        -> Verification    -> Account takeover -> Data breach
 ```
 
-### 3.5 防御措施
+### 3.5 Defense Measures
 
-Nginx安全配置:
+Nginx security configuration:
 
 ```nginx
 location ~ /\.(git|svn|env|htaccess|htpasswd) { deny all; return 404; }
@@ -119,7 +119,7 @@ autoindex off;
 server_tokens off;
 ```
 
-Apache安全配置:
+Apache security configuration:
 
 ```apache
 <FilesMatch "\.(git|svn|env|bak|sql|log|config)">
@@ -130,7 +130,6 @@ Options -Indexes
 ServerSignature Off
 ```
 
-CI/CD集成: 部署前扫描敏感文件 -> 禁止.git/.svn部署 -> 配置文件加密
+CI/CD integration: Scan for sensitive files before deployment -> Prohibit deploying .git/.svn -> Encrypt config files
 
 ---
-
